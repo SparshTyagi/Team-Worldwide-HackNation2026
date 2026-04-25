@@ -1,0 +1,66 @@
+{
+  "merchant_id": "m_1021",
+  "campaign_goal": "fill_quiet_hours",
+  "constraints": {
+    "max_discount_pct": 20,
+    "max_discount_amount_eur": 5,
+    "daily_campaign_budget_eur": 120,
+    "weekly_campaign_budget_eur": 700,
+    "max_redemptions_per_day": 60,
+    "max_cashback_per_redemption_eur": 2,
+    "eligible_categories": [
+      "hot_drinks",
+      "pastries"
+    ],
+    "excluded_skus": [
+      "alcohol"
+    ],
+    "min_order_value_eur": 6,
+    "bundle_required": false,
+    "inventory_guardrail": "avoid_low_stock",
+    "active_days": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri"
+    ],
+    "active_hours": [
+      "10:00-12:00",
+      "15:00-17:30"
+    ],
+    "max_offer_validity_minutes": 20,
+    "blackout_periods": [
+      "12:00-14:00"
+    ],
+    "cooldown_minutes_per_user": 120,
+    "service_radius_km": 2.0,
+    "allowed_area_cells": [
+      "u0wtm3",
+      "u0wtm6"
+    ],
+    "max_walking_time_minutes": 10,
+    "allowed_channels": [
+      "push",
+      "in_app"
+    ],
+    "max_push_per_day": 2,
+    "tone_whitelist": [
+      "factual",
+      "friendly"
+    ],
+    "brand_safety_terms": {
+      "required": [
+        "terms_apply"
+      ],
+      "forbidden": [
+        "guaranteed"
+      ]
+    },
+    "repeat_targeting_limit": 2,
+    "sensitive_context_blocklist": [
+      "low_receptivity_do_not_push"
+    ],
+    "conservative_mode": true
+  }
+}

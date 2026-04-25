@@ -1,0 +1,9 @@
+{
+  "city": "stuttgart",
+  "area_cell_id": "u0wtm3",
+  "observed_at_utc": "2026-04-25T20:30:00Z",
+  "weather_summary": "11C overcast",
+  "temperature_c": 11,
+  "precipitation_mm": 0.2,
+  "condition": "overcast"
+}

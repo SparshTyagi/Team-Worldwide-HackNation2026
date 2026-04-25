@@ -1,0 +1,12 @@
+{
+  "user_pseudonym": "usr_9f2a",
+  "limit": 4,
+  "channel": "in_app",
+  "locality": {
+    "mode": "radius",
+    "radius_km": 2.0,
+    "area_cell_ids": [
+      "u0wtm3"
+    ]
+  }
+}

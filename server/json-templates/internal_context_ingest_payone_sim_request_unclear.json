@@ -1,0 +1,9 @@
+{
+  "merchant_id": "m_1021",
+  "snapshot_at_utc": "2026-04-25T20:30:00Z",
+  "merchant_transaction_density_index": 32,
+  "baseline_hourly_tx_count": 38,
+  "current_hour_tx_count": 21,
+  "quiet_hour_gap_pct": 44.7,
+  "avg_ticket_size_eur": 8.6
+}

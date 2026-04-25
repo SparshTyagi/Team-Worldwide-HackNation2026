@@ -1,0 +1,39 @@
+{
+  "request_id": "req_01HXYZ",
+  "generation_mode": "offer_card_v1",
+  "merchant_profile": {
+    "merchant_id": "m_1021",
+    "category": "cafe",
+    "is_open_now": true,
+    "price_band": "mid"
+  },
+  "constraints": {
+    "max_discount_pct": 20,
+    "campaign_goal": "fill_quiet_hours",
+    "excluded_skus": [
+      "alcohol"
+    ],
+    "max_validity_minutes": 30
+  },
+  "intent_packet": {
+    "intent_label": "warm_break_seek",
+    "intent_confidence": 0.82,
+    "receptivity_level": "high",
+    "time_budget_minutes": 12,
+    "tone_preference": "emotional",
+    "hard_constraints": [
+      "vegetarian_only"
+    ]
+  },
+  "context_snapshot": {
+    "weather_summary": "11C overcast",
+    "demand_gap_pct": 38,
+    "event_intensity": "low",
+    "local_time_bucket": "lunch"
+  },
+  "channel_context": {
+    "channel": "push",
+    "headline_char_limit": 64,
+    "body_char_limit": 90
+  }
+}

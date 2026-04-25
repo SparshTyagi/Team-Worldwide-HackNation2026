@@ -1,0 +1,50 @@
+{
+  "intent_id": "uuid",
+  "timestamp_utc": "2026-04-25T20:30:00Z",
+  "user_pseudonym": "usr_9f2a",
+  "intent_label": "warm_break_seek",
+  "intent_confidence": 0.82,
+  "receptivity_level": "high",
+  "time_budget_minutes": 12,
+  "mobility_mode": "walking",
+  "sensitivity_level": "medium",
+  "tone_preference": "emotional",
+  "hard_constraints": [
+    "no_alcohol"
+  ],
+  "privacy_flags": {
+    "raw_location_shared": false,
+    "raw_behavior_shared": false
+  },
+  "locality": {
+    "mode": "area_cells",
+    "radius_km": 2.0,
+    "area_cell_ids": [
+      "u0wtm3",
+      "u0wtm6"
+    ],
+    "nearby_merchant_ids": [
+      "m_1021"
+    ],
+    "path_waypoints": [
+      {
+        "lat": 48.7758,
+        "lon": 9.1829
+      },
+      {
+        "lat": 48.7823,
+        "lon": 9.177
+      }
+    ],
+    "buffer_radius_meters": 500
+  },
+  "next_best_intents": [
+    {
+      "intent_label": "quick_lunch_now",
+      "intent_confidence": 0.57
+    }
+  ],
+  "intent_stability_score": 0.74,
+  "cold_start_flag": false,
+  "city_context_ref": "ctx_stuttgart_20260425_1130"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "city-wallet-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@openrouter/sdk": "^0.12.21"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  }
+}

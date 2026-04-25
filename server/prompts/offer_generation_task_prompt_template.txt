@@ -1,0 +1,8 @@
+Generate one offer card from this input bundle:
+{{INPUT_JSON}}
+
+Instructions:
+- Align to campaign_goal and context_snapshot.
+- If locality is constrained by radius or area cells, assume only those merchants are eligible.
+- Keep tone aligned with tone_preference.
+- Return strict JSON only.

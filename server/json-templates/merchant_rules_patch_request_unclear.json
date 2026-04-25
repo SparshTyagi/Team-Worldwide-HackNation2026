@@ -1,0 +1,13 @@
+{
+  "merchant_rule_id": "mr_2201",
+  "merchant_id": "m_1021",
+  "constraints": {
+    "max_discount_pct": 15,
+    "daily_campaign_budget_eur": 140,
+    "active_hours": [
+      "09:30-11:30",
+      "15:00-17:30"
+    ],
+    "max_push_per_day": 1
+  }
+}
