@@ -22,24 +22,21 @@ To win, the demo must prove all required modules in one connected flow:
 ## 3) Product Scope (Hackathon MVP vs. Future)
 
 ### MVP In-Scope (Must Build)
-
-- Mobile app with push + in-app offer card.
-- Context ingestion pipeline (weather + location + time + simulated merchant demand; optionally events).
+- Mobile app with push + in-app multi-offer feed.
+- Context ingestion pipeline (weather + location/path + time + simulated merchant demand; optionally events).
 - On-device intent inference using SLM or distilled classifier.
 - Server-side offer generation orchestration with guardrails.
-- Offer acceptance/dismissal + expiry handling.
+- Multi-offer ranking (serving a feed of relevant generative offers, rather than just one).
 - Simulated checkout redemption using dynamic QR/token or cashback ledger.
-- Merchant dashboard with rule setup + aggregate performance metrics.
+- Merchant onboarding via Google Maps link scraping (LLM auto-fill) + rule setup.
+- Merchant dashboard with aggregate performance metrics.
 
 ### Stretch (If Time Allows)
-
 - AR-lite overlay prototype (camera + directional arrow).
-- Multi-offer ranking and adaptive channel selection.
 - Explainability panel ("why this offer now").
 - A/B testing for tone style (factual vs emotional copy).
 
 ### Explicitly Out-of-Scope for Hackathon
-
 - Full production payment integration.
 - Large-scale merchant onboarding platform.
 - Long-horizon user behavior modeling (months of history).
@@ -116,14 +113,15 @@ With side channels:
 Do not score the entire city for every user interaction. Use a local-area candidate stage first.
 
 Recommended flow:
-1. Client computes a local search envelope (for example 1-3 km radius or geohash cell set).
+1. Client computes a local search envelope (e.g., 1-3 km radius, geohash cell set, or a **path-based routing corridor** between pinned Home/Work locations).
 2. Client sends one of:
    - `radius_km` + coarse center token, or
    - `area_cell_ids` (preferred for privacy), or
+   - `path_waypoints` (for commute-based routing), or
    - pre-filtered nearby `merchant_ids`.
-3. Server fetches only merchants in that envelope.
-4. Trigger scoring + LLM generation runs only on that subset.
-5. Client performs final distance sort locally before rendering.
+3. Server fetches only merchants in that envelope/corridor.
+4. Trigger scoring + LLM generation + multi-offer ranking runs only on that subset.
+5. Client performs final distance sort locally before rendering the feed.
 
 Why this is better:
 - Cuts compute and latency versus whole-city candidate generation.
@@ -662,23 +660,24 @@ For the challenge, use realistic but simulated financial and transactional field
 - `PATCH /v1/merchant/rules/{id}`.
 
 ### Internal APIs
+- `POST /internal/context/ingest/weather`
+- `POST /internal/context/ingest/events`
+- `POST /internal/context/ingest/payone-sim`
+- `POST /internal/generation/run`
+- `POST /internal/merchant/scrape-profile` (Fetches Maps URL and uses LLM to extract tags, hours, and category).
 
-- `POST /internal/context/ingest/weather`.
-- `POST /internal/context/ingest/events`.
-- `POST /internal/context/ingest/payone-sim`.
-- `POST /internal/generation/run`.
-
-Locality request shape (recommended):
-
-```json
+Locality request shape (Updated for path routing):
 {
   "user_pseudonym": "usr_9f2a",
   "intent_label": "warm_break_seek",
   "intent_confidence": 0.82,
   "locality": {
-    "mode": "area_cells",
-    "radius_km": 2.0,
-    "area_cell_ids": ["u0wtw3", "u0wtw9", "u0wtwd"]
+    "mode": "path_corridor",
+    "path_waypoints": [
+      {"lat": 48.7758, "lon": 9.1829},
+      {"lat": 48.7823, "lon": 9.1770}
+    ],
+    "buffer_radius_meters": 500
   }
 }
 ```
@@ -769,11 +768,12 @@ Example merchant rule payload:
    - Redemption rate.
    - Estimated incremental revenue.
 
-2. **Rule Builder**
+2. **Rule Builder & Onboarding**
+   - **Google Maps Auto-Fill:** Merchant pastes their Google Maps URL; backend scrapes the page and uses an LLM to auto-extract category, opening hours, and tags (e.g., Espresso bar, Vegan options).
+   - Merchant confirms or edits the AI-extracted profile.
    - Campaign goal selector: `fill_quiet_hours`, `clear_inventory`, `increase_repeat_visits`.
    - Max discount slider (e.g., 5-20%).
-   - Valid time windows.
-   - Excluded SKUs/categories.
+   - Valid time windows & Excluded SKUs.
 
 3. **Context Performance**
    - Which contexts trigger best outcomes.
@@ -893,25 +893,22 @@ Merchant-facing actions from alerts:
 ## 12) Consumer Experience Blueprint
 
 ### 12.1 Entry Channels
+- Push notification for highly urgent context windows (limited to top-ranked offer).
+- In-app "Nearby now" dynamic feed (scrollable list of 2-4 generated offers based on path/radius).
+- Optional lock-screen widget for glanceable top offers.
 
-- Push notification for urgent context windows.
-- In-app "Nearby now" feed for non-urgent.
-- Optional lock-screen widget for glanceable offers.
-
-### 12.2 Offer Card Structure (3-Second Rule)
-
+### 12.2 Offer Card Structure (Feed Items - 3-Second Rule)
 Top area (instant recognition):
-- Headline ("Cold outside? Warm cappuccino 80m away")
-- Benefit ("20% off next 15 min")
+- Headline ("Tony just brewed a fresh batch")
+- Benefit ("€3.40 instead of €8.40")
 
 Middle area:
-- Distance + ETA.
-- Why now hint ("quiet hour special")
+- Distance + ETA / Walk mapping visual.
+- Why now hint (e.g., "Rainy-day whisper" or "Quiet-hour special").
 
 Bottom area:
-- Primary CTA: `Claim Offer`.
-- Secondary: `Not now`.
-- Expiry timer.
+- Primary CTA: `Redeem now` / `Start the walk`.
+- Expiry timer (e.g., "14 min left").
 
 ### 12.3 Redemption Flow
 
