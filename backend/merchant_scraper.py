@@ -91,9 +91,11 @@ class MerchantScraper:
                     "Thursday": "09:00-17:00",
                     "Friday": "09:00-17:00",
                     "Saturday": "09:00-17:00",
-                    "Sunday": "Closed"
+                    "Sunday": "Unknown"
                   }}
                 }}
+                
+                Important Rule: If the business hours are not mentioned in the search results, output "Unknown" instead of "Closed".
                 
                 Search Results:
                 {raw_text}
