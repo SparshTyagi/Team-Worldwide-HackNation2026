@@ -9,11 +9,9 @@ Use two env files for local development:
 3. Set `OPENROUTER_API_KEY` in both files if you run both stacks locally.
 4. Keep secret files local only. Never commit `.env`, `.env.local`, or any real API key.
 
-Current model mapping:
+Current model in use:
 
 - Offer generation: `nvidia/nemotron-3-super:free`
-- Merchant analytics: `deepseek/deepseek-r1:free`
-- Intent prototyping: `google/gemma-3-4b:free`
 
 ## Client-Side LLM Setup (OpenRouter)
 
