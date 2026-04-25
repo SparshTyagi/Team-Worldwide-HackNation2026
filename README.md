@@ -2,9 +2,12 @@
 
 ## Local Environment Setup
 
-1. Copy `.env.example` to `.env.local`.
-2. Set `OPENROUTER_API_KEY` to your active OpenRouter key.
-3. Keep secret files local only. Never commit `.env`, `.env.local`, or any real API key.
+Use two env files for local development:
+
+1. Copy root `.env.example` to root `.env.local` for client/demo scripts.
+2. Copy `server/.env.example` to `server/.env` for backend runtime.
+3. Set `OPENROUTER_API_KEY` in both files if you run both stacks locally.
+4. Keep secret files local only. Never commit `.env`, `.env.local`, or any real API key.
 
 Current model mapping:
 
@@ -31,6 +34,8 @@ Run locally:
 node client/llm/example-usage.js
 ```
 
+This script is an optional direct LLM utility path. For judged end-to-end flow, use the backend canonical path in the next sections.
+
 This setup expects:
 
 - `OPENROUTER_API_KEY` (Node/local direct mode)
@@ -43,7 +48,7 @@ Important: browser calls now block direct API-key usage by default. Use backend 
 
 ## Local OpenRouter Proxy
 
-Use the included proxy route when running browser/client code:
+Use the included proxy route when running browser/client code that must not expose API keys.
 
 - Endpoint: `POST /v1/offer/openrouter`
 - Health check: `GET /health`
@@ -77,6 +82,10 @@ Canonical demo/runtime path (recommended for challenge):
 - Client redemption flow uses backend redemption endpoints
 - Merchant dashboard reads backend dashboard endpoints
 
+Canonical backend runtime env source:
+
+- `server/.env` (loaded by `server/src/config.js` for `node server/src/index.js`)
+
 Optional utility path:
 
 - `server/openrouter-proxy.js` (`/v1/offer/openrouter`) is a direct OpenRouter relay utility for browser-safe key handling.
@@ -99,6 +108,12 @@ Run end-to-end brain example:
 ```bash
 node client/brain/example-usage.js
 ```
+
+Recommended local run order for canonical challenge flow:
+
+1. Start backend: `node server/src/index.js`
+2. Run brain example against backend: `node client/brain/example-usage.js`
+3. Optionally run smoke flow: `npm --prefix server run smoke:e2e`
 
 Brain example environment:
 

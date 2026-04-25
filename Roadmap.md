@@ -668,10 +668,13 @@ For the challenge, use realistic but simulated financial and transactional field
 - `POST /internal/merchant/scrape-profile` (Fetches Maps URL and uses LLM to extract tags, hours, and category).
 
 Locality request shape (Updated for path routing):
+```json
 {
   "user_pseudonym": "usr_9f2a",
   "intent_label": "warm_break_seek",
   "intent_confidence": 0.82,
+  "tone_preference": "friendly",
+  "channel_hint": "in_app_only",
   "locality": {
     "mode": "path_corridor",
     "path_waypoints": [
@@ -682,6 +685,10 @@ Locality request shape (Updated for path routing):
   }
 }
 ```
+
+Server-compatible values used in this repo:
+- `tone_preference`: `factual | emotional | neutral | minimal | friendly | playful`
+- `channel_hint`: `push | in_app_only | in_app | widget`
 
 ---
 

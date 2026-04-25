@@ -9,6 +9,9 @@ const env = {
 };
 
 async function main() {
+  console.log(
+    "Running optional direct LLM utility example. Canonical challenge flow uses server /v1/offer/generate.",
+  );
   const result = await generateOfferCard({
     env,
     contextInput: {

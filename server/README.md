@@ -36,6 +36,8 @@ server falls back to deterministic generation.
 - Copy `server/.env.example` to `server/.env` (or edit the existing `server/.env`).
 - Set `OPENROUTER_API_KEY` to a **new** key after rotating any exposed one.
 - `server/.env` is gitignored; the server loads it automatically on startup.
+- Root `.env.local` is not auto-loaded by the server runtime.
+- If you run `openrouter-proxy.js`, export env vars in your shell or provide them inline for that process.
 
 ## Canonical challenge endpoint
 - `POST /v1/offer/generate` accepts client intent packet and returns:

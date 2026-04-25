@@ -245,7 +245,10 @@ export const schemas = {
     time_budget_minutes: optional(vNumber({ min: 1, max: 180, integer: true })),
     mobility_mode: optional(vEnum(["walking", "stationary", "transit"])),
     sensitivity_level: optional(vEnum(["low", "medium", "high"])),
-    tone_preference: optional(vEnum(["factual", "emotional", "neutral", "minimal"])),
+    tone_preference: optional(
+      vEnum(["factual", "emotional", "neutral", "minimal", "friendly", "playful"])
+    ),
+    channel_hint: optional(vEnum(["push", "in_app_only", "in_app", "widget"])),
     hard_constraints: optional(vArray(vString({ minLength: 1 }))),
     privacy_flags: optional(
       vObject({
