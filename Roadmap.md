@@ -1082,8 +1082,26 @@ These metrics are critical for proving reliability in demo Q&A.
 
 ### AI
 
-- Server LLM via provider API with JSON mode.
-- Prompt versioning to compare generation quality quickly.
+- Provider gateway: OpenRouter.
+- Credentials: use `OPENROUTER_API_KEY` via environment variables only (never hardcode in source, docs, or commits).
+- Model routing (primary):
+- Offer generation: `nvidia/nemotron-3-super:free`.
+  - Merchant analytics reasoning/summaries: `deepseek/deepseek-r1:free`.
+  - Intent prototyping and lightweight on-device-aligned experiments: `google/gemma-3-4b:free`.
+- Operational policy:
+  - keep model names in config for easy switching,
+  - log `model_version` and prompt version per request,
+  - use deterministic fallback templates if model response fails schema checks.
+
+Example environment configuration (local only):
+
+```bash
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_OFFER_MODEL=nvidia/nemotron-3-super:free
+OPENROUTEROFFERMODEL=nvidia/nemotron-3-super:free
+OPENROUTER_ANALYTICS_MODEL=deepseek/deepseek-r1:free
+OPENROUTER_INTENT_MODEL=google/gemma-3-4b:free
+```
 
 ---
 
