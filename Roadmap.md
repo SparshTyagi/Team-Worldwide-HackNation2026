@@ -1183,17 +1183,7 @@ Why this stands out:
 
 ---
 
-## 20) Team Operating Model (Who Owns What)
-
-- **Product/UX Lead:** user journey, offer card, merchant UX, demo story.
-- **Mobile Engineer:** client app, intent signal module, redemption UI.
-- **Backend Engineer:** context ingestion, generation orchestration, APIs.
-- **Data/AI Engineer:** scoring logic, prompting, generation quality, KPIs.
-- **Presenter/Integrator:** live demo reliability, narrative, fallback control.
-
----
-
-## 21) Definition of Done (MVP)
+## 20) Definition of Done (MVP)
 
 Project is done when all are true:
 
