@@ -5,12 +5,14 @@ Backend MVP for the roadmap contracts.
 ## Run
 - `node src/index.js`
 - Health check: `GET /health`
+- End-to-end smoke flow (server running): `npm run smoke:e2e`
 
 ## Model configuration
 The server now uses OpenRouter SDK in `src/llm/client.js`.
 
-- Default model: `nvidia/nemotron-3-super-120b-a12b:free`
-- Override model with: `OPENROUTER_MODEL`
+- Default model: `nvidia/nemotron-3-super:free`
+- Canonical override model var: `OPENROUTER_OFFER_MODEL`
+- Backward-compatible aliases: `OPENROUTEROFFERMODEL`, `OPENROUTER_MODEL`
 - API key env var: `OPENROUTER_API_KEY`
 
 If the API key is missing, streaming fails, or model output is not valid JSON, the
@@ -34,6 +36,13 @@ server falls back to deterministic generation.
 - Copy `server/.env.example` to `server/.env` (or edit the existing `server/.env`).
 - Set `OPENROUTER_API_KEY` to a **new** key after rotating any exposed one.
 - `server/.env` is gitignored; the server loads it automatically on startup.
+
+## Canonical challenge endpoint
+- `POST /v1/offer/generate` accepts client intent packet and returns:
+  - `offer` (canonical offer JSON),
+  - `model_version`,
+  - `prompt_version`,
+  - `used_fallback`.
 
 ## Merchants (seed via HTTP)
 - `POST /internal/merchants` — upsert one merchant row (strict JSON schema).

@@ -1,7 +1,6 @@
-"use strict";
-
-const http = require("node:http");
-const { URL } = require("node:url");
+import http from "node:http";
+import { URL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -75,7 +74,7 @@ async function handleOpenRouterProxy(req, res, config) {
   }
 }
 
-function createProxyServer({
+export function createProxyServer({
   openRouterApiKey = process.env.OPENROUTER_API_KEY,
   expectedSessionToken = process.env.OPENROUTER_PROXY_SESSION_TOKEN,
   httpReferer = process.env.OPENROUTER_HTTP_REFERER || "https://localhost",
@@ -102,13 +101,17 @@ function createProxyServer({
   });
 }
 
-if (require.main === module) {
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isMain) {
   const port = Number(process.env.OPENROUTER_PROXY_PORT || 8787);
+  if (!process.env.OPENROUTER_API_KEY) {
+    console.warn("Warning: OPENROUTER_API_KEY is missing. Proxy requests will fail.");
+  }
+  if (!process.env.OPENROUTER_PROXY_SESSION_TOKEN) {
+    console.warn("Warning: OPENROUTER_PROXY_SESSION_TOKEN is not set. Proxy will accept unsigned sessions.");
+  }
   const server = createProxyServer();
   server.listen(port, () => {
-    // eslint-disable-next-line no-console
     console.log(`OpenRouter proxy listening on http://localhost:${port}`);
   });
 }
-
-module.exports = { createProxyServer };

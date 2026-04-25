@@ -1,13 +1,6 @@
 import { config } from "../config.js";
 import { SYSTEM_PROMPT, buildTaskPrompt } from "./prompts.js";
-import { OpenRouter } from "@openrouter/sdk";
-
-let openrouter;
-if (config.openRouterApiKey) {
-  openrouter = new OpenRouter({
-    apiKey: config.openRouterApiKey,
-  });
-}
+const OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 function deterministicFallback(input) {
   const merchant = input.merchant_profile;
@@ -179,7 +172,7 @@ export async function generateOffer(input) {
     task_prompt: buildTaskPrompt(input),
   };
 
-  if (!config.llmModel || !config.openRouterApiKey || !openrouter) {
+  if (!config.llmModel || !config.openRouterApiKey) {
     return {
       output: deterministicFallback(input),
       meta: {
@@ -191,25 +184,30 @@ export async function generateOffer(input) {
   }
 
   try {
-    const stream = await openrouter.chat.send({
-      chatRequest: {
+    const upstream = await fetch(OPENROUTER_CHAT_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.openRouterApiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": process.env.OPENROUTER_HTTP_REFERER || "https://localhost",
+        "X-Title": process.env.OPENROUTER_APP_TITLE || "Generative City Wallet",
+      },
+      body: JSON.stringify({
         model: config.llmModel,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: buildTaskPrompt(input) },
         ],
-        stream: true,
-        responseFormat: { type: "json_object" },
-      },
+        response_format: { type: "json_object" },
+      }),
     });
-
-    let responseText = "";
-    let usage;
-    for await (const chunk of stream) {
-      const content = chunk.choices?.[0]?.delta?.content;
-      if (content) responseText += content;
-      if (chunk.usage) usage = chunk.usage;
+    if (!upstream.ok) {
+      const err = await upstream.text();
+      throw new Error(`openrouter_http_${upstream.status}: ${err}`);
     }
+    const responseJson = await upstream.json();
+    const responseText = responseJson?.choices?.[0]?.message?.content || "";
+    const usage = responseJson?.usage || null;
 
     const jsonText = extractFirstJsonObject(responseText);
     if (!jsonText) {

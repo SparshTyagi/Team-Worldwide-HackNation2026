@@ -5,6 +5,7 @@ import { SchemaValidationError, validateSchema } from "./validation.js";
 import {
   ingestIntent,
   listActiveOffers,
+  generateOfferForIntent,
   recordDecision,
   createRedemptionToken,
   validateRedemption,
@@ -70,6 +71,26 @@ const server = http.createServer(async (req, res) => {
         locality,
       });
       return sendValidatedOutput(res, "get_active_offers_output", await listActiveOffers(query));
+    }
+
+    if (req.method === "POST" && pathname === "/v1/offer/generate") {
+      const body = requireValidInput("offer_generate_input", await readJsonBody(req));
+      const out = await generateOfferForIntent({
+        intentPacket: body.intent_packet,
+        channel: body.channel || "in_app",
+        locality: body.locality,
+      });
+      return sendValidatedOutput(
+        res,
+        "offer_generate_output",
+        {
+          offer: out.offer,
+          model_version: body.model || out.model_version,
+          prompt_version: body.prompt_version || out.prompt_version,
+          used_fallback: out.used_fallback,
+        },
+        200
+      );
     }
 
     if (req.method === "POST" && pathname.startsWith("/v1/offers/") && pathname.endsWith("/decision")) {
@@ -220,5 +241,10 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(config.port, config.host, () => {
+  if (!config.openRouterApiKey) {
+    console.warn(
+      "Warning: OPENROUTER_API_KEY is missing. Offer generation will run in deterministic fallback mode."
+    );
+  }
   console.log(`City Wallet server listening on http://${config.host}:${config.port}`);
 });

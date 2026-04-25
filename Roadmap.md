@@ -645,6 +645,7 @@ For the challenge, use realistic but simulated financial and transactional field
 ### Client-Facing APIs
 
 - `POST /v1/intent-signal` - submit abstract on-device intent.
+- `POST /v1/offer/generate` - generate a canonical offer payload directly from intent packet.
 - `GET /v1/offers/active` - fetch live generated offers.
 - `POST /v1/offers/{id}/decision` - accept/dismiss action.
 - `POST /v1/redemption/create-token` - create QR/token.

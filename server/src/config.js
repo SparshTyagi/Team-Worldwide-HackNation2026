@@ -35,7 +35,10 @@ export const config = {
   host: process.env.HOST || "0.0.0.0",
   openRouterApiKey: process.env.OPENROUTER_API_KEY,
   llmModel:
-    process.env.OPENROUTER_MODEL || "nvidia/nemotron-3-super-120b-a12b:free",
+    process.env.OPENROUTER_OFFER_MODEL ||
+    process.env.OPENROUTEROFFERMODEL ||
+    process.env.OPENROUTER_MODEL ||
+    "nvidia/nemotron-3-super:free",
   defaults: {
     radiusKm: 2,
     offerTtlMinutes: 15,

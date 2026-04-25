@@ -22,68 +22,16 @@ export async function listActiveOffers(query) {
   const user = query.user_pseudonym || "unknown_user";
   const intents = Array.from(db.intents.values()).filter((i) => i.user_pseudonym === user);
   const latestIntent = intents[intents.length - 1];
-
-  const candidates = filterMerchantsByLocality(db.merchants, query.locality || latestIntent?.locality, config.defaults.radiusKm);
-  const selectedMerchant = candidates[0] || db.merchants[0];
-
-  const merchantRule = db.merchantRules.get(selectedMerchant.merchant_id) || {
-    campaign_goal: "fill_quiet_hours",
-    constraints: { max_discount_pct: 20, max_validity_minutes: config.defaults.offerTtlMinutes },
-  };
-
-  const generationInput = {
-    request_id: `req_${Date.now()}`,
-    generation_mode: "offer_card_v1",
-    merchant_profile: {
-      merchant_id: selectedMerchant.merchant_id,
-      category: selectedMerchant.category,
-      is_open_now: selectedMerchant.is_open_now,
-      price_band: selectedMerchant.price_band,
-    },
-    constraints: {
-      max_discount_pct: merchantRule.constraints?.max_discount_pct || 20,
-      campaign_goal: merchantRule.campaign_goal,
-      excluded_skus: merchantRule.constraints?.excluded_skus || [],
-      max_validity_minutes: merchantRule.constraints?.max_offer_validity_minutes || config.defaults.offerTtlMinutes,
-    },
-    intent_packet: {
-      intent_label: latestIntent?.intent_label || "browse_local_shops",
-      intent_confidence: latestIntent?.intent_confidence || 0.55,
-      receptivity_level: latestIntent?.receptivity_level || "medium",
-      time_budget_minutes: latestIntent?.time_budget_minutes || 15,
-      tone_preference: latestIntent?.tone_preference || "neutral",
-      hard_constraints: latestIntent?.hard_constraints || [],
-    },
-    context_snapshot: {
-      weather_summary: db.context.weather.at(-1)?.weather_summary || "unknown",
-      demand_gap_pct: db.context.payone.at(-1)?.quiet_hour_gap_pct || 0,
-      event_intensity: db.context.events.at(-1)?.event_intensity || "low",
-      local_time_bucket: "lunch",
-    },
-    channel_context: {
-      channel: query.channel || "in_app",
-      headline_char_limit: 64,
-      body_char_limit: 90,
-    },
-  };
-
-  const generated = await generateOffer(generationInput);
-  const offerId = generated.output.offer_idempotency_key;
-  const expiresAt = new Date(Date.now() + generated.output.valid_for_minutes * 60000).toISOString();
-
-  const offerRecord = {
-    offer_id: offerId,
-    merchant_id: selectedMerchant.merchant_id,
-    user_pseudonym: user,
-    status: "shown",
-    created_at_utc: nowIso(),
-    expires_at_utc: expiresAt,
-    generation_meta: generated.meta,
-    ...generated.output,
-  };
-
-  db.offers.set(offerId, offerRecord);
-  db.offerEvents.push({ offer_id: offerId, user_pseudonym: user, event: "shown", at_utc: nowIso() });
+  const generated = await generateOfferForIntent({
+    intentPacket: latestIntent,
+    channel: query.channel || "in_app",
+    locality: query.locality || latestIntent?.locality,
+  });
+  const offerRecord = persistGeneratedOffer({
+    user,
+    merchantId: generated.merchant_id,
+    generated: generated.generated,
+  });
 
   return {
     offers: [
@@ -101,6 +49,90 @@ export async function listActiveOffers(query) {
       },
     ],
     generated_at_utc: nowIso(),
+  };
+}
+
+function buildGenerationInput({ selectedMerchant, merchantRule, intentPacket, channel }) {
+  return {
+    request_id: `req_${Date.now()}`,
+    generation_mode: "offer_card_v1",
+    merchant_profile: {
+      merchant_id: selectedMerchant.merchant_id,
+      category: selectedMerchant.category,
+      is_open_now: selectedMerchant.is_open_now,
+      price_band: selectedMerchant.price_band,
+    },
+    constraints: {
+      max_discount_pct: merchantRule.constraints?.max_discount_pct || 20,
+      campaign_goal: merchantRule.campaign_goal,
+      excluded_skus: merchantRule.constraints?.excluded_skus || [],
+      max_validity_minutes: merchantRule.constraints?.max_offer_validity_minutes || config.defaults.offerTtlMinutes,
+    },
+    intent_packet: {
+      intent_label: intentPacket?.intent_label || "browse_local_shops",
+      intent_confidence: intentPacket?.intent_confidence || 0.55,
+      receptivity_level: intentPacket?.receptivity_level || "medium",
+      time_budget_minutes: intentPacket?.time_budget_minutes || 15,
+      tone_preference: intentPacket?.tone_preference || "neutral",
+      hard_constraints: intentPacket?.hard_constraints || [],
+    },
+    context_snapshot: {
+      weather_summary: db.context.weather.at(-1)?.weather_summary || "unknown",
+      demand_gap_pct: db.context.payone.at(-1)?.quiet_hour_gap_pct || 0,
+      event_intensity: db.context.events.at(-1)?.event_intensity || "low",
+      local_time_bucket: "lunch",
+    },
+    channel_context: {
+      channel,
+      headline_char_limit: 64,
+      body_char_limit: 90,
+    },
+  };
+}
+
+function persistGeneratedOffer({ user, merchantId, generated }) {
+  const offerId = generated.output.offer_idempotency_key;
+  const expiresAt = new Date(Date.now() + generated.output.valid_for_minutes * 60000).toISOString();
+  const offerRecord = {
+    offer_id: offerId,
+    merchant_id: merchantId,
+    user_pseudonym: user,
+    status: "shown",
+    created_at_utc: nowIso(),
+    expires_at_utc: expiresAt,
+    generation_meta: generated.meta,
+    ...generated.output,
+  };
+  db.offers.set(offerId, offerRecord);
+  db.offerEvents.push({ offer_id: offerId, user_pseudonym: user, event: "shown", at_utc: nowIso() });
+  return offerRecord;
+}
+
+export async function generateOfferForIntent({ intentPacket, channel = "in_app", locality }) {
+  const candidates = filterMerchantsByLocality(
+    db.merchants,
+    locality || intentPacket?.locality,
+    config.defaults.radiusKm
+  );
+  const selectedMerchant = candidates[0] || db.merchants[0];
+  const merchantRule = db.merchantRules.get(selectedMerchant.merchant_id) || {
+    campaign_goal: "fill_quiet_hours",
+    constraints: { max_discount_pct: 20, max_validity_minutes: config.defaults.offerTtlMinutes },
+  };
+  const generationInput = buildGenerationInput({
+    selectedMerchant,
+    merchantRule,
+    intentPacket,
+    channel,
+  });
+  const generated = await generateOffer(generationInput);
+  return {
+    merchant_id: selectedMerchant.merchant_id,
+    model_version: generated.meta?.model || config.llmModel,
+    prompt_version: "offer_prompt_v1",
+    offer: generated.output,
+    used_fallback: Boolean(generated.meta?.used_fallback),
+    generated,
   };
 }
 

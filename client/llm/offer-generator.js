@@ -19,8 +19,8 @@ Return only valid JSON with this shape:
 
 function resolveOfferModel(env = {}) {
   return (
-    env.OPENROUTEROFFERMODEL ||
     env.OPENROUTER_OFFER_MODEL ||
+    env.OPENROUTEROFFERMODEL ||
     "nvidia/nemotron-3-super:free"
   );
 }

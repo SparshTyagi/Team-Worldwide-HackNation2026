@@ -177,6 +177,45 @@ const offerOutputItem = vObject({
   expires_at_utc: vString({ pattern: isoDate }),
 });
 
+const canonicalOfferOutput = vObject({
+  offer_idempotency_key: vString({ minLength: 1 }),
+  headline: vString({ minLength: 1 }),
+  body_line: vString({ minLength: 1 }),
+  cta_text: vString({ minLength: 1 }),
+  discount_type: vString({ minLength: 1 }),
+  discount_value: vNumber({ min: 0 }),
+  valid_for_minutes: vNumber({ min: 1, integer: true }),
+  tone_style: vString({ minLength: 1 }),
+  ui_layout_variant: vString({ minLength: 1 }),
+  image_prompt: vString({ minLength: 1 }),
+  justification: vObject({
+    why_now_factors: vArray(vString({ minLength: 1 })),
+    merchant_goal_alignment: vString({ minLength: 1 }),
+  }),
+  risk_flags: vObject({
+    needs_human_review: vBoolean(),
+    safety_notes: vArray(vString()),
+  }),
+  subheadline: optional(vString({ minLength: 1 })),
+  merchant_disclaimer: optional(vString({ minLength: 1 })),
+  channel_overrides: optional(
+    vObject({
+      push: optional(
+        vObject({
+          headline: vString({ minLength: 1 }),
+          body_line: vString({ minLength: 1 }),
+        })
+      ),
+      in_app: optional(
+        vObject({
+          headline: vString({ minLength: 1 }),
+          body_line: vString({ minLength: 1 }),
+        })
+      ),
+    })
+  ),
+});
+
 /** Stored merchant row (matches `db.merchants` items). */
 const internalMerchantRecord = vObject({
   merchant_id: vString({ minLength: 1 }),
@@ -242,6 +281,31 @@ export const schemas = {
   get_active_offers_output: vObject({
     offers: vArray(offerOutputItem),
     generated_at_utc: vString({ pattern: isoDate }),
+  }),
+  offer_generate_input: vObject({
+    intent_packet: {
+      type: "object",
+      allowUnknown: true,
+      shape: {
+        intent_label: vString({ minLength: 1 }),
+        intent_confidence: vNumber({ min: 0, max: 1 }),
+        receptivity_level: vEnum(["low", "medium", "high"]),
+        time_budget_minutes: vNumber({ min: 1, max: 180, integer: true }),
+        tone_preference: vString({ minLength: 1 }),
+        hard_constraints: vArray(vString({ minLength: 1 })),
+        locality: optional(localitySchema),
+      },
+    },
+    channel: optional(vEnum(["push", "in_app", "widget"])),
+    locality: localitySchema,
+    model: optional(vString({ minLength: 1 })),
+    prompt_version: optional(vString({ minLength: 1 })),
+  }),
+  offer_generate_output: vObject({
+    offer: canonicalOfferOutput,
+    model_version: vString({ minLength: 1 }),
+    prompt_version: vString({ minLength: 1 }),
+    used_fallback: vBoolean(),
   }),
 
   offer_decision_input: vObject({
@@ -472,44 +536,7 @@ export const schemas = {
       body_char_limit: vNumber({ min: 1, integer: true }),
     }),
   }),
-  internal_generation_run_output: vObject({
-    offer_idempotency_key: vString({ minLength: 1 }),
-    headline: vString({ minLength: 1 }),
-    body_line: vString({ minLength: 1 }),
-    cta_text: vString({ minLength: 1 }),
-    discount_type: vString({ minLength: 1 }),
-    discount_value: vNumber({ min: 0 }),
-    valid_for_minutes: vNumber({ min: 1, integer: true }),
-    tone_style: vString({ minLength: 1 }),
-    ui_layout_variant: vString({ minLength: 1 }),
-    image_prompt: vString({ minLength: 1 }),
-    justification: vObject({
-      why_now_factors: vArray(vString({ minLength: 1 })),
-      merchant_goal_alignment: vString({ minLength: 1 }),
-    }),
-    risk_flags: vObject({
-      needs_human_review: vBoolean(),
-      safety_notes: vArray(vString()),
-    }),
-    subheadline: optional(vString({ minLength: 1 })),
-    merchant_disclaimer: optional(vString({ minLength: 1 })),
-    channel_overrides: optional(
-      vObject({
-        push: optional(
-          vObject({
-            headline: vString({ minLength: 1 }),
-            body_line: vString({ minLength: 1 }),
-          })
-        ),
-        in_app: optional(
-          vObject({
-            headline: vString({ minLength: 1 }),
-            body_line: vString({ minLength: 1 }),
-          })
-        ),
-      })
-    ),
-  }),
+  internal_generation_run_output: canonicalOfferOutput,
 
   internal_merchant_scrape_profile_input: vObject({
     merchant_id: vString({ minLength: 1 }),

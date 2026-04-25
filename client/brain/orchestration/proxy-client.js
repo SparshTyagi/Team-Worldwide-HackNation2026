@@ -8,7 +8,6 @@ async function callOfferProxy({
   signal,
 }) {
   if (!baseUrl) throw new Error("Missing proxy baseUrl");
-  if (!authToken) throw new Error("Missing proxy auth token");
 
   const controller = new AbortController();
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
@@ -17,12 +16,16 @@ async function callOfferProxy({
   if (signal) signal.addEventListener("abort", abortHandler);
 
   try {
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`;
+    }
+
     const response = await fetch(`${baseUrl}/v1/offer/generate`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
-      },
+      headers,
       body: JSON.stringify(body),
       signal: controller.signal,
     });

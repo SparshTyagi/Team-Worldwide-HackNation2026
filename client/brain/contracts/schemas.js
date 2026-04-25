@@ -15,7 +15,7 @@ const MOBILITY_MODES = ["walking", "stationary", "transit"];
 const SENSITIVITY_LEVELS = ["low", "medium", "high"];
 const TONE_PREFERENCES = ["factual", "emotional", "neutral", "minimal", "friendly", "playful"];
 const DISCOUNT_TYPES = ["percent", "fixed"];
-const OFFER_TONE_STYLES = ["factual", "friendly", "minimal", "playful"];
+const OFFER_TONE_STYLES = ["factual", "friendly", "minimal", "playful", "emotional", "neutral"];
 const DECISION_TYPES = ["accept", "dismiss", "redeem", "expire"];
 const CHANNEL_HINTS = ["push", "in_app_only", "in_app", "widget"];
 

@@ -2,7 +2,7 @@
 
 ## Local Environment Setup
 
-1. Copy `.env.example` to `.env.local` (or `.env` if that is your local convention).
+1. Copy `.env.example` to `.env.local`.
 2. Set `OPENROUTER_API_KEY` to your active OpenRouter key.
 3. Keep secret files local only. Never commit `.env`, `.env.local`, or any real API key.
 
@@ -22,8 +22,8 @@ Starter files were added:
 
 Environment variables used for offer model (in priority order):
 
-1. `OPENROUTEROFFERMODEL`
-2. `OPENROUTER_OFFER_MODEL`
+1. `OPENROUTER_OFFER_MODEL`
+2. `OPENROUTEROFFERMODEL` (legacy alias)
 
 Run locally:
 
@@ -67,6 +67,21 @@ Then point client env to:
 - `OPENROUTER_PROXY_BASE_URL=http://localhost:8787`
 - `OPENROUTER_PROXY_SESSION_TOKEN=<same token as proxy>`
 
+## Canonical Path vs Optional Utilities
+
+Canonical demo/runtime path (recommended for challenge):
+
+- Client brain sends intent to backend: `POST /v1/intent-signal`
+- Client brain requests generation from backend: `POST /v1/offer/generate`
+- Client fetches feed from backend: `GET /v1/offers/active`
+- Client redemption flow uses backend redemption endpoints
+- Merchant dashboard reads backend dashboard endpoints
+
+Optional utility path:
+
+- `server/openrouter-proxy.js` (`/v1/offer/openrouter`) is a direct OpenRouter relay utility for browser-safe key handling.
+- It is not the canonical project orchestration endpoint for end-to-end judged flow.
+
 ## React Native Client Brain (Roadmap-Aligned Hybrid)
 
 Implemented brain modules:
@@ -84,6 +99,11 @@ Run end-to-end brain example:
 ```bash
 node client/brain/example-usage.js
 ```
+
+Brain example environment:
+
+- `BRAIN_PROXY_BASE_URL=http://localhost:8080` (canonical backend API)
+- `BRAIN_PROXY_AUTH_TOKEN` optional (used only if your gateway enforces bearer auth)
 
 Run tests:
 

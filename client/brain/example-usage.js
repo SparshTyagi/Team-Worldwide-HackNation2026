@@ -6,8 +6,8 @@ async function run() {
   const brain = new ClientBrain({
     secureStore: new SecureStore(),
     proxyConfig: {
-      baseUrl: process.env.BRAIN_PROXY_BASE_URL || "http://localhost:8787",
-      authToken: process.env.BRAIN_PROXY_AUTH_TOKEN || "demo-token",
+      baseUrl: process.env.BRAIN_PROXY_BASE_URL || "http://localhost:8080",
+      authToken: process.env.BRAIN_PROXY_AUTH_TOKEN,
     },
   });
 
