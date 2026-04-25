@@ -8,7 +8,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    print("Warning: SUPABASE_URL or SUPABASE_KEY not set in environment.")
+    raise ValueError("SUPABASE_URL and SUPABASE_KEY must be set in the environment.")
 
 def get_supabase() -> Client:
     """Returns an initialized Supabase client."""
