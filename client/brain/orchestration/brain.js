@@ -15,7 +15,16 @@ const { fallbackOfferFromIntent } = require("./fallback.js");
 const { BrainMetrics } = require("../observability/metrics.js");
 
 function uuid(prefix) {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}_${crypto.randomUUID()}`;
+  }
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}_${Date.now()}`;
+}
+
+function resolveSensitivityLevel(profile = {}, consentMask = {}) {
+  if (profile.sensitivity_level) return profile.sensitivity_level;
+  if (!consentMask.precise_location || !consentMask.background_location) return "low";
+  return "medium";
 }
 
 class ClientBrain {
@@ -59,7 +68,7 @@ class ClientBrain {
       receptivity_level: intent.receptivity_level,
       time_budget_minutes: profile.time_budget_minutes || 15,
       mobility_mode: context.movement_state,
-      sensitivity_level: "medium",
+      sensitivity_level: resolveSensitivityLevel(profile, consentMask),
       tone_preference: intent.tone_preference,
       hard_constraints: profile.hard_constraints || [],
       locality,
@@ -101,7 +110,10 @@ class ClientBrain {
         prompt_version: response.prompt_version || this.promptVersion,
       };
       validateOfferCard(offer);
-    } catch (_error) {
+    } catch (error) {
+      this.metrics.record("offer_generation_error", 1, {
+        message: String(error && error.message ? error.message : "unknown_error"),
+      });
       offer = fallbackOfferFromIntent(intentPacket);
       usedFallback = true;
       validateOfferCard(offer);

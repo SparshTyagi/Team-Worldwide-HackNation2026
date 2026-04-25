@@ -33,10 +33,39 @@ node client/llm/example-usage.js
 
 This setup expects:
 
-- `OPENROUTER_API_KEY`
+- `OPENROUTER_API_KEY` (Node/local direct mode)
+- `OPENROUTER_PROXY_BASE_URL` + `OPENROUTER_PROXY_SESSION_TOKEN` (recommended production mode)
 - `OPENROUTEROFFERMODEL=nvidia/nemotron-3-super:free` (or `OPENROUTER_OFFER_MODEL`)
+- `OPENROUTER_HTTP_REFERER` (defaults to `https://localhost`)
+- `OPENROUTER_APP_TITLE` (defaults to `Generative City Wallet`)
 
-Important: client-side API keys are exposed in browsers. For production, proxy LLM calls through your backend.
+Important: browser calls now block direct API-key usage by default. Use backend proxy mode (`OPENROUTER_PROXY_BASE_URL` + session token) in production.
+
+## Local OpenRouter Proxy
+
+Use the included proxy route when running browser/client code:
+
+- Endpoint: `POST /v1/offer/openrouter`
+- Health check: `GET /health`
+- File: `server/openrouter-proxy.js`
+
+Environment:
+
+- `OPENROUTER_API_KEY` (required by proxy)
+- `OPENROUTER_PROXY_PORT` (default `8787`)
+- `OPENROUTER_PROXY_SESSION_TOKEN` (recommended; enables bearer-token session check)
+- `OPENROUTER_HTTP_REFERER` and `OPENROUTER_APP_TITLE` (optional OpenRouter metadata headers)
+
+Start the proxy:
+
+```bash
+node server/openrouter-proxy.js
+```
+
+Then point client env to:
+
+- `OPENROUTER_PROXY_BASE_URL=http://localhost:8787`
+- `OPENROUTER_PROXY_SESSION_TOKEN=<same token as proxy>`
 
 ## React Native Client Brain (Roadmap-Aligned Hybrid)
 

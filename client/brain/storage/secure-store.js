@@ -7,6 +7,12 @@
 class SecureStore {
   constructor() {
     this.store = new Map();
+    const env = String(process.env.NODE_ENV || "development").toLowerCase();
+    if (env === "production") {
+      console.warn(
+        "[SecureStore] Using in-memory store in production. Replace with encrypted persistent storage.",
+      );
+    }
   }
 
   async setItem(key, value) {

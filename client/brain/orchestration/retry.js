@@ -26,7 +26,8 @@ async function withRetry(task, { maxAttempts = 3, baseDelayMs = 250 } = {}) {
       lastError = error;
       if (attempt === maxAttempts || !isRetryableError(error)) break;
       const jitter = Math.floor(Math.random() * 100);
-      await sleep(baseDelayMs * attempt + jitter);
+      const backoffMs = baseDelayMs * 2 ** (attempt - 1);
+      await sleep(backoffMs + jitter);
     }
   }
   throw lastError;

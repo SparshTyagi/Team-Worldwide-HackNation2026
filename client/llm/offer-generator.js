@@ -37,6 +37,8 @@ function resolveOfferModel(env = {}) {
 async function generateOfferCard({ env, contextInput }) {
   const model = resolveOfferModel(env);
   const promptVersion = "offer_prompt_v1";
+  const proxyBaseUrl = env.OPENROUTER_PROXY_BASE_URL;
+  const proxySessionToken = env.OPENROUTER_PROXY_SESSION_TOKEN;
 
   const userPrompt = `
 Generate a single local offer for this context:
@@ -57,6 +59,8 @@ Constraints:
       () =>
         callOpenRouter({
           apiKey: env.OPENROUTER_API_KEY,
+          proxyBaseUrl,
+          sessionToken: proxySessionToken,
           model,
           systemPrompt: OFFER_SYSTEM_PROMPT.trim(),
           userPrompt: userPrompt.trim(),

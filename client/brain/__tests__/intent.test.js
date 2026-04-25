@@ -38,3 +38,17 @@ test("fatigue score is bounded to 0..1", () => {
   const score = computeFatigueScore({ delivered_count_7d: 5, dismiss_count_7d: 20 });
   assert.equal(score, 1);
 });
+
+test("classifier handles missing weather summary safely", () => {
+  const result = classifyIntent({
+    context: {
+      time_bucket: "afternoon",
+      movement_state: "walking",
+    },
+    profile: { offer_tone: "friendly" },
+    interaction: { delivered_count_7d: 3, dismiss_count_7d: 0, accept_count_7d: 1 },
+  });
+
+  assert.equal(typeof result.intent_label, "string");
+  assert.equal(typeof result.intent_confidence, "number");
+});

@@ -2,6 +2,14 @@
 
 const { INTENT_LABELS } = require("../contracts/schemas.js");
 
+const CONFIDENCE_SCORES = {
+  default: 0.55,
+  quickLunch: 0.78,
+  warmBreak: 0.74,
+  eveningUnwind: 0.7,
+  errandMode: 0.68,
+};
+
 function clamp01(value) {
   if (value < 0) return 0;
   if (value > 1) return 1;
@@ -26,25 +34,26 @@ function computeFatigueScore(interaction = {}) {
 
 function classifyIntent({ context, profile = {}, interaction = {} }) {
   let intent = "browse_local_shops";
-  let confidence = 0.55;
+  let confidence = CONFIDENCE_SCORES.default;
+  const weatherSummary = String(context?.weather_summary || "").toLowerCase();
 
   if (context.time_bucket === "lunch" && context.movement_state !== "transit") {
     intent = "quick_lunch_now";
-    confidence = 0.78;
-  } else if (context.weather_summary.toLowerCase().includes("cold")) {
+    confidence = CONFIDENCE_SCORES.quickLunch;
+  } else if (weatherSummary.includes("cold")) {
     intent = "warm_break_seek";
-    confidence = 0.74;
+    confidence = CONFIDENCE_SCORES.warmBreak;
   } else if (context.time_bucket === "evening") {
     intent = "after_work_unwind";
-    confidence = 0.7;
+    confidence = CONFIDENCE_SCORES.eveningUnwind;
   } else if (Array.isArray(profile.interests) && profile.interests.includes("groceries")) {
     intent = "errand_mode_daily_needs";
-    confidence = 0.68;
+    confidence = CONFIDENCE_SCORES.errandMode;
   }
 
   if (!INTENT_LABELS.includes(intent)) {
     intent = "browse_local_shops";
-    confidence = 0.55;
+    confidence = CONFIDENCE_SCORES.default;
   }
 
   const fatigue = computeFatigueScore(interaction);
