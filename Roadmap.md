@@ -67,7 +67,7 @@ Detailed form-by-form onboarding spec is documented in `Appendix A`.
 
 ## 5) End-to-End System Architecture
 
-### 4.1 High-Level Components
+### 5.1 High-Level Components
 
 1. **Client (Mobile App)**
    - Context collector (location/time/device state).
@@ -163,7 +163,7 @@ Server LLM must not receive:
 - Raw behavioral event stream.
 - Personally identifiable free-text profiles.
 
-### 5.1 SLM Input Specification (On-Device Only)
+### 6.1 SLM Input Specification (On-Device Only)
 
 Raw/local feature groups consumed by the on-device model:
 
@@ -686,7 +686,7 @@ Locality request shape (Updated for path routing):
 
 ## 11) Merchant Dashboard Blueprint
 
-### 10.0 Merchant Constraint System (What Merchants Can Control)
+### 11.1 Merchant Constraint System (What Merchants Can Control)
 
 Merchant controls must be simple enough for non-technical operators while still giving safe business boundaries to the AI.
 
