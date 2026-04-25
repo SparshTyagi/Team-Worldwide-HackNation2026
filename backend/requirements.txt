@@ -1,8 +1,7 @@
-fastapi==0.110.1
-uvicorn==0.29.0
-supabase==2.4.3
-qrcode==7.4.2
-Pillow==10.3.0
-tavily-python==0.3.3
-openai==1.16.2
-python-dotenv==1.0.1
+fastapi
+uvicorn
+supabase
+qrcode[pil]
+tavily-python
+openai
+python-dotenv
