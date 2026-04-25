@@ -2,6 +2,10 @@
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+DROP TABLE IF EXISTS redemptions CASCADE;
+DROP TABLE IF EXISTS merchants CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
 -- Merchants Table
 CREATE TABLE merchants (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
