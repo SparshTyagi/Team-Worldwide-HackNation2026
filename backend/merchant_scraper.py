@@ -10,8 +10,13 @@ load_dotenv()
 
 TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+OPENROUTER_PROXY_BASE_URL = os.environ.get("OPENROUTER_PROXY_BASE_URL")
+OPENROUTER_PROXY_SESSION_TOKEN = os.environ.get("OPENROUTER_PROXY_SESSION_TOKEN")
+OPENROUTER_HTTP_REFERER = os.environ.get("OPENROUTER_HTTP_REFERER", "https://localhost")
+OPENROUTER_APP_TITLE = os.environ.get("OPENROUTER_APP_TITLE", "Generative City Wallet")
+
 # Default to intent model for extraction as it's typically fine for this
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_INTENT_MODEL", "google/gemma-3-4b:free")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_INTENT_MODEL", "nvidia/nemotron-3-nano-30b-a3b:free")
 
 class MerchantScraper:
     def __init__(self):
@@ -21,15 +26,25 @@ class MerchantScraper:
             self.tavily_client = None
             print("Warning: TAVILY_API_KEY not set.")
             
-        if OPENROUTER_API_KEY:
-            # Point openai client to OpenRouter
+        if OPENROUTER_API_KEY or OPENROUTER_PROXY_SESSION_TOKEN:
+            use_proxy = bool(OPENROUTER_PROXY_BASE_URL)
+            base_url = OPENROUTER_PROXY_BASE_URL if use_proxy else "https://openrouter.ai/api/v1"
+            api_key = OPENROUTER_PROXY_SESSION_TOKEN if use_proxy else OPENROUTER_API_KEY
+            
+            headers = {
+                "HTTP-Referer": OPENROUTER_HTTP_REFERER,
+                "X-Title": OPENROUTER_APP_TITLE
+            }
+            
+            # Point openai client to OpenRouter or Proxy
             self.llm_client = OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=OPENROUTER_API_KEY,
+                base_url=base_url,
+                api_key=api_key,
+                default_headers=headers
             )
         else:
             self.llm_client = None
-            print("Warning: OPENROUTER_API_KEY not set.")
+            print("Warning: OPENROUTER_API_KEY or proxy session token not set.")
 
     def auto_fill_merchant(self, query: str) -> dict:
         """
