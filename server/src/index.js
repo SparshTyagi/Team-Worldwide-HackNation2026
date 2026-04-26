@@ -6,7 +6,7 @@ import { SchemaValidationError, validateSchema } from "./validation.js";
 import {
   ingestIntent,
   listActiveOffers,
-  generateAndPersistOfferForIntent,
+  generateOfferForIntent,
   recordDecision,
   createRedemptionToken,
   validateRedemption,
@@ -77,11 +77,10 @@ export function createAppServer() {
 
     if (req.method === "POST" && pathname === "/v1/offer/generate") {
       const body = requireValidInput("offer_generate_input", await readJsonBody(req));
-      const out = await generateAndPersistOfferForIntent({
+      const out = await generateOfferForIntent({
         intentPacket: body.intent_packet,
         channel: body.channel || "in_app",
         locality: body.locality,
-        userPseudonym: body.intent_packet?.user_pseudonym,
       });
       return sendValidatedOutput(
         res,
@@ -102,7 +101,7 @@ export function createAppServer() {
         ...(await readJsonBody(req)),
         offer_id: offerId,
       });
-      const out = recordDecision(body);
+      const out = await recordDecision(body);
       if (out.error) return badRequest(res, out.error);
       return sendValidatedOutput(res, "offer_decision_output", out);
     }
@@ -112,13 +111,13 @@ export function createAppServer() {
       return sendValidatedOutput(
         res,
         "redemption_create_token_output",
-        createRedemptionToken(body)
+        await createRedemptionToken(body)
       );
     }
 
     if (req.method === "POST" && pathname === "/v1/redemption/validate") {
       const body = requireValidInput("redemption_validate_input", await readJsonBody(req));
-      const out = validateRedemption(body);
+      const out = await validateRedemption(body);
       if (out.error) return badRequest(res, out.error);
       return sendValidatedOutput(res, "redemption_validate_output", out);
     }
@@ -127,12 +126,12 @@ export function createAppServer() {
       const input = requireValidInput("wallet_cashback_input", {
         user_pseudonym: searchParams.get("user_pseudonym"),
       });
-      return sendValidatedOutput(res, "wallet_cashback_output", getCashback(input.user_pseudonym));
+      return sendValidatedOutput(res, "wallet_cashback_output", await getCashback(input.user_pseudonym));
     }
 
     if (req.method === "POST" && pathname === "/v1/merchant/rules") {
       const body = requireValidInput("merchant_rules_create_input", await readJsonBody(req));
-      return sendValidatedOutput(res, "merchant_rules_create_output", createRules(body));
+      return sendValidatedOutput(res, "merchant_rules_create_output", await createRules(body));
     }
 
     if (req.method === "PATCH" && pathname.startsWith("/v1/merchant/rules/")) {
@@ -144,7 +143,7 @@ export function createAppServer() {
       return sendValidatedOutput(
         res,
         "merchant_rules_patch_output",
-        patchRules(body.merchant_id, body)
+        await patchRules(body.merchant_id, body)
       );
     }
 
@@ -155,7 +154,7 @@ export function createAppServer() {
       return sendValidatedOutput(
         res,
         "merchant_dashboard_overview_output",
-        dashboardOverview(input.merchant_id)
+        await dashboardOverview(input.merchant_id)
       );
     }
 
@@ -166,7 +165,7 @@ export function createAppServer() {
       return sendValidatedOutput(
         res,
         "merchant_dashboard_funnel_output",
-        dashboardFunnel(input.merchant_id)
+        await dashboardFunnel(input.merchant_id)
       );
     }
 
@@ -177,23 +176,23 @@ export function createAppServer() {
       return sendValidatedOutput(
         res,
         "merchant_dashboard_context_performance_output",
-        dashboardContextPerformance(input.merchant_id)
+        await dashboardContextPerformance(input.merchant_id)
       );
     }
 
     if (req.method === "POST" && pathname === "/internal/context/ingest/weather") {
       const body = requireValidInput("internal_context_ingest_weather_input", await readJsonBody(req));
-      return sendValidatedOutput(res, "internal_context_ingest_output", ingestWeather(body));
+      return sendValidatedOutput(res, "internal_context_ingest_output", await ingestWeather(body));
     }
 
     if (req.method === "POST" && pathname === "/internal/context/ingest/events") {
       const body = requireValidInput("internal_context_ingest_events_input", await readJsonBody(req));
-      return sendValidatedOutput(res, "internal_context_ingest_output", ingestEvents(body));
+      return sendValidatedOutput(res, "internal_context_ingest_output", await ingestEvents(body));
     }
 
     if (req.method === "POST" && pathname === "/internal/context/ingest/payone-sim") {
       const body = requireValidInput("internal_context_ingest_payone_sim_input", await readJsonBody(req));
-      return sendValidatedOutput(res, "internal_context_ingest_output", ingestPayone(body));
+      return sendValidatedOutput(res, "internal_context_ingest_output", await ingestPayone(body));
     }
 
     if (req.method === "POST" && pathname === "/internal/generation/run") {
@@ -209,13 +208,13 @@ export function createAppServer() {
       return sendValidatedOutput(
         res,
         "internal_merchant_scrape_profile_output",
-        scrapeMerchantProfile(body)
+        await scrapeMerchantProfile(body)
       );
     }
 
     if (req.method === "POST" && pathname === "/internal/merchants") {
       const body = requireValidInput("internal_merchant_upsert_input", await readJsonBody(req));
-      return sendValidatedOutput(res, "internal_merchant_upsert_output", upsertMerchant(body));
+      return sendValidatedOutput(res, "internal_merchant_upsert_output", await upsertMerchant(body));
     }
 
     if (req.method === "GET" && pathname === "/internal/merchants") {
@@ -223,7 +222,7 @@ export function createAppServer() {
       const input = requireValidInput("internal_merchants_list_input", {
         merchant_id: mid && mid.length ? mid : undefined,
       });
-      return sendValidatedOutput(res, "internal_merchants_list_output", listMerchants(input));
+      return sendValidatedOutput(res, "internal_merchants_list_output", await listMerchants(input));
     }
 
       return notFound(res);

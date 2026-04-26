@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "path": "/v1/wallet/cashback?user_pseudonym=usr_logs_demo_001",
+  "url": "http://127.0.0.1:58511/v1/wallet/cashback?user_pseudonym=usr_logs_demo_001",
+  "headers": {},
+  "body": null,
+  "at_utc": "2026-04-26T00:53:30.695Z"
+}

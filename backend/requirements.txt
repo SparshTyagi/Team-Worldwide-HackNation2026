@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-supabase
-qrcode[pil]
-tavily-python
-openai
-python-dotenv
