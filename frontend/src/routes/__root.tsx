@@ -30,7 +30,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" },
       { title: "Spot — Generative City Wallet" },
-      { name: "description", content: "Hyper-personalized local offers for your neighborhood. On-device AI." },
+      { name: "description", content: "Hyper-personalized local offers for your neighborhood." },
       { name: "author", content: "Spot" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },

@@ -331,7 +331,7 @@ export function S04bDietary() {
       <div className="mt-auto p-5">
         <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[var(--cream)] mb-3 text-[11px] text-[var(--forest)]/70">
           <Shield size={11} className="text-[var(--terracotta)]" />
-          All filters stay on this phone. <span className="ml-1 font-semibold">on-device AI</span>
+          All filters stay on this phone.
         </div>
         <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
           Finish setup <ChevronRight size={18} />
@@ -359,7 +359,6 @@ export function S05Feed() {
         <div className="context-pulse inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[var(--border)] text-[12px] font-medium text-[var(--forest)]">
           <CloudRain size={14} className="text-[var(--accent)]" />
           11°C · light rain · Tuesday lunch
-          <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--forest)]/10 text-[var(--forest)] font-semibold">ON-DEVICE AI</span>
         </div>
       </div>
 
@@ -783,9 +782,6 @@ export function S10Settings() {
         <div className="absolute inset-0 opacity-30" style={{
           background: "radial-gradient(circle at 80% 20%, var(--terracotta) 0%, transparent 60%)",
         }} />
-        <span className="relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-bold tracking-wider text-[var(--sand)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--sand)] animate-pulse" /> ON-DEVICE AI
-        </span>
         <h3 className="relative font-display text-[22px] leading-tight mt-3">
           Most of Spot lives on this phone.
         </h3>
@@ -867,9 +863,6 @@ export function S11MerchantOnboarding() {
       </div>
 
       <div className="mx-6 mt-2.5 flex items-center gap-2 text-[11px] text-[var(--forest)]/65">
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--forest)]/8 text-[var(--forest)] font-bold tracking-wider text-[10px]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--terracotta)]" /> ON-DEVICE AI
-        </span>
         No login. No spreadsheet.
       </div>
 
