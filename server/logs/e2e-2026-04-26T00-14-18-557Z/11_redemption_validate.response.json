@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "token": "tok_srselwy1",
+    "is_valid": true,
+    "redemption_id": "rdm_1777162458596",
+    "cashback_credited_eur": 0.75,
+    "validated_at_utc": "2026-04-26T00:14:18.596Z"
+  },
+  "at_utc": "2026-04-26T00:14:18.596Z"
+}

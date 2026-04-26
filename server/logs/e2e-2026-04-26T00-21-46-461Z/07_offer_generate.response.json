@@ -1,0 +1,32 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offer": {
+      "offer_idempotency_key": "offer_req_1777162906486",
+      "headline": "Vegetarian Quick Lunch – 15% Off",
+      "body_line": "Enjoy a fresh veggie sandwich or salad, ready in under 20 minutes. Valid for 10 minutes.",
+      "cta_text": "Redeem Offer",
+      "discount_type": "percentage",
+      "discount_value": 15,
+      "valid_for_minutes": 10,
+      "tone_style": "factual",
+      "ui_layout_variant": "compact",
+      "image_prompt": "A colorful vegetarian sandwich and side salad on a rustic wooden table, soft natural light, cafe ambiance",
+      "justification": {
+        "why_now_factors": [
+          "Matches vegetarian_only intent, fills quiet lunch hours with a timely discount under max limits."
+        ],
+        "merchant_goal_alignment": "fill_quiet_hours"
+      },
+      "risk_flags": {
+        "needs_human_review": false,
+        "safety_notes": []
+      }
+    },
+    "model_version": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "offer_prompt_v1",
+    "used_fallback": false
+  },
+  "at_utc": "2026-04-26T00:22:38.436Z"
+}

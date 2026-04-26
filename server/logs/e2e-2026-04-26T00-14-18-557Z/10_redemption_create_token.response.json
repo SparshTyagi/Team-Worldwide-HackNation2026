@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offer_id": "offer_1777162458593",
+    "token": "tok_srselwy1",
+    "qr_payload": "tok_srselwy1",
+    "expires_at_utc": "2026-04-26T00:17:18.595Z",
+    "ttl_seconds": 180
+  },
+  "at_utc": "2026-04-26T00:14:18.595Z"
+}

@@ -1,0 +1,36 @@
+{
+  "method": "POST",
+  "path": "/v1/offer/generate",
+  "url": "http://127.0.0.1:58863/v1/offer/generate",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "intent_packet": {
+      "intent_id": "intent_1777162634267",
+      "timestamp_utc": "2026-04-26T00:17:14.267Z",
+      "user_pseudonym": "usr_logs_demo_001",
+      "intent_label": "quick_lunch_now",
+      "intent_confidence": 0.79,
+      "receptivity_level": "high",
+      "time_budget_minutes": 20,
+      "mobility_mode": "walking",
+      "sensitivity_level": "low",
+      "tone_preference": "factual",
+      "hard_constraints": [
+        "vegetarian_only"
+      ],
+      "locality": {
+        "mode": "radius",
+        "radius_km": 2,
+        "center": {
+          "lat": 48.7758,
+          "lon": 9.1829
+        }
+      }
+    },
+    "channel": "in_app",
+    "prompt_version": "offer_prompt_v1"
+  },
+  "at_utc": "2026-04-26T00:17:14.268Z"
+}

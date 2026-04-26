@@ -1,0 +1,64 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "merchants": [
+      {
+        "merchant_id": "m_1021",
+        "name": "Cafe Muller",
+        "category": "cafe",
+        "area_cell_id": "u0wtm3",
+        "lat": 48.7758,
+        "lon": 9.1829,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 8.5
+      },
+      {
+        "merchant_id": "m_2042",
+        "name": "Books & Brews",
+        "category": "bookstore",
+        "area_cell_id": "u0wtm6",
+        "lat": 48.7823,
+        "lon": 9.177,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 12
+      },
+      {
+        "merchant_id": "m_3100",
+        "name": "Green Fork Bistro",
+        "category": "restaurant",
+        "area_cell_id": "u0wtm3",
+        "lat": 48.7765,
+        "lon": 9.1815,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 14.5
+      },
+      {
+        "merchant_id": "m_3101",
+        "name": "Stadtbad Sauna Snack",
+        "category": "wellness_cafe",
+        "area_cell_id": "u0wtm3",
+        "lat": 48.778,
+        "lon": 9.184,
+        "is_open_now": true,
+        "price_band": "premium",
+        "avg_ticket_size_eur": 9.9
+      },
+      {
+        "merchant_id": "m_3102",
+        "name": "Markthalle Quick Bite",
+        "category": "fast_casual",
+        "area_cell_id": "u0wtm6",
+        "lat": 48.781,
+        "lon": 9.1785,
+        "is_open_now": true,
+        "price_band": "budget",
+        "avg_ticket_size_eur": 7.25
+      }
+    ]
+  },
+  "at_utc": "2026-04-26T00:21:46.484Z"
+}

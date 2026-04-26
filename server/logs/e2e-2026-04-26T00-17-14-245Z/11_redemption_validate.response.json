@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "token": "tok_s0vogelb",
+    "is_valid": true,
+    "redemption_id": "rdm_1777162741276",
+    "cashback_credited_eur": 0.75,
+    "validated_at_utc": "2026-04-26T00:19:01.276Z"
+  },
+  "at_utc": "2026-04-26T00:19:01.276Z"
+}

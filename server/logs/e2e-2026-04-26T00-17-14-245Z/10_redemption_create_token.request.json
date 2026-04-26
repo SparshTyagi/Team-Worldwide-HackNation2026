@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/v1/redemption/create-token",
+  "url": "http://127.0.0.1:58863/v1/redemption/create-token",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "offer_id": "req_1777162671934_offer",
+    "user_pseudonym": "usr_logs_demo_001",
+    "merchant_id": "m_1021",
+    "requested_at_utc": "2026-04-26T00:19:01.274Z"
+  },
+  "at_utc": "2026-04-26T00:19:01.274Z"
+}

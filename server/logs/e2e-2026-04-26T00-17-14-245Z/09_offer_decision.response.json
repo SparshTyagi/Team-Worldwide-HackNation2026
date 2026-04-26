@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offer_id": "req_1777162671934_offer",
+    "status": "recorded",
+    "decision": "accept",
+    "recorded_at_utc": "2026-04-26T00:19:01.273Z"
+  },
+  "at_utc": "2026-04-26T00:19:01.273Z"
+}

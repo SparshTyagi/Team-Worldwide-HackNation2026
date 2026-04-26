@@ -1,0 +1,20 @@
+{
+  "method": "POST",
+  "path": "/internal/merchants",
+  "url": "http://127.0.0.1:58863/internal/merchants",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "merchant_id": "m_3102",
+    "name": "Markthalle Quick Bite",
+    "category": "fast_casual",
+    "area_cell_id": "u0wtm6",
+    "lat": 48.781,
+    "lon": 9.1785,
+    "is_open_now": true,
+    "price_band": "budget",
+    "avg_ticket_size_eur": 7.25
+  },
+  "at_utc": "2026-04-26T00:17:14.265Z"
+}

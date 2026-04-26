@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "log_directory": "/Users/rajdeep/Downloads/Team-Worldwide-HackNation2026/server/logs/e2e-2026-04-26T00-17-14-245Z",
+  "base_url": "http://127.0.0.1:58863",
+  "user_pseudonym": "usr_logs_demo_001",
+  "offer_id": "req_1777162671934_offer",
+  "decision_status": "recorded",
+  "cashback_balance_eur": 0.75,
+  "merchant_offers_generated": 1,
+  "generated_used_fallback": false,
+  "completed_at_utc": "2026-04-26T00:19:01.280Z"
+}

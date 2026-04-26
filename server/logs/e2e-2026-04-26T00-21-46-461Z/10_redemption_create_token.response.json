@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offer_id": "offer_req_1777162906486",
+    "token": "tok_9j1dz0up",
+    "qr_payload": "tok_9j1dz0up",
+    "expires_at_utc": "2026-04-26T00:25:38.441Z",
+    "ttl_seconds": 180
+  },
+  "at_utc": "2026-04-26T00:22:38.442Z"
+}

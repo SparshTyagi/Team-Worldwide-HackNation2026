@@ -1,0 +1,22 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offers": [
+      {
+        "offer_id": "offer_1777162458593",
+        "headline": "Nearby cafe deal at m_1021",
+        "body_line": "20% off for the next 15 minutes.",
+        "cta_text": "Claim now",
+        "discount_type": "percent",
+        "discount_value": 20,
+        "valid_for_minutes": 15,
+        "tone_style": "factual",
+        "ui_layout_variant": "hero_timer_compact",
+        "expires_at_utc": "2026-04-26T00:29:18.593Z"
+      }
+    ],
+    "generated_at_utc": "2026-04-26T00:14:18.593Z"
+  },
+  "at_utc": "2026-04-26T00:14:18.593Z"
+}

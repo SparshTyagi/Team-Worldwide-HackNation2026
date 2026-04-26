@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/v1/redemption/validate",
+  "url": "http://127.0.0.1:58109/v1/redemption/validate",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "token": "tok_srselwy1",
+    "merchant_id": "m_1021",
+    "validated_at_utc": "2026-04-26T00:14:18.596Z"
+  },
+  "at_utc": "2026-04-26T00:14:18.596Z"
+}

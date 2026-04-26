@@ -1,0 +1,20 @@
+{
+  "method": "POST",
+  "path": "/internal/merchants",
+  "url": "http://127.0.0.1:59811/internal/merchants",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "merchant_id": "m_3100",
+    "name": "Green Fork Bistro",
+    "category": "restaurant",
+    "area_cell_id": "u0wtm3",
+    "lat": 48.7765,
+    "lon": 9.1815,
+    "is_open_now": true,
+    "price_band": "mid",
+    "avg_ticket_size_eur": 14.5
+  },
+  "at_utc": "2026-04-26T00:21:46.477Z"
+}

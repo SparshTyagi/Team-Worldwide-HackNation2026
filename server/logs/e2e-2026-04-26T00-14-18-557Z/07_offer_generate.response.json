@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offer": {
+      "offer_idempotency_key": "offer_1777162458591",
+      "headline": "Nearby cafe deal at m_1021",
+      "body_line": "20% off for the next 15 minutes.",
+      "cta_text": "Claim now",
+      "discount_type": "percent",
+      "discount_value": 20,
+      "valid_for_minutes": 15,
+      "tone_style": "factual",
+      "ui_layout_variant": "hero_timer_compact",
+      "image_prompt": "friendly local storefront",
+      "justification": {
+        "why_now_factors": [
+          "intent_match",
+          "locality_filter"
+        ],
+        "merchant_goal_alignment": "fill_quiet_hours"
+      },
+      "risk_flags": {
+        "needs_human_review": false,
+        "safety_notes": []
+      }
+    },
+    "model_version": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "offer_prompt_v1",
+    "used_fallback": true
+  },
+  "at_utc": "2026-04-26T00:14:18.591Z"
+}

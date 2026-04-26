@@ -1,0 +1,20 @@
+{
+  "method": "POST",
+  "path": "/internal/merchants",
+  "url": "http://127.0.0.1:58109/internal/merchants",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "merchant_id": "m_3101",
+    "name": "Stadtbad Sauna Snack",
+    "category": "wellness_cafe",
+    "area_cell_id": "u0wtm3",
+    "lat": 48.778,
+    "lon": 9.184,
+    "is_open_now": true,
+    "price_band": "premium",
+    "avg_ticket_size_eur": 9.9
+  },
+  "at_utc": "2026-04-26T00:14:18.577Z"
+}

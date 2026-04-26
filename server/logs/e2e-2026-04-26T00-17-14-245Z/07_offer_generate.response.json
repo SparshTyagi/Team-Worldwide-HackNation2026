@@ -1,0 +1,34 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offer": {
+      "offer_idempotency_key": "offer_m1021_20250827_001",
+      "headline": "Veggie Wrap Combo - 15% Off",
+      "body_line": "Enjoy our fresh vegetarian wrap with soup, ready in under 10 minutes. Valid today only.",
+      "cta_text": "Get Offer",
+      "discount_type": "percent_off",
+      "discount_value": 15,
+      "valid_for_minutes": 10,
+      "tone_style": "factual",
+      "ui_layout_variant": "standard",
+      "image_prompt": "A close-up of a colorful vegetarian wrap with fresh vegetables, hummus, and a side salad on a cafe table, natural lighting.",
+      "justification": {
+        "why_now_factors": [
+          "Matches user intent for quick lunch, vegetarian only, fills quiet hours, uses max allowed discount and validity."
+        ],
+        "merchant_goal_alignment": "fill_quiet_hours"
+      },
+      "risk_flags": {
+        "needs_human_review": false,
+        "safety_notes": []
+      },
+      "subheadline": "Today's special",
+      "merchant_disclaimer": "Offer valid for dine-in only. Not combinable with other promotions."
+    },
+    "model_version": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "offer_prompt_v1",
+    "used_fallback": false
+  },
+  "at_utc": "2026-04-26T00:17:51.932Z"
+}

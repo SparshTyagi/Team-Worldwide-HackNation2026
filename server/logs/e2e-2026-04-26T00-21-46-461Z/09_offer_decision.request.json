@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/v1/offers/offer_req_1777162906486/decision",
+  "url": "http://127.0.0.1:59811/v1/offers/offer_req_1777162906486/decision",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "user_pseudonym": "usr_logs_demo_001",
+    "decision": "accept",
+    "decision_timestamp_utc": "2026-04-26T00:22:38.439Z"
+  },
+  "at_utc": "2026-04-26T00:22:38.439Z"
+}

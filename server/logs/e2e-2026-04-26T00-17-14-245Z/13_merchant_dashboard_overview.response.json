@@ -1,0 +1,15 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": {
+    "merchant_id": "m_1021",
+    "kpis": {
+      "offers_generated": 1,
+      "acceptance_rate": 1,
+      "redemption_rate": 1,
+      "estimated_net_uplift_eur": 6.5
+    },
+    "as_of_utc": "2026-04-26T00:19:01.279Z"
+  },
+  "at_utc": "2026-04-26T00:19:01.279Z"
+}
