@@ -40,6 +40,8 @@ import {
   Flame,
   Accessibility,
   Eye,
+  ShoppingBag,
+  Store,
   Mic,
   Trash2,
   Bell as BellIcon,
@@ -49,6 +51,86 @@ import {
   ArrowUpRight,
   Plus,
 } from "lucide-react";
+
+/* ---------- 00 ROLE PICKER — choose Consumer or Merchant ---------- */
+export function S00RolePicker() {
+  return (
+    <Phone title="Choose your role" number={0} bg="cream">
+      <div className="relative flex-1 flex flex-col px-7 pt-10 pb-8 grain">
+        {/* Soft background glow */}
+        <div className="absolute inset-0 opacity-25 pointer-events-none"
+          style={{ background: "radial-gradient(circle at 50% 25%, var(--sand) 0%, transparent 65%)" }} />
+
+        <div className="relative">
+          <div className="flex items-center gap-2.5">
+            <SpotLogo size={36} />
+            <span className="font-display text-[22px] text-[var(--forest)]">Spot</span>
+          </div>
+          <h1 className="font-display text-[34px] leading-[1.05] text-[var(--forest)] mt-7">
+            Welcome.<br />Who are you here?
+          </h1>
+          <p className="mt-3 text-[14px] text-[var(--forest)]/65 max-w-[300px] leading-relaxed">
+            Pick a side — you can switch later.
+          </p>
+        </div>
+
+        <div className="relative flex flex-col gap-3.5 mt-9">
+          {/* Consumer card */}
+          <button
+            data-role="consumer"
+            className="group relative text-left rounded-3xl border border-[var(--terracotta)]/25 bg-white p-5 shadow-md active:scale-[0.985] transition-all duration-200 hover:shadow-lg overflow-hidden"
+          >
+            <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-20"
+              style={{ background: "radial-gradient(circle, var(--terracotta) 0%, transparent 70%)" }} />
+            <div className="relative flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--terracotta)] text-white flex items-center justify-center shrink-0 shadow-md">
+                <ShoppingBag size={22} strokeWidth={2.2} />
+              </div>
+              <div className="flex-1">
+                <div className="font-display text-[19px] text-[var(--forest)] leading-tight">I'm exploring</div>
+                <div className="text-[12.5px] text-[var(--forest)]/60 mt-1.5 leading-relaxed">
+                  Find local offers as you walk by — no chasing coupons, no spam.
+                </div>
+                <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--terracotta)]">
+                  Continue as customer <ChevronRight size={13} />
+                </div>
+              </div>
+            </div>
+          </button>
+
+          {/* Merchant card */}
+          <button
+            data-role="merchant"
+            className="group relative text-left rounded-3xl border border-[var(--forest)]/25 bg-white p-5 shadow-md active:scale-[0.985] transition-all duration-200 hover:shadow-lg overflow-hidden"
+          >
+            <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-20"
+              style={{ background: "radial-gradient(circle, var(--forest) 0%, transparent 70%)" }} />
+            <div className="relative flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--forest)] text-white flex items-center justify-center shrink-0 shadow-md">
+                <Store size={22} strokeWidth={2.2} />
+              </div>
+              <div className="flex-1">
+                <div className="font-display text-[19px] text-[var(--forest)] leading-tight">I run a business</div>
+                <div className="text-[12.5px] text-[var(--forest)]/60 mt-1.5 leading-relaxed">
+                  Set a goal, let AI fill your quiet hours with the right customers.
+                </div>
+                <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--forest)]">
+                  Continue as merchant <ChevronRight size={13} />
+                </div>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <div className="relative mt-auto pt-6 text-center">
+          <div className="inline-flex items-center gap-1.5 text-[10.5px] text-[var(--forest)]/55">
+            <Lock size={11} /> Privacy-first · on-device by default
+          </div>
+        </div>
+      </div>
+    </Phone>
+  );
+}
 
 /* ---------- 01 SPLASH ---------- */
 export function S01Splash() {
@@ -69,7 +151,7 @@ export function S01Splash() {
         </p>
         <div className="absolute bottom-12 flex items-center gap-2 text-xs text-[var(--forest)]/60">
           <span className="w-1.5 h-1.5 rounded-full bg-[var(--terracotta)] animate-pulse" />
-          tuning into Stuttgart
+          tuning into Munich
         </div>
       </div>
     </Phone>

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { MobileModeContext } from "@/components/spot/Phone";
 import {
-  S01Splash, S02Pins, S03Meals, S04Permissions, S04bDietary, S05Feed,
+  S00RolePicker, S01Splash, S02Pins, S03Meals, S04Permissions, S04bDietary, S05Feed,
   S06OfferDetail, S07Walk, S08QR, S09Confirm, S10Settings,
   S11MerchantOnboarding, S12Margin, S13Goal, S14Dashboard, S15Scanner,
 } from "@/components/spot/Screens";
@@ -11,12 +11,13 @@ export const Route = createFileRoute("/")({ component: MobileApp });
 
 // Screen index constants
 const S = {
-  splash:0, pins:1, meals:2, dietary:3, perms:4, feed:5,
-  offer:6, walk:7, qr:8, confirm:9, settings:10,
-  mOnboard:11, mMargin:12, mGoal:13, mDash:14, mScan:15,
+  role:0, splash:1, pins:2, meals:3, dietary:4, perms:5, feed:6,
+  offer:7, walk:8, qr:9, confirm:10, settings:11,
+  mOnboard:12, mMargin:13, mGoal:14, mDash:15, mScan:16,
 } as const;
 
 const SCREENS = [
+  { id: "role", C: S00RolePicker },
   { id: "splash", C: S01Splash },
   { id: "pins", C: S02Pins },
   { id: "meals", C: S03Meals },
@@ -57,6 +58,13 @@ function MobileApp() {
   const handleClick = useCallback((e: React.MouseEvent) => {
     const el = e.target as HTMLElement;
     const btn = el.closest("button");
+
+    // --- Role picker: route consumer → splash, merchant → mOnboard ---
+    if (idx === S.role && btn) {
+      const role = btn.getAttribute("data-role");
+      if (role === "consumer") { go(S.splash); return; }
+      if (role === "merchant") { go(S.mOnboard, "up"); return; }
+    }
 
     // --- Back buttons: small round icon-only buttons near top ---
     if (btn) {
@@ -126,24 +134,17 @@ function MobileApp() {
           <Screen />
         </div>
 
-        {/* Floating mode switch: Customer ↔ Merchant */}
-        <div className="fixed top-3 right-3 z-50 flex gap-1.5">
-          {idx >= S.mOnboard ? (
+        {/* Floating: switch role (back to picker) — hidden on the picker itself */}
+        {idx !== S.role && (
+          <div className="fixed top-3 right-3 z-50">
             <button
-              onClick={(e) => { e.stopPropagation(); go(S.feed); }}
+              onClick={(e) => { e.stopPropagation(); go(S.role); }}
               className="px-3 py-1.5 rounded-full bg-[var(--ink)]/80 backdrop-blur text-white text-[11px] font-semibold shadow-lg active:scale-95 transition-transform"
             >
-              ← Customer
+              Switch role
             </button>
-          ) : idx >= S.feed ? (
-            <button
-              onClick={(e) => { e.stopPropagation(); go(S.mOnboard); }}
-              className="px-3 py-1.5 rounded-full bg-[var(--ink)]/80 backdrop-blur text-white text-[11px] font-semibold shadow-lg active:scale-95 transition-transform"
-            >
-              Merchant →
-            </button>
-          ) : null}
-        </div>
+          </div>
+        )}
       </div>
     </MobileModeContext.Provider>
   );
