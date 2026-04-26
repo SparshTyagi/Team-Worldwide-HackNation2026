@@ -144,7 +144,7 @@ export function S02Pins() {
         </div>
       </div>
       <div className="p-5">
-        <button className="w-full h-13 py-3.5 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
+        <button className="w-full h-13 py-3.5 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-all duration-300">
           Continue <ChevronRight size={18} />
         </button>
       </div>
@@ -205,7 +205,7 @@ export function S03Meals() {
         </div>
       </div>
       <div className="mt-auto px-5 pt-3 pb-4">
-        <button className="w-full py-3.5 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">Looks right</button>
+        <button className="w-full py-3.5 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-all duration-300">Looks right</button>
       </div>
     </Phone>
   );
@@ -255,10 +255,10 @@ export function S04Permissions() {
         <Row icon={<Bell size={18} />} title="Notifications" desc="Only when an offer fits — never marketing blasts." on="device" />
       </div>
       <div className="mt-auto p-5">
-        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
+        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-all duration-300">
           Finish setup <ChevronRight size={18} />
         </button>
-        <button className="w-full mt-2 h-10 text-sm text-[var(--forest)]/60">Read the full policy</button>
+        <button className="w-full mt-2 h-10 text-sm text-[var(--forest)]/60 active:scale-95 transition-all duration-300">Read the full policy</button>
       </div>
     </Phone>
   );
@@ -278,15 +278,15 @@ export function S04bDietary() {
     </button>
   );
   const Acc = ({ icon, label, desc, idx }: { icon: React.ReactNode; label: string; desc: string; idx: number }) => (
-    <div onClick={() => setAccs(p => { const n=[...p]; n[idx]=!n[idx]; return n; })} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[var(--border)] cursor-pointer">
+    <div onClick={() => setAccs(p => { const n=[...p]; n[idx]=!n[idx]; return n; })} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[var(--border)] cursor-pointer active:scale-95 transition-all duration-300">
       <div className="w-9 h-9 rounded-xl bg-[var(--cream)] flex items-center justify-center text-[var(--terracotta)]">{icon}</div>
       <div className="flex-1">
         <div className="font-display text-[14px] text-[var(--forest)] leading-tight">{label}</div>
         <div className="text-[11px] text-[var(--forest)]/60">{desc}</div>
       </div>
-      <span className={`w-9 h-5 rounded-full p-0.5 flex transition-all ${accs[idx] ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
-        <span className="w-4 h-4 rounded-full bg-white shadow" />
-      </span>
+      <div className={`relative w-10 h-6 rounded-full transition-all duration-300 ease-in-out ${accs[idx] ? "bg-[var(--terracotta)]" : "bg-[var(--border)]"}`}>
+        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300 ease-in-out transform ${accs[idx] ? "translate-x-4" : "translate-x-0"}`} />
+      </div>
     </div>
   );
   return (
@@ -341,7 +341,7 @@ export function S04bDietary() {
           <Shield size={11} className="text-[var(--terracotta)]" />
           All filters stay on this phone.
         </div>
-        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
+        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-all duration-300">
           Continue <ChevronRight size={18} />
         </button>
       </div>
@@ -423,10 +423,10 @@ export function S05Feed() {
 
       {/* Tab bar */}
       <div className="border-t border-[var(--border)] px-10 py-3 flex justify-between bg-white">
-        <button className="flex flex-col items-center gap-0.5"><Sparkles size={22} className="text-[var(--terracotta)]" /><span className="text-[9px] font-semibold text-[var(--terracotta)]">Feed</span></button>
-        <button className="flex flex-col items-center gap-0.5"><MapPin size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Map</span></button>
-        <button className="flex flex-col items-center gap-0.5"><Clock size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">History</span></button>
-        <button className="flex flex-col items-center gap-0.5"><Shield size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Privacy</span></button>
+        <button className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Sparkles size={22} className="text-[var(--terracotta)]" /><span className="text-[9px] font-semibold text-[var(--terracotta)]">Feed</span></button>
+        <button className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><MapPin size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Map</span></button>
+        <button className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Clock size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">History</span></button>
+        <button className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Shield size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Privacy</span></button>
       </div>
     </Phone>
   );
@@ -440,10 +440,10 @@ export function S06OfferDetail() {
         <img src={cafeImg} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[var(--cream)]" />
         <StatusBar dark />
-        <button className="absolute top-16 left-5 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center">
+        <button className="absolute top-16 left-5 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center active:scale-95 transition-all duration-300">
           <ChevronLeft size={18} />
         </button>
-        <button className="absolute top-16 right-5 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center">
+        <button className="absolute top-16 right-5 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center active:scale-95 transition-all duration-300">
           <X size={18} />
         </button>
         <div className="absolute top-16 left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -512,7 +512,7 @@ export function S06OfferDetail() {
       </div>
 
       <div className="p-5 pt-3">
-        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold shadow-lg shadow-[var(--terracotta)]/30 flex items-center justify-center gap-2">
+        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold shadow-lg shadow-[var(--terracotta)]/30 flex items-center justify-center gap-2 active:scale-95 transition-all duration-300">
           Redeem now <ChevronRight size={18} />
         </button>
       </div>
@@ -599,7 +599,7 @@ export function S07Walk() {
             </div>
             <div className="font-display text-xl text-[var(--terracotta)]">−€3.40</div>
           </div>
-          <button className="mt-3 w-full h-12 rounded-full bg-[var(--terracotta)] text-white font-semibold">
+          <button className="mt-3 w-full h-12 rounded-full bg-[var(--terracotta)] text-white font-semibold active:scale-95 transition-all duration-300">
             Start the walk
           </button>
         </div>
@@ -644,12 +644,12 @@ export function S08QR() {
           <Lock size={11} /> Code generated on this device · single-use
         </div>
 
-        <button className="mt-5 px-5 py-2 rounded-full qr-redeem-secondary text-[12px] transition">
+        <button className="mt-5 px-5 py-2 rounded-full qr-redeem-secondary text-[12px] transition active:scale-95 transition-all duration-300">
           Simulate scan →
         </button>
       </div>
       <div className="relative p-5 pb-7">
-        <button className="w-full py-4 rounded-full qr-redeem-cancel text-[var(--paper)] font-semibold transition">
+        <button className="w-full py-4 rounded-full qr-redeem-cancel text-[var(--paper)] font-semibold transition active:scale-95 transition-all duration-300">
           Cancel redeem
         </button>
       </div>
@@ -740,10 +740,10 @@ export function S09Confirm() {
       </div>
 
       <div className="p-5 pb-7">
-        <button className="w-full py-4 rounded-full bg-[var(--forest)] text-white font-semibold shadow-lg shadow-[var(--forest)]/25">
+        <button className="w-full py-4 rounded-full bg-[var(--forest)] text-white font-semibold shadow-lg shadow-[var(--forest)]/25 active:scale-95 transition-all duration-300">
           Done
         </button>
-        <button className="w-full mt-2 text-[12px] text-[var(--forest)]/55">Rate Tony's in 5 seconds</button>
+        <button className="w-full mt-2 text-[12px] text-[var(--forest)]/55 active:scale-95 transition-all duration-300">Rate Tony's in 5 seconds</button>
       </div>
     </Phone>
   );
@@ -753,10 +753,9 @@ export function S09Confirm() {
 export function S10Settings() {
   const [toggles, setToggles] = useState([true, true, true, true, false]);
   const Toggle = ({ idx }: { idx: number }) => (
-    <span onClick={() => setToggles(p => { const n=[...p]; n[idx]=!n[idx]; return n; })}
-      className={`w-10 h-6 rounded-full p-0.5 flex items-center transition-all cursor-pointer ${toggles[idx] ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
-      <span className="w-5 h-5 rounded-full bg-white shadow" />
-    </span>
+    <div onClick={() => setToggles(p => { const n=[...p]; n[idx]=!n[idx]; return n; })} className={`relative w-11 h-6 rounded-full transition-all duration-300 ease-in-out cursor-pointer active:scale-95 ${toggles[idx] ? "bg-[var(--terracotta)]" : "bg-[var(--forest)]/20"}`}>
+      <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300 ease-in-out transform ${toggles[idx] ? "translate-x-5" : "translate-x-0"}`} />
+    </div>
   );
   const Row = ({ title, desc, idx, badge }: { title: string; desc: string; idx: number; badge: "DEVICE" | "CLOUD" }) => (
     <div className="flex items-center gap-3 py-3.5 border-b border-[var(--border)]/60 last:border-b-0">
@@ -778,7 +777,7 @@ export function S10Settings() {
     <Phone title="Privacy" number={10}>
       <StatusBar />
       <div className="px-6 pb-2 flex items-center gap-3">
-        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center">
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center active:scale-95 transition-all duration-300">
           <ChevronLeft size={16} />
         </button>
         <div className="flex-1 text-center font-display text-[16px] text-[var(--forest)]">Privacy</div>
@@ -847,7 +846,7 @@ export function S11MerchantOnboarding() {
     <Phone title="Merchant onboarding" number={11}>
       <StatusBar />
       <div className="px-6 pb-2 flex items-center gap-3">
-        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center">
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center active:scale-95 transition-all duration-300">
           <ChevronLeft size={16} />
         </button>
         <div className="flex-1 text-center font-display text-[15px] text-[var(--forest)]">Add your business</div>
@@ -900,7 +899,7 @@ export function S11MerchantOnboarding() {
       </div>}
 
       <div className="mt-auto p-5">
-        <button className="w-full py-4 rounded-full bg-[var(--forest)] text-white font-semibold flex items-center justify-center gap-2">
+        <button className="w-full py-4 rounded-full bg-[var(--forest)] text-white font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all duration-300">
           Continue to margins
         </button>
       </div>
@@ -927,7 +926,7 @@ export function S12Margin() {
     <Phone title="Margin setup" number={12}>
       <StatusBar />
       <div className="px-6 pb-2 flex items-center gap-3">
-        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center"><ChevronLeft size={16} /></button>
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center active:scale-95 transition-all duration-300"><ChevronLeft size={16} /></button>
         <div className="flex-1 text-center font-display text-[15px] text-[var(--forest)]">Margins</div>
         <span className="text-[11px] text-[var(--forest)]/55">Step 2 / 3</span>
       </div>
@@ -962,7 +961,7 @@ export function S12Margin() {
         <div className="text-[10px] text-white/55 mt-1">based on the last 30 days at this margin</div>
       </div>
       <div className="mt-auto p-5">
-        <button className="w-full py-4 rounded-full bg-[var(--sand)] text-[var(--forest)] font-semibold shadow-lg shadow-[var(--sand)]/30">Lock in {pos}%</button>
+        <button className="w-full py-4 rounded-full bg-[var(--sand)] text-[var(--forest)] font-semibold shadow-lg shadow-[var(--sand)]/30 active:scale-95 transition-all duration-300">Lock in {pos}%</button>
       </div>
     </Phone>
   );
@@ -984,7 +983,7 @@ export function S13Goal() {
     <Phone title="Goal studio" number={13}>
       <StatusBar />
       <div className="px-6 pb-2 flex items-center gap-3">
-        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center"><ChevronLeft size={16} /></button>
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center active:scale-95 transition-all duration-300"><ChevronLeft size={16} /></button>
         <div className="flex-1 text-center font-display text-[15px] text-[var(--forest)]">Goal studio</div>
         <div className="w-9" />
       </div>
@@ -995,7 +994,7 @@ export function S13Goal() {
         <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--terracotta)]"><Sparkles size={11} /> YOUR WORDS</div>
         <div className="font-display text-[17px] text-[var(--forest)] leading-snug mt-2">"Fill my Thursday afternoon dip — it's dead between lunch and dinner."</div>
         <div className="mt-3 flex items-center justify-between">
-          <button className="w-9 h-9 rounded-full bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]"><Mic size={14} /></button>
+          <button className="w-9 h-9 rounded-full bg-[var(--cream)] flex items-center justify-center text-[var(--forest)] active:scale-95 transition-all duration-300"><Mic size={14} /></button>
           <span className="text-[11px] text-[var(--forest)]/55">tap to re-record · 8s</span>
         </div>
       </div>
@@ -1030,7 +1029,7 @@ export function S13Goal() {
       </div>
 
       <div className="mt-auto p-5">
-        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
+        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-all duration-300">
           Launch goal <Sparkles size={16} />
         </button>
       </div>
@@ -1061,7 +1060,7 @@ export function S14Dashboard() {
           <div className="text-[11px] text-[var(--forest)]/55">Tony's Café · Stuttgart</div>
           <h2 className="font-display text-[26px] text-[var(--forest)] leading-tight">Today, so far</h2>
         </div>
-        <button className="relative w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center text-[var(--forest)]">
+        <button className="relative w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center text-[var(--forest)] active:scale-95 transition-all duration-300">
           <Bell size={15} />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--sand)]" />
         </button>
@@ -1100,7 +1099,7 @@ export function S14Dashboard() {
       {/* Live offers */}
       <div className="px-5 mt-3 flex items-center justify-between">
         <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/65">LIVE OFFERS · 3</div>
-        <button className="text-[11px] text-[var(--terracotta)] font-semibold">manage</button>
+        <button className="text-[11px] text-[var(--terracotta)] font-semibold active:scale-95 transition-all duration-300">manage</button>
       </div>
       <div className="px-5 mt-2 space-y-1.5">
         {[
@@ -1125,7 +1124,7 @@ export function S14Dashboard() {
       </div>
 
       <div className="mt-auto p-5">
-        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30"><ScanLine size={16} /> Open scanner</button>
+        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-all duration-300"><ScanLine size={16} /> Open scanner</button>
       </div>
     </Phone>
   );
@@ -1171,7 +1170,7 @@ export function S15Scanner() {
         </div>
       </div>
       <div className="relative p-5">
-        <button className="w-full h-12 rounded-full bg-[var(--terracotta)] text-white font-semibold">
+        <button className="w-full h-12 rounded-full bg-[var(--terracotta)] text-white font-semibold active:scale-95 transition-all duration-300">
           Scan next customer
         </button>
       </div>
