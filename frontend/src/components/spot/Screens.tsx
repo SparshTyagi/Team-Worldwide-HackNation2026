@@ -94,63 +94,71 @@ export function S02Pins() {
       </div>
       <div className="relative flex-1 min-h-[420px] mx-4 rounded-3xl overflow-hidden border border-[var(--border)] spot-map-clean">
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          {/* Path 1: Home → Work */}
+          {/* Path 1: Home (20,18) → Work (80,78) — endpoints sit exactly under pin tips */}
           <motion.path
             d="M 20 18 Q 50 30 80 78"
             stroke="var(--terracotta)"
-            strokeWidth="0.8"
             strokeLinecap="round"
             strokeDasharray="2 2"
             fill="none"
             vectorEffect="non-scaling-stroke"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 0.95 }}
-            transition={{ duration: 1.2, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
             style={{ strokeWidth: 3 } as any}
           />
-          {/* Path 2: Work → Tony's */}
+          {/* Path 2: Work (80,78) → Tony's (22,70) */}
           <motion.path
             d="M 80 78 Q 50 80 22 70"
             stroke="var(--forest)"
-            strokeWidth="0.8"
             strokeLinecap="round"
             strokeDasharray="2 2"
             fill="none"
             vectorEffect="non-scaling-stroke"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 0.95 }}
-            transition={{ duration: 1.2, delay: 2.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, delay: 1.9, ease: [0.22, 1, 0.36, 1] }}
             style={{ strokeWidth: 3 } as any}
           />
+          {/* Anchor dots at each pin tip — guarantees lines visually connect to pin tip */}
+          <motion.circle cx="20" cy="18" r="1.4" fill="var(--terracotta)" vectorEffect="non-scaling-stroke"
+            initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.25 }} style={{ transformOrigin: "20px 18px" }} />
+          <motion.circle cx="80" cy="78" r="1.4" fill="var(--terracotta)" vectorEffect="non-scaling-stroke"
+            initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.6, duration: 0.25 }} style={{ transformOrigin: "80px 78px" }} />
+          <motion.circle cx="22" cy="70" r="1.4" fill="var(--sand)" vectorEffect="non-scaling-stroke"
+            initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 2.9, duration: 0.25 }} style={{ transformOrigin: "22px 70px" }} />
         </svg>
 
-        {/* Pins — absolute pos via outer; drop animation on inner via Framer Motion */}
-        <div className="absolute" style={{ left: "20%", top: "18%" }}>
+        {/* Pins — zero-size anchor at exact coord; SVG tip lands on anchor via -18/-42 offset */}
+        <div className="absolute" style={{ left: "20%", top: "18%", width: 0, height: 0 }}>
           <motion.div
-            initial={{ y: -40, opacity: 0, scale: 0.6 }}
+            initial={{ y: -32, opacity: 0, scale: 0.65 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ transform: "translate(-50%, -42px)" }}
+            transition={{ delay: 0.1, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ position: "absolute", left: -18, top: -42 }}
           >
             <HandPin label="Home" color="var(--forest)" />
           </motion.div>
         </div>
-        <div className="absolute" style={{ left: "80%", top: "78%" }}>
+        <div className="absolute" style={{ left: "80%", top: "78%", width: 0, height: 0 }}>
           <motion.div
-            initial={{ y: -40, opacity: 0, scale: 0.6 }}
+            initial={{ y: -32, opacity: 0, scale: 0.65 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ delay: 1.9, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ transform: "translate(-50%, -42px)" }}
+            transition={{ delay: 1.3, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ position: "absolute", left: -18, top: -42 }}
           >
             <HandPin label="Work" color="var(--terracotta)" />
           </motion.div>
         </div>
-        <div className="absolute" style={{ left: "22%", top: "70%" }}>
+        <div className="absolute" style={{ left: "22%", top: "70%", width: 0, height: 0 }}>
           <motion.div
-            initial={{ y: -40, opacity: 0, scale: 0.6 }}
+            initial={{ y: -32, opacity: 0, scale: 0.65 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ delay: 3.6, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ transform: "translate(-50%, -42px)" }}
+            transition={{ delay: 2.6, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ position: "absolute", left: -18, top: -42 }}
           >
             <HandPin label="Tony's ☕" color="var(--sand)" pulsing />
           </motion.div>
@@ -455,8 +463,8 @@ export function S05Feed() {
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="border-t border-[var(--border)] px-10 py-3 flex justify-between bg-white">
+      {/* Tab bar — pinned to bottom of screen */}
+      <div className="mt-auto border-t border-[var(--border)] px-10 pt-3 flex justify-between bg-white" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
         <button className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Sparkles size={22} className="text-[var(--terracotta)]" /><span className="text-[9px] font-semibold text-[var(--terracotta)]">Feed</span></button>
         <button className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><MapPin size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Map</span></button>
         <button className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Clock size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">History</span></button>
