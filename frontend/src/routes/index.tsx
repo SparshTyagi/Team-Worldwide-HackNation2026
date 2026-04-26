@@ -93,10 +93,8 @@ function MobileApp() {
 
       // --- Tab bar (Feed screen) ---
       if (idx === S.feed && btn.closest(".border-t")) {
-        const siblings = Array.from(btn.parentElement?.children || []);
-        const btnIdx = siblings.indexOf(btn);
-        if (btnIdx === 1) go(S.walk); // Map tab
-        if (btnIdx === 3) go(S.settings); // Shield/privacy tab
+        if (text.includes("Map")) go(S.walk);
+        else if (text.includes("Privacy")) go(S.settings);
         return;
       }
 

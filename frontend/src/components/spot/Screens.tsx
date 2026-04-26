@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Phone, StatusBar } from "@/components/spot/Phone";
 import { SpotLogo, MapStylized, HandPin, QrCode } from "@/components/spot/Visuals";
 import cafeImg from "@/assets/cafe-tony.jpg";
@@ -152,80 +153,58 @@ export function S02Pins() {
 
 /* ---------- 03 ONBOARDING — meal-time rail sliders + chips ---------- */
 export function S03Meals() {
-  // value 0..1, with side ticks at 0, .25, .5, .75, 1
-  const Rail = ({
-    icon, label, time, value,
-  }: { icon: React.ReactNode; label: string; time: string; value: number }) => (
-    <div className="bg-white rounded-2xl px-4 py-3 border border-[var(--border)]">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]">{icon}</div>
-        <div className="flex-1">
-          <div className="font-display text-[14px] text-[var(--forest)] leading-tight">{label}</div>
-        </div>
-        <div className="font-display text-[16px] text-[var(--terracotta)]">{time}</div>
-      </div>
-      <div className="rail-track mt-2.5">
-        <div className="rail-base" />
-        <div className="rail-fill" style={{ width: `${value * 100}%` }} />
-        {[0, 0.25, 0.5, 0.75, 1].map((t) => (
-          <span key={t} className="rail-tick" style={{ left: `${t * 100}%` }} />
-        ))}
-        <span className="rail-thumb" style={{ left: `${value * 100}%` }} />
-      </div>
-      <div className="flex justify-between mt-1 text-[10px] text-[var(--forest)]/45 font-medium">
-        <span>earlier</span>
-        <span>later</span>
-      </div>
-    </div>
-  );
-  const chips = [
-    { l: "Coffee", on: true },
-    { l: "Bakery", on: true },
-    { l: "Italian", on: true },
-    { l: "Asian", on: false },
-    { l: "Healthy", on: true },
-    { l: "Wine bars", on: false },
-    { l: "Bistro", on: true },
-    { l: "Vegan", on: false },
-    { l: "Sweet", on: true },
-  ];
+  const [vals, setVals] = useState([0.42, 0.55, 0.72]);
+  const [chips, setChips] = useState([true, true, true, false, true, false, true, false, true]);
+  const chipNames = ["Coffee", "Bakery", "Italian", "Asian", "Healthy", "Wine bars", "Bistro", "Vegan", "Sweet"];
+  const fmtTime = (v: number) => { const h = Math.floor(6 + v * 16); const m = Math.floor(((6 + v * 16) - h) * 60); return `${String(h).padStart(2,"0")}:${String(Math.round(m / 5) * 5).padStart(2,"0")}`; };
+  const startDrag = (i: number) => (e: React.PointerEvent) => {
+    e.preventDefault();
+    const track = (e.currentTarget as HTMLElement);
+    const move = (ev: PointerEvent) => { const r = track.getBoundingClientRect(); setVals(p => { const n=[...p]; n[i]=Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)); return n; }); };
+    move(e.nativeEvent);
+    const up = () => { window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up); };
+    window.addEventListener("pointermove",move); window.addEventListener("pointerup",up);
+  };
+  const railIcons = [<Coffee size={15} />, <UtensilsCrossed size={15} />, <Wine size={15} />];
+  const railLabels = ["Coffee", "Lunch", "Dinner"];
   return (
     <Phone title="Onboarding · Taste" number={3}>
       <StatusBar />
       <div className="px-6 pb-1">
         <div className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)]">STEP 2 OF 3</div>
-        <div className="mt-1 flex gap-1.5">
-          <span className="h-1 flex-1 rounded-full bg-[var(--forest)]" />
-          <span className="h-1 flex-1 rounded-full bg-[var(--forest)]" />
-          <span className="h-1 flex-1 rounded-full bg-[var(--border)]" />
-        </div>
-        <h2 className="font-display text-[22px] leading-[1.1] text-[var(--forest)] mt-2.5">
-          When do you usually
-          <br /> get hungry?
-        </h2>
+        <div className="mt-1 flex gap-1.5"><span className="h-1 flex-1 rounded-full bg-[var(--forest)]" /><span className="h-1 flex-1 rounded-full bg-[var(--forest)]" /><span className="h-1 flex-1 rounded-full bg-[var(--border)]" /></div>
+        <h2 className="font-display text-[22px] leading-[1.1] text-[var(--forest)] mt-2.5">When do you usually<br /> get hungry?</h2>
       </div>
       <div className="px-4 mt-3 space-y-2">
-        <Rail icon={<Coffee size={15} />} label="Coffee" time="08:30" value={0.42} />
-        <Rail icon={<UtensilsCrossed size={15} />} label="Lunch" time="12:45" value={0.55} />
-        <Rail icon={<Wine size={15} />} label="Dinner" time="19:15" value={0.72} />
+        {[0,1,2].map(i => (
+          <div key={i} className="bg-white rounded-2xl px-4 py-3 border border-[var(--border)]">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]">{railIcons[i]}</div>
+              <div className="flex-1"><div className="font-display text-[14px] text-[var(--forest)] leading-tight">{railLabels[i]}</div></div>
+              <div className="font-display text-[16px] text-[var(--terracotta)]">{fmtTime(vals[i])}</div>
+            </div>
+            <div className="rail-track mt-2.5" onPointerDown={startDrag(i)} style={{ touchAction: "none", cursor: "pointer" }}>
+              <div className="rail-base" /><div className="rail-fill" style={{ width: `${vals[i]*100}%` }} />
+              {[0,0.25,0.5,0.75,1].map(t => <span key={t} className="rail-tick" style={{ left: `${t*100}%` }} />)}
+              <span className="rail-thumb" style={{ left: `${vals[i]*100}%` }} />
+            </div>
+            <div className="flex justify-between mt-1 text-[10px] text-[var(--forest)]/45 font-medium"><span>earlier</span><span>later</span></div>
+          </div>
+        ))}
       </div>
       <div className="px-6 mt-3">
         <div className="text-[10px] font-semibold tracking-widest text-[var(--forest)]/55 mb-1.5">TASTES YOU TRUST</div>
         <div className="flex flex-wrap gap-1.5">
-          {chips.map((c) => (
-            <span key={c.l}
-              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
-                c.on ? "bg-[var(--forest)] text-white border-[var(--forest)]" : "bg-white text-[var(--forest)] border-[var(--border)]"
-              }`}>
-              {c.l}
-            </span>
+          {chipNames.map((l, i) => (
+            <span key={l} onClick={() => setChips(p => { const n=[...p]; n[i]=!n[i]; return n; })}
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all cursor-pointer ${
+                chips[i] ? "bg-[var(--forest)] text-white border-[var(--forest)]" : "bg-white text-[var(--forest)] border-[var(--border)]"
+              }`}>{l}</span>
           ))}
         </div>
       </div>
       <div className="mt-auto px-5 pt-3 pb-4">
-        <button className="w-full py-3.5 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
-          Looks right
-        </button>
+        <button className="w-full py-3.5 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">Looks right</button>
       </div>
     </Phone>
   );
@@ -280,23 +259,25 @@ export function S04Permissions() {
 
 /* ---------- 04b DIETARY & ACCESSIBILITY ---------- */
 export function S04bDietary() {
-  const Diet = ({ icon, label, on }: { icon: React.ReactNode; label: string; on?: boolean }) => (
-    <button className={`flex items-center gap-2 px-3 py-2 rounded-2xl border transition-all ${
-      on ? "bg-[var(--forest)] text-white border-[var(--forest)]" : "bg-white text-[var(--forest)] border-[var(--border)]"
+  const [diets, setDiets] = useState([true, false, true, false, false, true, false, false]);
+  const [accs, setAccs] = useState([true, true, false]);
+  const Diet = ({ icon, label, idx }: { icon: React.ReactNode; label: string; idx: number }) => (
+    <button onClick={() => setDiets(p => { const n=[...p]; n[idx]=!n[idx]; return n; })} className={`flex items-center gap-2 px-3 py-2 rounded-2xl border transition-all ${
+      diets[idx] ? "bg-[var(--forest)] text-white border-[var(--forest)]" : "bg-white text-[var(--forest)] border-[var(--border)]"
     }`}>
       <span className="w-6 h-6 rounded-full flex items-center justify-center text-current">{icon}</span>
       <span className="text-[12px] font-semibold">{label}</span>
-      {on && <Check size={12} className="ml-1" />}
+      {diets[idx] && <Check size={12} className="ml-1" />}
     </button>
   );
-  const Acc = ({ icon, label, desc, on }: { icon: React.ReactNode; label: string; desc: string; on?: boolean }) => (
-    <div className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[var(--border)]">
+  const Acc = ({ icon, label, desc, idx }: { icon: React.ReactNode; label: string; desc: string; idx: number }) => (
+    <div onClick={() => setAccs(p => { const n=[...p]; n[idx]=!n[idx]; return n; })} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[var(--border)] cursor-pointer">
       <div className="w-9 h-9 rounded-xl bg-[var(--cream)] flex items-center justify-center text-[var(--terracotta)]">{icon}</div>
       <div className="flex-1">
         <div className="font-display text-[14px] text-[var(--forest)] leading-tight">{label}</div>
         <div className="text-[11px] text-[var(--forest)]/60">{desc}</div>
       </div>
-      <span className={`w-9 h-5 rounded-full p-0.5 flex transition-all ${on ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
+      <span className={`w-9 h-5 rounded-full p-0.5 flex transition-all ${accs[idx] ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
         <span className="w-4 h-4 rounded-full bg-white shadow" />
       </span>
     </div>
@@ -325,14 +306,14 @@ export function S04bDietary() {
           <Leaf size={11} /> DIETARY
         </div>
         <div className="flex flex-wrap gap-1.5">
-          <Diet icon={<Leaf size={13} />} label="Vegetarian" on />
-          <Diet icon={<Leaf size={13} />} label="Vegan" />
-          <Diet icon={<Wheat size={13} />} label="Gluten-free" on />
-          <Diet icon={<Flame size={13} />} label="Halal" />
-          <Diet icon={<Sparkles size={13} />} label="Kosher" />
-          <Diet icon={<X size={13} />} label="Nut-free" on />
-          <Diet icon={<X size={13} />} label="Dairy-free" />
-          <Diet icon={<X size={13} />} label="Low-sugar" />
+          <Diet icon={<Leaf size={13} />} label="Vegetarian" idx={0} />
+          <Diet icon={<Leaf size={13} />} label="Vegan" idx={1} />
+          <Diet icon={<Wheat size={13} />} label="Gluten-free" idx={2} />
+          <Diet icon={<Flame size={13} />} label="Halal" idx={3} />
+          <Diet icon={<Sparkles size={13} />} label="Kosher" idx={4} />
+          <Diet icon={<X size={13} />} label="Nut-free" idx={5} />
+          <Diet icon={<X size={13} />} label="Dairy-free" idx={6} />
+          <Diet icon={<X size={13} />} label="Low-sugar" idx={7} />
         </div>
       </div>
 
@@ -341,9 +322,9 @@ export function S04bDietary() {
           <Accessibility size={11} /> ACCESSIBILITY
         </div>
         <div className="space-y-2">
-          <Acc icon={<Accessibility size={16} />} label="Step-free entrance only" desc="Show offers Mia can roll into." on />
-          <Acc icon={<Eye size={16} />} label="High-contrast cards" desc="Larger text, AAA contrast." on />
-          <Acc icon={<Mic size={16} />} label="Read offers aloud" desc="VoiceOver-friendly summaries." />
+          <Acc icon={<Accessibility size={16} />} label="Step-free entrance only" desc="Show offers Mia can roll into." idx={0} />
+          <Acc icon={<Eye size={16} />} label="High-contrast cards" desc="Larger text, AAA contrast." idx={1} />
+          <Acc icon={<Mic size={16} />} label="Read offers aloud" desc="VoiceOver-friendly summaries." idx={2} />
         </div>
       </div>
 
@@ -435,10 +416,10 @@ export function S05Feed() {
 
       {/* Tab bar */}
       <div className="border-t border-[var(--border)] px-10 py-3 flex justify-between bg-white">
-        <Sparkles size={22} className="text-[var(--terracotta)]" />
-        <MapPin size={22} className="text-[var(--forest)]/40" />
-        <Clock size={22} className="text-[var(--forest)]/40" />
-        <Shield size={22} className="text-[var(--forest)]/40" />
+        <button className="flex flex-col items-center gap-0.5"><Sparkles size={22} className="text-[var(--terracotta)]" /><span className="text-[9px] font-semibold text-[var(--terracotta)]">Feed</span></button>
+        <button className="flex flex-col items-center gap-0.5"><MapPin size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Map</span></button>
+        <button className="flex flex-col items-center gap-0.5"><Clock size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">History</span></button>
+        <button className="flex flex-col items-center gap-0.5"><Shield size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Privacy</span></button>
       </div>
     </Phone>
   );
@@ -763,12 +744,14 @@ export function S09Confirm() {
 
 /* ---------- 10 SETTINGS / PRIVACY (redesigned per reference) ---------- */
 export function S10Settings() {
-  const Toggle = ({ on = true }: { on?: boolean }) => (
-    <span className={`w-10 h-6 rounded-full p-0.5 flex items-center transition-all ${on ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
+  const [toggles, setToggles] = useState([true, true, true, true, false]);
+  const Toggle = ({ idx }: { idx: number }) => (
+    <span onClick={() => setToggles(p => { const n=[...p]; n[idx]=!n[idx]; return n; })}
+      className={`w-10 h-6 rounded-full p-0.5 flex items-center transition-all cursor-pointer ${toggles[idx] ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
       <span className="w-5 h-5 rounded-full bg-white shadow" />
     </span>
   );
-  const Row = ({ title, desc, on, badge }: { title: string; desc: string; on: boolean; badge: "DEVICE" | "CLOUD" }) => (
+  const Row = ({ title, desc, idx, badge }: { title: string; desc: string; idx: number; badge: "DEVICE" | "CLOUD" }) => (
     <div className="flex items-center gap-3 py-3.5 border-b border-[var(--border)]/60 last:border-b-0">
       <div className="flex-1">
         <div className="flex items-center gap-2 flex-wrap">
@@ -781,7 +764,7 @@ export function S10Settings() {
         </div>
         <div className="text-[11px] text-[var(--forest)]/60 mt-0.5">{desc}</div>
       </div>
-      <Toggle on={on} />
+      <Toggle idx={idx} />
     </div>
   );
   return (
@@ -822,11 +805,11 @@ export function S10Settings() {
       </div>
 
       <div className="mx-5 mt-3 px-4 rounded-3xl bg-white border border-[var(--border)]">
-        <Row title="Approximate location" desc="Neighbourhood-level only." on badge="DEVICE" />
-        <Row title="Time-of-day patterns" desc="When you usually leave work." on badge="DEVICE" />
-        <Row title="Weather lookups" desc="By postcode, anonymised." on badge="CLOUD" />
-        <Row title="Notifications" desc="Maximum three per day." on badge="DEVICE" />
-        <Row title="Spending insights" desc="Opt-in monthly summary." on={false} badge="CLOUD" />
+        <Row title="Approximate location" desc="Neighbourhood-level only." idx={0} badge="DEVICE" />
+        <Row title="Time-of-day patterns" desc="When you usually leave work." idx={1} badge="DEVICE" />
+        <Row title="Weather lookups" desc="By postcode, anonymised." idx={2} badge="CLOUD" />
+        <Row title="Notifications" desc="Maximum three per day." idx={3} badge="DEVICE" />
+        <Row title="Spending insights" desc="Opt-in monthly summary." idx={4} badge="CLOUD" />
       </div>
 
       <div className="mx-5 mt-3 flex items-center gap-3 p-3 bg-white rounded-2xl border border-[var(--border)]">
