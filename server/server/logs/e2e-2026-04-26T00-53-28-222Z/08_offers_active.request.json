@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "path": "/v1/offers/active?user_pseudonym=usr_logs_demo_001&channel=in_app",
+  "url": "http://127.0.0.1:58511/v1/offers/active?user_pseudonym=usr_logs_demo_001&channel=in_app",
+  "headers": {},
+  "body": null,
+  "at_utc": "2026-04-26T00:53:29.546Z"
+}

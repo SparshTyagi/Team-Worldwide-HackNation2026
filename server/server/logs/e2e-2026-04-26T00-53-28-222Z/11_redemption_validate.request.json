@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/v1/redemption/validate",
+  "url": "http://127.0.0.1:58511/v1/redemption/validate",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "token": "3a7065c0-2732-4bdd-a85c-c6307ce43d97",
+    "merchant_id": "m_1021",
+    "validated_at_utc": "2026-04-26T00:53:30.533Z"
+  },
+  "at_utc": "2026-04-26T00:53:30.533Z"
+}
