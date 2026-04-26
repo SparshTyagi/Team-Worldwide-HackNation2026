@@ -49,9 +49,27 @@ function sendValidatedOutput(res, schemaName, payload, statusCode = 200) {
   return sendJson(res, statusCode, payload);
 }
 
+function applyCorsHeaders(req, res) {
+  const originHeader = req.headers.origin;
+  const origin = Array.isArray(originHeader) ? originHeader[0] : originHeader;
+
+  res.setHeader("Access-Control-Allow-Origin", origin || "*");
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Max-Age", "86400");
+}
+
 export function createAppServer() {
   return http.createServer(async (req, res) => {
     try {
+      applyCorsHeaders(req, res);
+      if (req.method === "OPTIONS") {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
       const url = new URL(req.url, `http://${req.headers.host}`);
       const { pathname, searchParams } = url;
 

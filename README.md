@@ -82,7 +82,8 @@ Canonical demo/runtime path (recommended for challenge):
 
 Canonical backend runtime env source:
 
-- `server/.env` (loaded by `server/src/config.js` for `node server/src/index.js`)
+- `server/.env` (preferred; loaded first by `server/src/config.js` for `node server/src/index.js`)
+- Root `.env` is a backward-compatible fallback only.
 
 Optional utility path:
 

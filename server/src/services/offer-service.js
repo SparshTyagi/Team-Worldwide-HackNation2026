@@ -125,6 +125,8 @@ function toActiveOfferCard(offerRecord) {
 }
 
 async function buildGenerationInput({ selectedMerchant, merchantRule, intentPacket, channel }) {
+  const merchantMeta = selectedMerchant?.business_hours || {};
+
   const { data: weather } = await supabase
     .from("context_snapshots")
     .select("payload")
@@ -151,9 +153,9 @@ async function buildGenerationInput({ selectedMerchant, merchantRule, intentPack
     generation_mode: "offer_card_v1",
     merchant_profile: {
       merchant_id: selectedMerchant.id,
-      category: selectedMerchant.category,
-      is_open_now: true,
-      price_band: selectedMerchant.price_band ?? "mid",
+      category: selectedMerchant.category ?? "unknown",
+      is_open_now: merchantMeta.is_open_now ?? selectedMerchant.is_open_now ?? true,
+      price_band: selectedMerchant.price_band ?? merchantMeta.price_band ?? "mid",
     },
     constraints: {
       max_discount_pct: merchantRule?.max_discount_pct ?? 20,
