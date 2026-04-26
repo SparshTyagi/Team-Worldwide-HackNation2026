@@ -47,6 +47,7 @@ server falls back to deterministic generation.
 - Root `.env` is supported as backward-compatible final fallback.
 - If you run `openrouter-proxy.js`, export env vars in your shell or provide them inline for that process.
 - For hosted `apps/web` deployments (e.g. Vercel), set `VITE_API_BASE_URL` in the web project to this API's public base URL.
+- Set `INTERNAL_API_KEY` to protect `/internal/*` routes in deployed environments.
 
 ## GDPR-safe intent runtime (edge-first)
 - Set `INTENT_MODEL_PROVIDER=onnx` for edge-first inference.
@@ -74,3 +75,4 @@ server falls back to deterministic generation.
 - `GET /internal/merchants` — list all merchants; optional `?merchant_id=m_3100`.
 - Example flow: `apps/api/scripts/seed-merchants-and-offer.sh http://127.0.0.1:8080`
   - Prefix with `OPENROUTER_API_KEY=` for a fast deterministic offer (no live model call).
+- If `INTERNAL_API_KEY` is configured, pass it as `X-Internal-Api-Key` for all `/internal/*` requests.

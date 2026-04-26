@@ -52,6 +52,7 @@ export const config = {
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseKey: process.env.SUPABASE_KEY,
   tavilyApiKey: process.env.TAVILY_API_KEY,
+  internalApiKey: process.env.INTERNAL_API_KEY,
   elevenLabsApiKey: process.env.ELEVENLABS_API_KEY,
   elevenLabsAgentId: process.env.ELEVENLABS_AGENT_ID,
   elevenLabsBaseUrl: (process.env.ELEVENLABS_BASE_URL || "https://api.elevenlabs.io/v1").replace(

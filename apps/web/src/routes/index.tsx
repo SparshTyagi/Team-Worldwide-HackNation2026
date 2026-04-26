@@ -64,6 +64,7 @@ export function MobileApp() {
   const [offers, setOffers] = useState<any[]>([]);
   const [selectedOffer, setSelectedOffer] = useState<any | null>(null);
   const [isOffersLoading, setIsOffersLoading] = useState(false);
+  const [offersSyncStatus, setOffersSyncStatus] = useState<string | null>(null);
   const [savings, setSavings] = useState({
     latestSavedEur: 3.4,
     todaySavedEur: 3.4,
@@ -120,6 +121,7 @@ export function MobileApp() {
 
   const loadLiveData = useCallback(async (pseudonym: string, token: string | null) => {
     if (!pseudonym) return;
+    setOffersSyncStatus(null);
     setIsOffersLoading(true);
     try {
       const [liveOffers, summary] = await Promise.all([
@@ -134,8 +136,12 @@ export function MobileApp() {
         monthSavedEur: summary.month_saved_eur,
         spotsTried: summary.spots_tried,
       });
-    } catch {
-      // Keep local fallbacks for demos when API is unavailable.
+    } catch (error) {
+      setOffersSyncStatus(
+        error instanceof Error
+          ? `Live deals are temporarily unavailable (${error.message}). Showing demo offers.`
+          : "Live deals are temporarily unavailable. Showing demo offers.",
+      );
     } finally {
       setIsOffersLoading(false);
     }
@@ -334,7 +340,6 @@ export function MobileApp() {
         return;
       }
       if (buttonAction === "save-voice-identity") {
-        go(S.mGoal, "up");
         void saveVoiceIdentity();
         return;
       }
@@ -459,6 +464,7 @@ export function MobileApp() {
           offers,
           selectedOffer,
           isOffersLoading,
+          offersSyncStatus,
           savings,
           merchantVoiceIdentity,
           voiceIdentityStatus,
@@ -527,12 +533,12 @@ export function MobileApp() {
 
                 {voiceWidgetSession?.sessionToken && (
                   <div className="mt-3 rounded-xl bg-[var(--cream)] px-3 py-2 text-[11px] text-[var(--forest)]/80">
-                    Session token ready (preview): {voiceWidgetSession.sessionToken.slice(0, 28)}...
+                    Secure voice session token generated. Ready to connect.
                   </div>
                 )}
                 {voiceWidgetSession?.signedUrl && (
-                  <div className="mt-2 rounded-xl bg-[var(--cream)] px-3 py-2 text-[11px] text-[var(--forest)]/80 break-all">
-                    Signed URL: {voiceWidgetSession.signedUrl}
+                  <div className="mt-2 rounded-xl bg-[var(--cream)] px-3 py-2 text-[11px] text-[var(--forest)]/80">
+                    Signed launch link generated for this merchant session.
                   </div>
                 )}
                 {voiceWidgetError && (

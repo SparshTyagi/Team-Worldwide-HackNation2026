@@ -4,9 +4,13 @@
 # Example: OPENROUTER_API_KEY= ./scripts/seed-merchants-and-offer.sh http://127.0.0.1:8080
 set -euo pipefail
 BASE="${1:-http://127.0.0.1:8080}"
+INTERNAL_HEADER=()
+if [[ -n "${INTERNAL_API_KEY:-}" ]]; then
+  INTERNAL_HEADER=(-H "X-Internal-Api-Key: ${INTERNAL_API_KEY}")
+fi
 
 json_post() {
-  curl -sS -X POST "$1" -H "Content-Type: application/json" -d "$2"
+  curl -sS -X POST "$1" -H "Content-Type: application/json" "${INTERNAL_HEADER[@]}" -d "$2"
 }
 
 echo "=== POST merchants (upsert) ==="
@@ -68,7 +72,7 @@ json_post "$BASE/internal/merchants" '{
 echo
 
 echo "=== GET /internal/merchants (list) ==="
-curl -sS "$BASE/internal/merchants"
+curl -sS "$BASE/internal/merchants" "${INTERNAL_HEADER[@]}"
 echo
 
 echo "=== POST /v1/intent-signal ==="

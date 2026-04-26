@@ -9,7 +9,7 @@ Set `VITE_API_BASE_URL` so the web app points to the right backend:
 - Local API example: `VITE_API_BASE_URL=http://127.0.0.1:8080`
 - Hosted API example: `VITE_API_BASE_URL=https://<your-api-host>`
 
-If this variable is not set, the app defaults to `http://localhost:8787`.
+If this variable is not set, the app defaults to `http://127.0.0.1:8080`.
 
 ## How to run locally (Desktop)
 

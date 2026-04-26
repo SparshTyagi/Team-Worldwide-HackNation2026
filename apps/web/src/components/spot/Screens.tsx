@@ -91,6 +91,7 @@ type SpotAppState = {
   offers: SpotOffer[];
   selectedOffer: SpotOffer | null;
   isOffersLoading: boolean;
+  offersSyncStatus: string | null;
   savings: SpotSavings;
   merchantVoiceIdentity: SpotMerchantVoiceIdentity;
   voiceIdentityStatus: string | null;
@@ -113,6 +114,7 @@ const defaultSpotState: SpotAppState = {
   offers: [],
   selectedOffer: null,
   isOffersLoading: false,
+  offersSyncStatus: null,
   savings: {
     latestSavedEur: 3.4,
     todaySavedEur: 3.4,
@@ -806,7 +808,7 @@ export function S04bDietary() {
 
 /* ---------- 05 HOME / FEED ---------- */
 export function S05Feed() {
-  const { userName, offers, isOffersLoading } = useSpotApp();
+  const { userName, offers, isOffersLoading, offersSyncStatus } = useSpotApp();
   const displayName = (userName || "Friend").trim();
   const fallbackCards: SpotOffer[] = [
     {
@@ -863,6 +865,14 @@ export function S05Feed() {
             Generating live deals...
           </div>
         )}
+        {offersSyncStatus && (
+          <div
+            role="status"
+            className="rounded-2xl border border-[var(--terracotta)]/25 bg-[var(--terracotta)]/10 p-3 text-[12px] text-[var(--terracotta)]"
+          >
+            {offersSyncStatus}
+          </div>
+        )}
         {cards.map((offer, i) => (
           <button
             key={offer.offer_id}
@@ -899,12 +909,16 @@ export function S05Feed() {
       </div>
 
       {/* Tab bar — pinned to bottom of screen */}
-      <div className="mt-auto border-t border-[var(--border)] px-10 pt-3 flex justify-between bg-white" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
-        <button data-action="noop" className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Sparkles size={22} className="text-[var(--terracotta)]" /><span className="text-[9px] font-semibold text-[var(--terracotta)]">Feed</span></button>
-        <button data-action="feed-tab-map" className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><MapPin size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Map</span></button>
-        <button data-action="feed-tab-history" className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Clock size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">History</span></button>
-        <button data-action="feed-tab-privacy" className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Shield size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Privacy</span></button>
-      </div>
+      <nav
+        aria-label="Main sections"
+        className="mt-auto border-t border-[var(--border)] px-10 pt-3 flex justify-between bg-white"
+        style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+      >
+        <button aria-current="page" data-action="noop" className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Sparkles size={22} className="text-[var(--terracotta)]" /><span className="text-[9px] font-semibold text-[var(--terracotta)]">Feed</span></button>
+        <button aria-label="Open map view" data-action="feed-tab-map" className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><MapPin size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Map</span></button>
+        <button aria-label="Open history view" data-action="feed-tab-history" className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Clock size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">History</span></button>
+        <button aria-label="Open privacy view" data-action="feed-tab-privacy" className="flex flex-col items-center gap-0.5 active:scale-95 transition-all duration-300"><Shield size={22} className="text-[var(--forest)]/40" /><span className="text-[9px] text-[var(--forest)]/40">Privacy</span></button>
+      </nav>
     </Phone>
   );
 }
@@ -928,7 +942,7 @@ export function S06OfferDetail() {
   return (
     <Phone title="Offer detail" number={6}>
       <div className="relative h-72 grain">
-        <img src={cafeImg} alt="" className="w-full h-full object-cover" />
+        <img src={cafeImg} alt="Tony's Cafe storefront" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[var(--cream)]" />
         <StatusBar dark />
         <button data-nav="back" aria-label="Back to feed" className="absolute top-16 left-5 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center active:scale-95 transition-all duration-300">
@@ -1147,7 +1161,7 @@ export function S07Walk() {
       <div className="mt-auto relative p-5">
         <div className="bg-white/95 backdrop-blur rounded-3xl p-4 border border-white/40 shadow-xl">
           <div className="flex items-center gap-3">
-            <img src={cafeImg} className="w-12 h-12 rounded-xl object-cover" alt="" />
+            <img src={cafeImg} className="w-12 h-12 rounded-xl object-cover" alt="Tony's Cafe thumbnail" />
             <div className="flex-1">
               <div className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)]">NEXT STOP</div>
               <div className="font-display text-[16px] text-[var(--forest)] leading-tight">Tony's Café — 80m ahead</div>
@@ -1284,7 +1298,7 @@ export function S09Confirm() {
       <div className="flex-1 flex flex-col items-center px-7 text-center relative">
         {/* Tony's thanks at top — bigger pill */}
         <div className="mt-3 fade-rise flex items-center gap-3 bg-white rounded-full border border-[var(--border)] py-2.5 pl-2.5 pr-5 shadow-md">
-          <img src={baristaImg} className="w-12 h-12 rounded-full object-cover" alt="" />
+          <img src={baristaImg} className="w-12 h-12 rounded-full object-cover" alt="Barista portrait" />
           <div className="text-left">
             <div className="font-display text-[16px] text-[var(--forest)] leading-tight">"Tony says thanks 👋"</div>
             <div className="text-[11px] text-[var(--forest)]/60 mt-0.5">Tony's Café · 13:04</div>
@@ -1605,6 +1619,7 @@ export function S12Margin() {
 
 /* ---------- 13 GOAL STUDIO (natural-language → parsed rules + preview) ---------- */
 export function S13Goal() {
+  const { voiceIdentityStatus } = useSpotApp();
   const [rules, setRules] = useState([
     { label: "Thursdays only", sand: false },
     { label: "14:00 – 17:00", sand: false },
@@ -1626,6 +1641,11 @@ export function S13Goal() {
       <div className="px-6 mt-3">
         <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">Tell Spot what<br /> you're trying to fix.</h2>
       </div>
+      {voiceIdentityStatus && (
+        <div className="mx-5 mt-3 rounded-xl bg-[var(--cream)] border border-[var(--border)] px-3 py-2 text-[11px] text-[var(--forest)]/75">
+          {voiceIdentityStatus}
+        </div>
+      )}
       <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-4">
         <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--terracotta)]"><Sparkles size={11} /> YOUR WORDS</div>
         <div className="font-display text-[17px] text-[var(--forest)] leading-snug mt-2">"Fill my Thursday afternoon dip — it's dead between lunch and dinner."</div>
@@ -1896,7 +1916,7 @@ export function S14Dashboard() {
         </div>
       </div>
       <div className="mx-5 mt-2 rounded-2xl border border-[var(--border)] bg-white p-3">
-        <div className="spot-kicker">Context Heatmap (placeholder)</div>
+        <div className="spot-kicker">Context performance (simulated insight)</div>
         <div className="mt-2 grid grid-cols-4 gap-1.5">
           {["RainLunch", "ClearLunch", "RainEvening", "ClearEvening"].map((cell, index) => (
             <div

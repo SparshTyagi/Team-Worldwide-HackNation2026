@@ -14,6 +14,7 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "smoke:e2e": "node scripts/e2e-smoke.js",
-    "smoke:supabase": "node scripts/e2e-supabase.js"
+    "smoke:supabase": "node scripts/e2e-supabase.js",
+    "smoke:tavily": "node scripts/smoke-tavily.js"
   }
 }

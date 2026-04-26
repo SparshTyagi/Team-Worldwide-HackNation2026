@@ -91,8 +91,53 @@ function applyCorsHeaders(req, res) {
   res.setHeader("Access-Control-Allow-Origin", origin || "*");
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Internal-Api-Key");
   res.setHeader("Access-Control-Max-Age", "86400");
+}
+
+function requireInternalAccess(req, res) {
+  const configuredKey = config.internalApiKey;
+  const isProduction = String(process.env.NODE_ENV || "").toLowerCase() === "production";
+
+  if (!configuredKey) {
+    if (isProduction) {
+      sendJson(res, 503, {
+        error: "internal_api_disabled",
+        message: "Internal routes are disabled in production unless INTERNAL_API_KEY is configured.",
+      });
+      return false;
+    }
+    return true;
+  }
+
+  const headerValue = req.headers["x-internal-api-key"];
+  const providedKey = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+  if (!providedKey || providedKey !== configuredKey) {
+    sendJson(res, 403, {
+      error: "forbidden",
+      message: "Missing or invalid X-Internal-Api-Key header.",
+    });
+    return false;
+  }
+  return true;
+}
+
+function resolveMerchantScope(caller, searchParams, res) {
+  if (!caller?.merchantId) {
+    sendJson(res, 400, { error: "bad_request", message: "No merchant account linked to this user." });
+    return null;
+  }
+
+  const requestedMerchantId = searchParams.get("merchant_id");
+  if (requestedMerchantId && requestedMerchantId !== caller.merchantId) {
+    sendJson(res, 403, {
+      error: "forbidden",
+      message: "merchant_id override is not allowed for this user.",
+    });
+    return null;
+  }
+
+  return caller.merchantId;
 }
 
 export function createAppServer() {
@@ -107,6 +152,11 @@ export function createAppServer() {
 
       const url = new URL(req.url, `http://${req.headers.host}`);
       const { pathname, searchParams } = url;
+
+      if (pathname.startsWith("/internal/")) {
+        const allowed = requireInternalAccess(req, res);
+        if (!allowed) return;
+      }
 
       if (req.method === "GET" && pathname === "/health") {
         const intentRuntime = resolveIntentRuntimeSummary();
@@ -256,7 +306,8 @@ export function createAppServer() {
       if (!caller) return;
       if (!requireRole(caller, "merchant", res)) return;
       if (!requireMerchantApproval(caller, res)) return;
-      const merchantId = searchParams.get("merchant_id") || caller.merchantId || "m_1021";
+      const merchantId = resolveMerchantScope(caller, searchParams, res);
+      if (!merchantId) return;
       const input = requireValidInput("merchant_dashboard_input", { merchant_id: merchantId });
       return sendValidatedOutput(
         res,
@@ -270,7 +321,8 @@ export function createAppServer() {
       if (!caller) return;
       if (!requireRole(caller, "merchant", res)) return;
       if (!requireMerchantApproval(caller, res)) return;
-      const merchantId = searchParams.get("merchant_id") || caller.merchantId || "m_1021";
+      const merchantId = resolveMerchantScope(caller, searchParams, res);
+      if (!merchantId) return;
       const input = requireValidInput("merchant_dashboard_input", { merchant_id: merchantId });
       return sendValidatedOutput(
         res,
@@ -284,7 +336,8 @@ export function createAppServer() {
       if (!caller) return;
       if (!requireRole(caller, "merchant", res)) return;
       if (!requireMerchantApproval(caller, res)) return;
-      const merchantId = searchParams.get("merchant_id") || caller.merchantId || "m_1021";
+      const merchantId = resolveMerchantScope(caller, searchParams, res);
+      if (!merchantId) return;
       const input = requireValidInput("merchant_dashboard_input", { merchant_id: merchantId });
       return sendValidatedOutput(
         res,
