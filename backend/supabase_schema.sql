@@ -8,13 +8,14 @@ DROP TABLE IF EXISTS context_snapshots CASCADE;
 DROP TABLE IF EXISTS merchant_rules CASCADE;
 DROP TABLE IF EXISTS intents CASCADE;
 DROP TABLE IF EXISTS redemptions CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
 DROP TABLE IF EXISTS merchants CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- Users Table
+-- Users Table (legacy pseudonym-based, for backward compat with unauthenticated flows)
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    pseudonym TEXT NOT NULL,
+    pseudonym TEXT NOT NULL UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -27,6 +28,17 @@ CREATE TABLE merchants (
     address TEXT,
     google_maps_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Profiles Table (extends auth.users — one row per authenticated account)
+-- Created by /auth/register; links auth identity to role + domain data.
+CREATE TABLE profiles (
+    id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    role        TEXT NOT NULL CHECK (role IN ('consumer', 'merchant')),
+    pseudonym   TEXT UNIQUE,                                         -- consumer pseudonym (server-generated)
+    merchant_id UUID REFERENCES merchants(id) ON DELETE SET NULL,    -- FK for merchant accounts
+    display_name TEXT,
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Intents Table
@@ -114,6 +126,7 @@ CREATE INDEX idx_intents_user_id ON intents(user_id);
 -- Enable Row Level Security (RLS)
 ALTER TABLE merchants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE redemptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE intents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE merchant_rules ENABLE ROW LEVEL SECURITY;
@@ -121,5 +134,45 @@ ALTER TABLE context_snapshots ENABLE ROW LEVEL SECURITY;
 ALTER TABLE offers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE offer_events ENABLE ROW LEVEL SECURITY;
 
--- Note: Policies need to be added based on client access patterns.
--- For server-side backend using SERVICE_ROLE, policies are bypassed.
+-- RLS Policies
+-- Server-side backend uses SERVICE_ROLE key, which bypasses RLS entirely.
+-- These policies apply to client-side Supabase SDK calls (e.g. frontend).
+
+-- Consumers can only read/write their own profile row
+CREATE POLICY "profiles: own row"
+  ON profiles FOR ALL
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+-- Consumers can only read their own offers
+CREATE POLICY "offers: consumer reads own"
+  ON offers FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+        AND profiles.id = offers.user_id
+    )
+  );
+
+-- Merchants can read the merchant row they own (via profiles.merchant_id)
+CREATE POLICY "merchants: owner reads own"
+  ON merchants FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+        AND profiles.merchant_id = merchants.id
+    )
+  );
+
+-- Merchants can read their own rules
+CREATE POLICY "merchant_rules: owner reads own"
+  ON merchant_rules FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+        AND profiles.merchant_id = merchant_rules.merchant_id
+    )
+  );

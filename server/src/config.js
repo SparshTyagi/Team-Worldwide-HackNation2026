@@ -48,4 +48,7 @@ export const config = {
     radiusKm: 2,
     offerTtlMinutes: 15,
   },
+  // Live context ingestion settings
+  contextRefreshMaxAgeMinutes: Number(process.env.CONTEXT_REFRESH_MAX_AGE_MINUTES ?? 30),
+  contextCity: process.env.CONTEXT_CITY ?? "Stuttgart",
 };

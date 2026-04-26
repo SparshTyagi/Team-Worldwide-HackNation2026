@@ -28,6 +28,8 @@ import {
   upsertMerchant,
   listMerchants,
 } from "./services/internal-service.js";
+import { register, login, logout } from "./services/auth-service.js";
+import { extractCaller, requireAuth, requireRole } from "./middleware/auth.js";
 
 function notFound(res) {
   sendJson(res, 404, { error: "not_found" });
@@ -60,18 +62,47 @@ export function createAppServer() {
         });
       }
 
+    // ── Auth Routes (public — no JWT required) ─────────────────────────────
+    if (req.method === "POST" && pathname === "/auth/register") {
+      const body = await readJsonBody(req);
+      if (!body.email || !body.password || !body.role) {
+        return sendJson(res, 400, { error: "bad_request", message: "email, password, and role are required." });
+      }
+      const result = await register(body);
+      return sendJson(res, 201, result);
+    }
+
+    if (req.method === "POST" && pathname === "/auth/login") {
+      const body = await readJsonBody(req);
+      if (!body.email || !body.password) {
+        return sendJson(res, 400, { error: "bad_request", message: "email and password are required." });
+      }
+      const result = await login(body);
+      return sendJson(res, 200, result);
+    }
+
+    if (req.method === "POST" && pathname === "/auth/logout") {
+      const result = await logout();
+      return sendJson(res, 200, result);
+    }
+
+    // ── Consumer Routes ───────────────────────────────────────────────────
     if (req.method === "POST" && pathname === "/v1/intent-signal") {
+      const caller = await extractCaller(req);
       const body = requireValidInput("intent_signal_input", await readJsonBody(req));
+      if (caller) body.auth_user_id = caller.userId;
       return sendValidatedOutput(res, "intent_signal_output", await ingestIntent(body));
     }
 
     if (req.method === "GET" && pathname === "/v1/offers/active") {
+      const caller = await extractCaller(req);
       const locality = searchParams.get("locality") ? JSON.parse(searchParams.get("locality")) : undefined;
       const query = requireValidInput("get_active_offers_input", {
         user_pseudonym: searchParams.get("user_pseudonym"),
         channel: searchParams.get("channel") || "in_app",
         locality,
       });
+      if (caller) query.auth_user_id = caller.userId;
       return sendValidatedOutput(res, "get_active_offers_output", await listActiveOffers(query));
     }
 
@@ -123,18 +154,26 @@ export function createAppServer() {
     }
 
     if (req.method === "GET" && pathname === "/v1/wallet/cashback") {
+      const caller = await extractCaller(req);
       const input = requireValidInput("wallet_cashback_input", {
         user_pseudonym: searchParams.get("user_pseudonym"),
       });
-      return sendValidatedOutput(res, "wallet_cashback_output", await getCashback(input.user_pseudonym));
+      return sendValidatedOutput(res, "wallet_cashback_output", await getCashback(input.user_pseudonym, caller?.userId));
     }
 
+    // ── Merchant Routes (require merchant role JWT) ───────────────────────
     if (req.method === "POST" && pathname === "/v1/merchant/rules") {
+      const caller = await requireAuth(req, res);
+      if (!caller) return;
+      if (!requireRole(caller, "merchant", res)) return;
       const body = requireValidInput("merchant_rules_create_input", await readJsonBody(req));
       return sendValidatedOutput(res, "merchant_rules_create_output", await createRules(body));
     }
 
     if (req.method === "PATCH" && pathname.startsWith("/v1/merchant/rules/")) {
+      const caller = await requireAuth(req, res);
+      if (!caller) return;
+      if (!requireRole(caller, "merchant", res)) return;
       const merchantRuleId = pathname.split("/").at(-1);
       const body = requireValidInput("merchant_rules_patch_input", {
         ...(await readJsonBody(req)),
@@ -148,9 +187,11 @@ export function createAppServer() {
     }
 
     if (req.method === "GET" && pathname === "/v1/merchant/dashboard/overview") {
-      const input = requireValidInput("merchant_dashboard_input", {
-        merchant_id: searchParams.get("merchant_id") || "m_1021",
-      });
+      const caller = await requireAuth(req, res);
+      if (!caller) return;
+      if (!requireRole(caller, "merchant", res)) return;
+      const merchantId = searchParams.get("merchant_id") || caller.merchantId || "m_1021";
+      const input = requireValidInput("merchant_dashboard_input", { merchant_id: merchantId });
       return sendValidatedOutput(
         res,
         "merchant_dashboard_overview_output",
@@ -159,9 +200,11 @@ export function createAppServer() {
     }
 
     if (req.method === "GET" && pathname === "/v1/merchant/dashboard/funnel") {
-      const input = requireValidInput("merchant_dashboard_input", {
-        merchant_id: searchParams.get("merchant_id") || "m_1021",
-      });
+      const caller = await requireAuth(req, res);
+      if (!caller) return;
+      if (!requireRole(caller, "merchant", res)) return;
+      const merchantId = searchParams.get("merchant_id") || caller.merchantId || "m_1021";
+      const input = requireValidInput("merchant_dashboard_input", { merchant_id: merchantId });
       return sendValidatedOutput(
         res,
         "merchant_dashboard_funnel_output",
@@ -170,9 +213,11 @@ export function createAppServer() {
     }
 
     if (req.method === "GET" && pathname === "/v1/merchant/dashboard/context-performance") {
-      const input = requireValidInput("merchant_dashboard_input", {
-        merchant_id: searchParams.get("merchant_id") || "m_1021",
-      });
+      const caller = await requireAuth(req, res);
+      if (!caller) return;
+      if (!requireRole(caller, "merchant", res)) return;
+      const merchantId = searchParams.get("merchant_id") || caller.merchantId || "m_1021";
+      const input = requireValidInput("merchant_dashboard_input", { merchant_id: merchantId });
       return sendValidatedOutput(
         res,
         "merchant_dashboard_context_performance_output",
