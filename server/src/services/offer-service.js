@@ -2,6 +2,7 @@ import { supabase } from "../db/supabase.js";
 import { config } from "../config.js";
 import { filterMerchantsByLocality } from "../utils/geo.js";
 import { generateOffer } from "../llm/client.js";
+import { ensureFreshContext } from "./context-fetcher.js";
 import QRCode from "qrcode";
 
 function nowIso() {
@@ -9,9 +10,13 @@ function nowIso() {
 }
 
 /**
- * Resolves a user pseudonym to a DB UUID, creating the user row if it doesn't exist.
+ * Resolves a user pseudonym to a DB UUID.
+ * If authUserId is present, uses that directly (JWT caller).
+ * Otherwise creates/finds the legacy pseudonym user row.
  */
-async function resolveUserId(pseudonym) {
+async function resolveUserId(pseudonym, authUserId = null) {
+  if (authUserId) return authUserId;
+
   const { data: existing } = await supabase
     .from("users")
     .select("id")
@@ -31,7 +36,7 @@ async function resolveUserId(pseudonym) {
 }
 
 export async function ingestIntent(payload) {
-  const userId = await resolveUserId(payload.user_pseudonym);
+  const userId = await resolveUserId(payload.user_pseudonym, payload.auth_user_id);
 
   const { error } = await supabase.from("intents").insert({
     user_id: userId,
@@ -56,7 +61,7 @@ export async function ingestIntent(payload) {
 
 export async function listActiveOffers(query) {
   const user = query.user_pseudonym || "unknown_user";
-  const userId = await resolveUserId(user);
+  const userId = await resolveUserId(user, query.auth_user_id);
 
   // Check for existing non-expired active offers first
   const nowMs = Date.now();
@@ -120,6 +125,8 @@ function toActiveOfferCard(offerRecord) {
 }
 
 async function buildGenerationInput({ selectedMerchant, merchantRule, intentPacket, channel }) {
+  const merchantMeta = selectedMerchant?.business_hours || {};
+
   const { data: weather } = await supabase
     .from("context_snapshots")
     .select("payload")
@@ -146,9 +153,9 @@ async function buildGenerationInput({ selectedMerchant, merchantRule, intentPack
     generation_mode: "offer_card_v1",
     merchant_profile: {
       merchant_id: selectedMerchant.id,
-      category: selectedMerchant.category,
-      is_open_now: true,
-      price_band: selectedMerchant.price_band ?? "mid",
+      category: selectedMerchant.category ?? "unknown",
+      is_open_now: merchantMeta.is_open_now ?? selectedMerchant.is_open_now ?? true,
+      price_band: selectedMerchant.price_band ?? merchantMeta.price_band ?? "mid",
     },
     constraints: {
       max_discount_pct: merchantRule?.max_discount_pct ?? 20,
@@ -217,6 +224,10 @@ async function persistGeneratedOffer({ userId, merchantId, generated }) {
 }
 
 export async function generateOfferForIntent({ intentPacket, channel = "in_app", locality }) {
+  // Ensure weather + events snapshots are fresh before building the LLM context bundle.
+  // This is non-blocking on failure — generation continues with whatever is in the DB.
+  await ensureFreshContext();
+
   const { data: allMerchants } = await supabase.from("merchants").select("*");
   const candidates = filterMerchantsByLocality(
     allMerchants || [],
@@ -351,19 +362,24 @@ export async function validateRedemption(payload) {
   };
 }
 
-export async function getCashback(userPseudonym) {
-  const { data: user } = await supabase
-    .from("users")
-    .select("id")
-    .eq("pseudonym", userPseudonym)
-    .maybeSingle();
+export async function getCashback(userPseudonym, authUserId = null) {
+  let userId = authUserId;
+  
+  if (!userId) {
+    const { data: user } = await supabase
+      .from("users")
+      .select("id")
+      .eq("pseudonym", userPseudonym)
+      .maybeSingle();
+    if (user) userId = user.id;
+  }
 
-  if (!user) return { user_pseudonym: userPseudonym, cashback_balance_eur: 0, updated_at_utc: nowIso() };
+  if (!userId) return { user_pseudonym: userPseudonym, cashback_balance_eur: 0, updated_at_utc: nowIso() };
 
   const { data: redemptions } = await supabase
     .from("redemptions")
     .select("cashback_eur")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .eq("status", "redeemed");
 
   const total = (redemptions || []).reduce((sum, r) => sum + Number(r.cashback_eur), 0);

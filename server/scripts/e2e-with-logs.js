@@ -15,21 +15,28 @@ async function requestWithLog({
   method,
   path,
   body,
+  headers,
   logDir,
   stepName,
+  allowError = false,
 }) {
+  const requestHeaders = {
+    ...(headers || {}),
+    ...(body ? { "Content-Type": "application/json" } : {}),
+  };
+
   const requestLog = {
     method,
     path,
     url: `${baseUrl}${path}`,
-    headers: body ? { "Content-Type": "application/json" } : {},
+    headers: requestHeaders,
     body: body ?? null,
     at_utc: new Date().toISOString(),
   };
 
   const response = await fetch(`${baseUrl}${path}`, {
     method,
-    headers: requestLog.headers,
+    headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
   });
   const rawText = await response.text();
@@ -51,7 +58,7 @@ async function requestWithLog({
   await writeJson(resolve(logDir, `${stepName}.request.json`), requestLog);
   await writeJson(resolve(logDir, `${stepName}.response.json`), responseLog);
 
-  if (!response.ok) {
+  if (!response.ok && !allowError) {
     throw new Error(
       `${method} ${path} failed (${response.status}): ${JSON.stringify(parsed)}`
     );
@@ -112,6 +119,7 @@ async function main() {
   ];
 
   const user = "usr_logs_demo_001";
+  const dashboardMerchantId = merchants[0].merchant_id;
 
   try {
     await requestWithLog({
@@ -141,6 +149,42 @@ async function main() {
       stepName: "05_merchants_list",
     });
 
+    const merchantCredentials = {
+      email: `logs_merchant_${Date.now()}@gmail.com`,
+      password: "password123",
+    };
+
+    const registerResult = await requestWithLog({
+      baseUrl,
+      method: "POST",
+      path: "/auth/register",
+      body: {
+        ...merchantCredentials,
+        role: "merchant",
+        display_name: "E2E Logs Merchant",
+      },
+      logDir: runDir,
+      stepName: "06_auth_register",
+      allowError: true,
+    });
+
+    const merchantToken =
+      registerResult?.session?.access_token ||
+      (
+        await requestWithLog({
+          baseUrl,
+          method: "POST",
+          path: "/auth/login",
+          body: merchantCredentials,
+          logDir: runDir,
+          stepName: "07_auth_login",
+        })
+      )?.session?.access_token;
+
+    if (!merchantToken) {
+      throw new Error("Auth flow did not return a merchant access token.");
+    }
+
     const intentPacket = {
       intent_id: `intent_${Date.now()}`,
       timestamp_utc: new Date().toISOString(),
@@ -166,7 +210,7 @@ async function main() {
       path: "/v1/intent-signal",
       body: intentPacket,
       logDir: runDir,
-      stepName: "06_intent_signal",
+      stepName: "08_intent_signal",
     });
 
     const generated = await requestWithLog({
@@ -179,7 +223,7 @@ async function main() {
         prompt_version: "offer_prompt_v1",
       },
       logDir: runDir,
-      stepName: "07_offer_generate",
+      stepName: "09_offer_generate",
     });
 
     const active = await requestWithLog({
@@ -189,7 +233,7 @@ async function main() {
         user
       )}&channel=in_app`,
       logDir: runDir,
-      stepName: "08_offers_active",
+      stepName: "10_offers_active",
     });
 
     const offerId =
@@ -205,7 +249,7 @@ async function main() {
         decision_timestamp_utc: new Date().toISOString(),
       },
       logDir: runDir,
-      stepName: "09_offer_decision",
+      stepName: "11_offer_decision",
     });
 
     const token = await requestWithLog({
@@ -215,11 +259,11 @@ async function main() {
       body: {
         offer_id: offerId,
         user_pseudonym: user,
-        merchant_id: "m_1021",
+        merchant_id: dashboardMerchantId,
         requested_at_utc: new Date().toISOString(),
       },
       logDir: runDir,
-      stepName: "10_redemption_create_token",
+      stepName: "12_redemption_create_token",
     });
 
     await requestWithLog({
@@ -228,11 +272,11 @@ async function main() {
       path: "/v1/redemption/validate",
       body: {
         token: token.token,
-        merchant_id: "m_1021",
+        merchant_id: dashboardMerchantId,
         validated_at_utc: new Date().toISOString(),
       },
       logDir: runDir,
-      stepName: "11_redemption_validate",
+      stepName: "13_redemption_validate",
     });
 
     const wallet = await requestWithLog({
@@ -240,15 +284,20 @@ async function main() {
       method: "GET",
       path: `/v1/wallet/cashback?user_pseudonym=${encodeURIComponent(user)}`,
       logDir: runDir,
-      stepName: "12_wallet_cashback",
+      stepName: "14_wallet_cashback",
     });
 
     const overview = await requestWithLog({
       baseUrl,
       method: "GET",
-      path: "/v1/merchant/dashboard/overview?merchant_id=m_1021",
+      path: `/v1/merchant/dashboard/overview?merchant_id=${encodeURIComponent(
+        dashboardMerchantId
+      )}`,
+      headers: {
+        Authorization: `Bearer ${merchantToken}`,
+      },
       logDir: runDir,
-      stepName: "13_merchant_dashboard_overview",
+      stepName: "15_merchant_dashboard_overview",
     });
 
     const summary = {
@@ -256,6 +305,7 @@ async function main() {
       log_directory: runDir,
       base_url: baseUrl,
       user_pseudonym: user,
+      dashboard_merchant_id: dashboardMerchantId,
       offer_id: offerId,
       decision_status: decision.status,
       cashback_balance_eur: wallet.cashback_balance_eur,

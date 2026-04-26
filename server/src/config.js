@@ -5,10 +5,13 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
- * Load .env from the repo root without extra deps. Does not override existing process.env.
+ * Load .env files without extra deps. Does not override existing process.env.
+ *
+ * Priority:
+ * 1) server/.env (canonical backend runtime env)
+ * 2) repo-root .env (backward-compat fallback)
  */
-function loadLocalEnv() {
-  const envPath = join(__dirname, "..", "..", ".env");
+function applyEnvFile(envPath) {
   if (!existsSync(envPath)) return;
   const raw = readFileSync(envPath, "utf-8");
   for (const line of raw.split("\n")) {
@@ -26,6 +29,14 @@ function loadLocalEnv() {
     }
     if (process.env[key] === undefined) process.env[key] = val;
   }
+}
+
+function loadLocalEnv() {
+  const envPaths = [
+    join(__dirname, "..", ".env"),
+    join(__dirname, "..", "..", ".env"),
+  ];
+  envPaths.forEach(applyEnvFile);
 }
 
 loadLocalEnv();
@@ -48,4 +59,7 @@ export const config = {
     radiusKm: 2,
     offerTtlMinutes: 15,
   },
+  // Live context ingestion settings
+  contextRefreshMaxAgeMinutes: Number(process.env.CONTEXT_REFRESH_MAX_AGE_MINUTES ?? 30),
+  contextCity: process.env.CONTEXT_CITY ?? "Stuttgart",
 };

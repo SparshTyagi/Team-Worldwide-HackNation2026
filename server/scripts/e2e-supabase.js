@@ -11,11 +11,12 @@ const BASE = `http://localhost:${process.env.PORT || 8080}`;
 let passed = 0;
 let failed = 0;
 
-async function req(method, path, body) {
+async function req(method, path, body, token = null) {
   const opts = {
     method,
     headers: { "Content-Type": "application/json" },
   };
+  if (token) opts.headers["Authorization"] = `Bearer ${token}`;
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(`${BASE}${path}`, opts);
   const text = await res.text();
@@ -79,11 +80,38 @@ async function run() {
   });
   check("Ingest events", eventsRes, 200, (d) => d.status === "ingested");
 
+  // ── 2b. Merchant Auth ──────────────────────────────────────────────────────
+  console.log("\n2b. Merchant Auth");
+  let merchantToken = null;
+  let actualMerchantId = "m_e2e_01";
+  
+  const credentials = {
+    email: `e2e_merchant_fixed_${Date.now()}@gmail.com`,
+    password: "password123",
+  };
+
+  let authRes = await req("POST", "/auth/register", {
+    ...credentials,
+    role: "merchant",
+    display_name: "E2E Test Cafe",
+  });
+
+  if (authRes.status !== 201) {
+    console.log("     Registration failed (likely rate limit or duplicate), falling back to login...");
+    authRes = await req("POST", "/auth/login", credentials);
+    check("Login merchant fallback", authRes, 200, (d) => !!d.session?.access_token);
+  } else {
+    check("Register merchant", authRes, 201, (d) => !!d.session?.access_token);
+  }
+  
+  merchantToken = authRes.data?.session?.access_token;
+  actualMerchantId = authRes.data?.merchant_id || authRes.data?.user?.user_metadata?.merchant_id || "m_e2e_01";
+
   // ── 3. Merchant Upsert ─────────────────────────────────────────────────────
   console.log("\n3. Merchant seed");
 
   const merchantRes = await req("POST", "/internal/merchants", {
-    merchant_id: "m_e2e_01",
+    merchant_id: actualMerchantId || "m_e2e_01",
     name: "E2E Test Cafe",
     category: "cafe",
     area_cell_id: "u0wtm3",
@@ -98,14 +126,14 @@ async function run() {
   // ── 4. Merchant Rules ──────────────────────────────────────────────────────
   console.log("\n4. Merchant rules");
   const rulesRes = await req("POST", "/v1/merchant/rules", {
-    merchant_id: "m_e2e_01",
+    merchant_id: actualMerchantId || "m_e2e_01",
     campaign_goal: "fill_quiet_hours",
     constraints: {
       max_discount_pct: 20,
       max_offer_validity_minutes: 15,
       excluded_skus: [],
     },
-  });
+  }, merchantToken);
   check("Create merchant rules", rulesRes, 200, (d) => d.status === "active");
 
   // ── 5. List Merchants ──────────────────────────────────────────────────────
@@ -204,10 +232,20 @@ async function run() {
   const cashbackRes = await req("GET", "/v1/wallet/cashback?user_pseudonym=e2e_user_test_01");
   check("Cashback balance correct", cashbackRes, 200, (d) => d.cashback_balance_eur >= 0.75);
 
-  // ── 14. Merchant Dashboard ─────────────────────────────────────────────────
-  console.log("\n14. Merchant dashboard");
-  const overviewRes = await req("GET", `/v1/merchant/dashboard/overview?merchant_id=m_e2e_01`);
-  check("Dashboard overview returns", overviewRes, 200, (d) => typeof d.kpis?.offers_generated === "number");
+  // ── 14. Dashboard Overview ─────────────────────────────────────────────────
+  console.log("\n14. Dashboard overview");
+  const dashRes = await req("GET", `/v1/merchant/dashboard/overview?merchant_id=${actualMerchantId || "m_e2e_01"}`, null, merchantToken);
+  check("Dashboard overview", dashRes, 200, (d) => typeof d.kpis?.offers_generated === "number");
+
+  // ── 15. Dashboard Funnel ───────────────────────────────────────────────────
+  console.log("\n15. Dashboard funnel");
+  const funnelRes = await req("GET", `/v1/merchant/dashboard/funnel?merchant_id=${actualMerchantId || "m_e2e_01"}`, null, merchantToken);
+  check("Dashboard funnel", funnelRes, 200, (d) => typeof d.funnel?.delivered === "number");
+
+  // ── 16. Dashboard Context Performance ────────────────────────────────────────
+  console.log("\n16. Dashboard context performance");
+  const ctxRes = await req("GET", `/v1/merchant/dashboard/context-performance?merchant_id=${actualMerchantId || "m_e2e_01"}`, null, merchantToken);
+  check("Dashboard context performance", ctxRes, 200, (d) => Array.isArray(d.context_performance));
 
   printSummary();
 }
