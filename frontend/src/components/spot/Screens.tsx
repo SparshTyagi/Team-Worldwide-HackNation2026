@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import confetti from "canvas-confetti";
 import { Phone, StatusBar } from "@/components/spot/Phone";
 import { SpotLogo, MapStylized, HandPin, QrCode } from "@/components/spot/Visuals";
 import cafeImg from "@/assets/cafe-tony.jpg";
@@ -659,36 +660,66 @@ export function S08QR() {
 
 /* ---------- 09 CONFIRMATION ---------- */
 export function S09Confirm() {
-  const colors = ["var(--terracotta)", "var(--forest)", "var(--sand)", "#2EA06D"];
-  // Smoother confetti — full width, varied speeds, drift via CSS var
-  const pieces = Array.from({ length: 36 }).map((_, i) => {
-    const left = (i * 17) % 100;
-    const drift = ((i * 53) % 80) - 40; // -40 to +40 px sideways
-    const dur = 2200 + ((i * 137) % 1500);
-    const delay = (i % 12) * 90;
-    return { i, left, drift, dur, delay, c: colors[i % 4] };
-  });
+  // Physically realistic confetti via canvas-confetti — multi-burst, varied gravity/drift
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    const colors = ["#E76F51", "#264653", "#F4A261", "#FBBF24", "#2EA06D"];
+    const duration = 1100;
+    const end = Date.now() + duration;
+
+    // Initial big burst from centre-low
+    confetti({
+      particleCount: 40,
+      spread: 100,
+      startVelocity: 40,
+      origin: { x: 0.5, y: 0.55 },
+      colors,
+      scalar: 0.9,
+      ticks: 200,
+      gravity: 1.1,
+    });
+
+    // Side bursts — random, asymmetric, feels alive
+    const interval = setInterval(() => {
+      const timeLeft = end - Date.now();
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+      const particleCount = Math.floor(15 * (timeLeft / duration));
+
+      confetti({
+        startVelocity: 25,
+        spread: 60,
+        ticks: 100,
+        particleCount,
+        origin: { x: Math.random() * 0.25 + 0.05, y: Math.random() * 0.3 + 0.1 },
+        colors,
+        scalar: Math.random() * 0.4 + 0.7,
+        gravity: 1,
+        drift: Math.random() * 0.6 - 0.3,
+      });
+      confetti({
+        startVelocity: 25,
+        spread: 60,
+        ticks: 100,
+        particleCount,
+        origin: { x: Math.random() * 0.25 + 0.7, y: Math.random() * 0.3 + 0.1 },
+        colors,
+        scalar: Math.random() * 0.4 + 0.7,
+        gravity: 1,
+        drift: Math.random() * 0.6 - 0.3,
+      });
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Phone title="Confirmation" number={9}>
       <StatusBar />
-      {/* Confetti — starts above viewport, drifts smoothly */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {pieces.map((p) => (
-          <span
-            key={p.i}
-            className="confetti-piece"
-            style={{
-              left: `${p.left}%`,
-              background: p.c,
-              animationDelay: `${p.delay}ms`,
-              animationDuration: `${p.dur}ms`,
-              ["--cx" as any]: `${p.drift}px`,
-              transform: `rotate(${p.i * 27}deg)`,
-              opacity: 0,
-            }}
-          />
-        ))}
-      </div>
 
       <div className="flex-1 flex flex-col items-center px-7 text-center relative">
         {/* Tony's thanks at top — bigger pill */}
