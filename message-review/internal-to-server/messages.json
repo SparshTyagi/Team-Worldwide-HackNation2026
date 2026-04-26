@@ -54,7 +54,7 @@
       "endpoint": "/internal/generation/run",
       "method": "POST",
       "schema": "internal_generation_run_input",
-      "example_file": "server/json-templates/internal_generation_run_request.json"
+      "example_file": "apps/api/json-templates/internal_generation_run_request.json"
     },
     {
       "endpoint": "/internal/merchant/scrape-profile",

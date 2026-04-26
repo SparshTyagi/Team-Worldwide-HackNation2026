@@ -1,11 +1,14 @@
-# On-Device Model Setup
+# On-Device SLM Setup
 
 This project uses two models:
 
 - **On-device small model (intent generation):** `nemotron-3-nano:4b` via Ollama
 - **Server-side large model (offer generation):** `nvidia/nemotron-3-super-120b-a12b:free` via OpenRouter
 
-Use this guide to configure the on-device model locally.
+Use this guide to configure both on-device intent paths:
+
+- Embedded ONNX runtime (preferred edge path).
+- Local small model via Ollama (fallback path).
 
 ## 1) Install Ollama
 
@@ -90,7 +93,7 @@ You should see `nemotron-3-nano:4b`.
 
 ## 3) Configure environment variables
 
-Update `server/.env` (or `local/server/.env` if you use that file for local secrets):
+Update `apps/api/.env` for server-side generation:
 
 ```bash
 OPENROUTER_API_KEY=your_openrouter_api_key
@@ -100,7 +103,7 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_service_role_key
 ```
 
-For local intent model routing (small model), add these in your local shell/session when running client intent generation:
+For local intent model routing (small model fallback), add these in your local shell/session:
 
 ```bash
 INTENT_MODEL_PROVIDER=ollama
@@ -108,7 +111,24 @@ OLLAMA_BASE_URL=http://127.0.0.1:11434
 OLLAMA_INTENT_MODEL=nemotron-3-nano:4b
 ```
 
-## 4) Verify on-device model is responding
+For embedded ONNX runtime routing (preferred edge path), add:
+
+```bash
+INTENT_MODEL_PROVIDER=onnx
+INTENT_ONNX_MODEL_PATH=./packages/intent-engine/models/intent/intent_classifier.onnx
+# optional if your ONNX model expects a non-default input name
+INTENT_ONNX_INPUT_NAME=input
+```
+
+In GDPR edge mode, keep `INTENT_MODEL_PROVIDER=onnx` as default. If ONNX is unavailable, runtime falls back to local Ollama, then deterministic heuristic.
+
+The runtime policy is:
+
+1. ONNX embedded model (when configured and available),
+2. local small model (Ollama),
+3. deterministic classifier fallback.
+
+## 4) Verify local small model is responding
 
 ```bash
 curl -s http://127.0.0.1:11434/api/chat -d '{
@@ -132,25 +152,36 @@ $body = @{
 Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:11434/api/chat" -ContentType "application/json" -Body $body
 ```
 
-## 5) Run a full end-to-end check with both models
+## 5) Run a full end-to-end check with intent + offer models
 
 ```bash
 set -a
-source server/.env
+source apps/api/.env
 set +a
-export INTENT_MODEL_PROVIDER=ollama
+export INTENT_MODEL_PROVIDER=onnx
 export OLLAMA_BASE_URL=http://127.0.0.1:11434
 export OLLAMA_INTENT_MODEL=nemotron-3-nano:4b
-node server/scripts/e2e-full-models.js
+node apps/api/scripts/e2e-full-models.js
+```
+
+Windows PowerShell equivalent:
+
+```powershell
+$env:INTENT_MODEL_PROVIDER="onnx"
+$env:INTENT_ONNX_MODEL_PATH="./packages/intent-engine/models/intent/intent_classifier.onnx"
+$env:OLLAMA_BASE_URL="http://127.0.0.1:11434"
+$env:OLLAMA_INTENT_MODEL="nemotron-3-nano:4b"
+node apps/api/scripts/e2e-full-models.js
 ```
 
 This run validates:
 
-- small model generates intent request labels
+- intent source is local-only (`embedded_onnx` when ONNX is available, otherwise `local_small_model`)
 - server uses large OpenRouter model for offers (`used_fallback: false`)
 - redemption updates merchant budget and returns `merchant_budget` in response
 
-Logs are written under `server/logs/e2e-full-models-*`.
+Logs are written under `apps/api/logs/e2e-full-models-*`.
+- Check `00.intent-runtime.plan.json` and `summary.json` in the run directory for selected provider, `intent_source`, and `intent_model`.
 
 ## Troubleshooting
 
@@ -161,6 +192,8 @@ Logs are written under `server/logs/e2e-full-models-*`.
 - **Windows cannot connect to `127.0.0.1:11434`**
   - Ensure Ollama app is running, then retry PowerShell request.
 - **`SUPABASE_URL and SUPABASE_KEY must be defined`**
-  - Ensure those keys are present in `server/.env` and exported in your shell.
+  - Ensure those keys are present in `apps/api/.env` and exported in your shell.
 - **Intent generation falls back or fails**
-  - Ensure `INTENT_MODEL_PROVIDER=ollama` and `OLLAMA_INTENT_MODEL=nemotron-3-nano:4b` are set in the same shell session.
+  - Ensure `INTENT_MODEL_PROVIDER=onnx` (or `ollama`) and `OLLAMA_INTENT_MODEL=nemotron-3-nano:4b` are set in the same shell session.
+- **ONNX model not loaded**
+  - Ensure `INTENT_MODEL_PROVIDER=onnx`, `INTENT_ONNX_MODEL_PATH` points to a valid file, and the environment has ONNX runtime support.

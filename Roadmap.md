@@ -19,6 +19,44 @@ To win, the demo must prove all required modules in one connected flow:
 
 ---
 
+## 2.1) Implementation Status Snapshot (Apr 2026)
+
+This section keeps architecture intent aligned with what is currently implemented in code.
+
+### Repository layout now
+
+- `apps/web` - user-facing app experience.
+- `apps/api` - backend orchestration, contracts, and redemption flow.
+- `packages/intent-engine` - on-device intent inference pipeline and compatibility wrappers.
+- `infra` - database/infrastructure assets.
+
+### Delivery status
+
+- Done:
+  - End-to-end offer and redemption API loop.
+  - On-device intent packet generation with strict validation.
+  - Local small model intent inference path.
+  - Deterministic fallback path for reliability.
+  - Frontend flow hardening using stable action identifiers (copy-safe navigation).
+  - Accessibility baseline uplift (zoom support, semantic controls, keyboard-operable sliders, reduced-motion support).
+- In progress:
+  - Embedded ONNX runtime path for true edge-first inference.
+  - Expanded operational documentation and runbooks.
+  - Additional frontend bundle splitting for lower first-load JS on low-end devices.
+- Next:
+  - Production-grade model artifact distribution and signed model updates.
+  - Device-tier-specific optimization profiles.
+
+### On-device SLM runtime policy (implemented target)
+
+1. Prefer embedded ONNX runtime when configured.
+2. Fallback to local small model inference.
+3. Fallback to deterministic classifier with the same output contract.
+
+This preserves the `/v1/intent-signal` schema contract even during partial runtime degradation.
+
+---
+
 ## 3) Product Scope (Hackathon MVP vs. Future)
 
 ### MVP In-Scope (Must Build)
@@ -1075,15 +1113,15 @@ These metrics are critical for proving reliability in demo Q&A.
 
 ### Client
 
-- React Native (fast cross-platform demo).
-- On-device model:
-  - Option A: small local classifier (safest for timing).
-  - Option B: tiny SLM via ONNX runtime if team can support.
-- Local storage: SQLite/MMKV for consent and local intent history.
+- React/Vite web app in `apps/web` for current demo surface.
+- On-device intent engine in `packages/intent-engine`:
+  - Option A (implemented): local small model path with fallback classifier.
+  - Option B (implemented in progress): embedded ONNX runtime for edge-first execution.
+- Local storage: secure local store abstraction for consent and intent history.
 
 ### Server
 
-- Node.js + TypeScript + Fastify/Nest.
+- Node.js API service in `apps/api`.
 - PostgreSQL + Redis.
 - Queue (BullMQ/SQS equivalent) for generation jobs.
 - Analytics pipeline via event table + scheduled aggregations.
@@ -1093,7 +1131,7 @@ These metrics are critical for proving reliability in demo Q&A.
 - Provider gateway: OpenRouter.
 - Credentials: use `OPENROUTER_API_KEY` via environment variables only (never hardcode in source, docs, or commits).
 - Model routing (current implementation):
-  - Offer generation: `nvidia/nemotron-3-super:free`.
+  - Offer generation: `nvidia/nemotron-3-super-120b-a12b:free`.
 - Operational policy:
   - keep model names in config for easy switching,
   - log `model_version` and prompt version per request,
@@ -1103,8 +1141,11 @@ Example environment configuration (local only):
 
 ```bash
 OPENROUTER_API_KEY=your_key_here
-OPENROUTER_OFFER_MODEL=nvidia/nemotron-3-super:free
-OPENROUTEROFFERMODEL=nvidia/nemotron-3-super:free
+OPENROUTER_SERVER_LARGE_MODEL=nvidia/nemotron-3-super-120b-a12b:free
+OPENROUTER_OFFER_MODEL=nvidia/nemotron-3-super-120b-a12b:free
+OPENROUTEROFFERMODEL=nvidia/nemotron-3-super-120b-a12b:free
+ELEVENLABS_API_KEY=your_elevenlabs_key_here
+ELEVENLABS_AGENT_ID=your_elevenlabs_agent_id_here
 ```
 
 ---

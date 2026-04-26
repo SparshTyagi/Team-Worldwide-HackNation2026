@@ -11,4 +11,4 @@ Subfolders:
 - `internal-to-server` - internal ingestion/admin requests (`/internal/*`)
 - `server-to-internal` - internal ingestion/admin responses
 
-Each subfolder has a `messages.json` file with representative payloads for every message type currently validated by `server/src/validation.js`.
+Each subfolder has a `messages.json` file with representative payloads for every message type currently validated by `apps/api/src/validation.js`.

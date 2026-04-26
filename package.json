@@ -1,0 +1,20 @@
+{
+  "name": "team-worldwide-hacknation2026",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
+  "scripts": {
+    "dev:web": "npm --prefix apps/web run dev",
+    "dev:api": "npm --prefix apps/api run dev",
+    "build:web": "npm --prefix apps/web run build",
+    "lint:web": "npm --prefix apps/web run lint",
+    "test:web": "npm --prefix apps/web run test",
+    "test:intent": "node --test packages/intent-engine/brain/__tests__/*.test.js",
+    "smoke:api": "npm --prefix apps/api run smoke:e2e"
+  },
+  "dependencies": {
+    "onnxruntime-node": "^1.24.3"
+  }
+}

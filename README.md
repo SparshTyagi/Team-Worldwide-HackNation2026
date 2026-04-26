@@ -1,157 +1,161 @@
 # Team-Worldwide-HackNation2026
 
-## Local Environment Setup
+Generative City Wallet is a privacy-first local commerce assistant. It detects user intent on device, generates dynamic offers from live context, and closes the loop with redemption plus merchant analytics.
+
+## Repository Structure
+
+The repo was reorganized into app/package boundaries to separate runtime surfaces from shared logic.
+
+- `apps/web` - React/Vite user experience.
+- `apps/api` - backend APIs, orchestration, validation, smoke scripts.
+- `packages/intent-engine` - on-device intent stack and shared client orchestration.
+- `infra` - database schema and infrastructure assets.
+- `docs` - architecture and operational documentation.
+- `json-formats` - top-level JSON format templates.
+- `message-review` - payload/message contract examples.
+
+Legacy compatibility wrappers are preserved inside `packages/intent-engine/brain` and `packages/intent-engine/llm` where needed.
+
+## Architecture At A Glance
+
+- On-device layer (`packages/intent-engine`):
+  - collects local context,
+  - applies consent gates,
+  - infers abstract intent with runtime policy: ONNX embedded -> local small model -> deterministic classifier fallback.
+- Server layer (`apps/api`):
+  - accepts `intent_packet` via `POST /v1/intent-signal`,
+  - generates and validates offers via `POST /v1/offer/generate`,
+  - serves active offers, decisions, redemption, and wallet endpoints.
+- UI layer (`apps/web`):
+  - renders the user flow and merchant-facing screens for demo and evaluation.
+
+Privacy contract: raw sensitive behavior stays local; only compact intent abstractions are sent to the API.
+
+## Models And Runtime Split
+
+- On-device SLM (edge-first):
+  - Embedded ONNX runtime path (preferred when configured).
+  - Local small model path (Ollama) as secondary.
+  - Deterministic classifier as final safety fallback.
+- Server LLM:
+  - Offer generation defaults to `nvidia/nemotron-3-super-120b-a12b:free` via OpenRouter.
+
+## Environment Setup
 
 Use two env files for local development:
 
-1. Copy root `.env.example` to root `.env.local` for client/demo scripts.
-2. Copy `server/.env.example` to `server/.env` for backend runtime.
-3. Set `OPENROUTER_API_KEY` in both files if you run both stacks locally.
-4. Keep secret files local only. Never commit `.env`, `.env.local`, or any real API key.
+1. Copy root `.env.example` to `.env.local`.
+2. Copy `apps/api/.env.example` to `apps/api/.env`.
+3. Set `OPENROUTER_API_KEY` where required for live model runs.
+4. Never commit `.env`, `.env.local`, or real secrets.
+5. For GDPR-safe edge intent inference, set `INTENT_MODEL_PROVIDER=onnx` and keep `INTENT_ONNX_MODEL_PATH` plus Ollama fallback values configured.
 
-Current model in use:
+Core env variables:
 
-- Offer generation: `nvidia/nemotron-3-super:free`
+- API model routing:
+  - `OPENROUTER_API_KEY`
+  - `OPENROUTER_SERVER_LARGE_MODEL` (highest-priority override)
+  - `OPENROUTER_OFFER_MODEL` (or legacy `OPENROUTEROFFERMODEL`)
+- Voice-agent routing:
+  - `ELEVENLABS_API_KEY`
+  - `ELEVENLABS_AGENT_ID`
+  - `ELEVENLABS_BASE_URL` (optional, defaults to ElevenLabs public API)
+- Intent model routing:
+  - `INTENT_MODEL_PROVIDER` (`onnx`, `ollama`, `local`, `embedded`, `edge`)
+  - `INTENT_ONNX_MODEL_PATH` (embedded ONNX model path)
+  - `OLLAMA_BASE_URL` (default `http://127.0.0.1:11434`)
+  - `OLLAMA_INTENT_MODEL` (default `nemotron-3-nano:4b`)
+  - `GET /health` now returns `intent_provider`, `intent_model`, and `intent_mode`
+- Frontend runtime routing:
+  - `VITE_API_BASE_URL` (required for hosted frontend deployments)
 
-## Unified Module Structure
+## Run Matrix
 
-Client and server now follow the same domain-first structure:
-
-- `user` domain: end-user intent, offers, redemption, and wallet flow
-- `merchant` domain: rules + dashboard flow
-- `shared` domain: common infrastructure (HTTP + AI utilities)
-
-Primary entry points:
-
-- Client unified API: `client/src/index.js`
-- Server unified handlers: `server/src/modules/`
-
-Legacy paths (`client/brain`, `client/llm`, `server/src/services`, `server/src/llm`) are still kept as compatibility shims.
-
-## JSON Formats
-
-Top-level JSON format templates are now under `json-formats/`:
-
-- `json-formats/client-profile.json`
-- `json-formats/merchant-profile.json`
-
-## Client-Side LLM Setup (OpenRouter)
-
-Starter files were added:
-
-- `client/llm/openrouter-client.js`
-- `client/llm/offer-generator.js`
-- `client/llm/example-usage.js`
-
-Environment variables used for offer model (in priority order):
-
-1. `OPENROUTER_OFFER_MODEL`
-2. `OPENROUTEROFFERMODEL` (legacy alias)
-
-Run locally:
+From repo root:
 
 ```bash
-node client/llm/example-usage.js
+# API
+npm --prefix apps/api run start
+
+# Web app
+npm --prefix apps/web run dev
 ```
 
-This script is an optional direct LLM utility path. For judged end-to-end flow, use the backend canonical path in the next sections.
+Useful workflows:
 
-This setup expects:
+```bash
+# API smoke
+npm --prefix apps/api run smoke:e2e
 
-- `OPENROUTER_API_KEY` (Node/local direct mode)
-- `OPENROUTER_PROXY_BASE_URL` + `OPENROUTER_PROXY_SESSION_TOKEN` (recommended production mode)
-- `OPENROUTEROFFERMODEL=nvidia/nemotron-3-super:free` (or `OPENROUTER_OFFER_MODEL`)
-- `OPENROUTER_HTTP_REFERER` (defaults to `https://localhost`)
-- `OPENROUTER_APP_TITLE` (defaults to `Generative City Wallet`)
+# Full-model e2e (small model intent + server generation)
+node apps/api/scripts/e2e-full-models.js
 
-Important: browser calls now block direct API-key usage by default. Use backend proxy mode (`OPENROUTER_PROXY_BASE_URL` + session token) in production.
+# Intent engine tests
+node --test packages/intent-engine/brain/__tests__/*.test.js
 
-## Local OpenRouter Proxy
+# Web quality gates
+npm --prefix apps/web run lint
+npm --prefix apps/web run test
+npm --prefix apps/web run build
+```
 
-Use the included proxy route when running browser/client code that must not expose API keys.
+Notes:
+
+- `smoke:e2e` expects the API to already be running at `http://127.0.0.1:8080`.
+- API startup currently requires `SUPABASE_URL` and `SUPABASE_KEY` to be defined.
+
+## Canonical End-to-End Flow
+
+1. Client builds `intent_packet` locally.
+2. Client submits `POST /v1/intent-signal`.
+3. Client requests `POST /v1/offer/generate`.
+4. Client renders active cards from `GET /v1/offers/active`.
+5. User decision and redemption are recorded and validated.
+6. Merchant-side metrics and wallet impacts are reflected by API views.
+
+## OpenRouter Browser-Safe Proxy (Optional Utility)
+
+`apps/api/openrouter-proxy.js` is a direct relay utility for browser-safe key handling.
 
 - Endpoint: `POST /v1/offer/openrouter`
-- Health check: `GET /health`
-- File: `server/openrouter-proxy.js`
+- Health: `GET /health`
 
-Environment:
-
-- `OPENROUTER_API_KEY` (required by proxy)
-- `OPENROUTER_PROXY_PORT` (default `8787`)
-- `OPENROUTER_PROXY_SESSION_TOKEN` (recommended; enables bearer-token session check)
-- `OPENROUTER_HTTP_REFERER` and `OPENROUTER_APP_TITLE` (optional OpenRouter metadata headers)
-
-Start the proxy:
+Run:
 
 ```bash
-node server/openrouter-proxy.js
+node apps/api/openrouter-proxy.js
 ```
 
-Then point client env to:
+Use this only as utility infrastructure; canonical judged flow remains through `apps/api/src/index.js`.
 
-- `OPENROUTER_PROXY_BASE_URL=http://localhost:8787`
-- `OPENROUTER_PROXY_SESSION_TOKEN=<same token as proxy>`
+## Troubleshooting
 
-## Canonical Path vs Optional Utilities
+- `OPENROUTER_API_KEY` missing:
+  - API still runs, but offer generation may fallback to deterministic templates.
+- Local small model unavailable:
+  - Ensure Ollama is running and `OLLAMA_BASE_URL` is reachable.
+- ONNX inference not used:
+  - set `INTENT_MODEL_PROVIDER=onnx` and provide `INTENT_ONNX_MODEL_PATH`.
+- Verify edge mode at runtime:
+  - call `GET /health` and confirm `intent_mode` is `edge_local_only`.
+- Validation errors:
+  - check payloads against `apps/api/src/validation.js` contracts.
 
-Canonical demo/runtime path (recommended for challenge):
+## Vercel Deployment (Web)
 
-- Client brain sends intent to backend: `POST /v1/intent-signal`
-- Client brain requests generation from backend: `POST /v1/offer/generate`
-- Client fetches feed from backend: `GET /v1/offers/active`
-- Client redemption flow uses backend redemption endpoints
-- Merchant dashboard reads backend dashboard endpoints
+For `apps/web` deployments:
 
-Canonical backend runtime env source:
+1. Set Vercel project root to `apps/web`.
+2. Configure `VITE_API_BASE_URL` to your public API URL.
+3. Run preview deployment first and verify:
+   - onboarding (consumer + merchant),
+   - offer detail and redemption flow,
+   - merchant dashboard and scanner loop.
+4. Promote to production only after preview smoke checks pass.
 
-- `server/.env` (preferred; loaded first by `server/src/config.js` for `node server/src/index.js`)
-- Root `.env` is a backward-compatible fallback only.
+## Documentation
 
-Optional utility path:
-
-- `server/openrouter-proxy.js` (`/v1/offer/openrouter`) is a direct OpenRouter relay utility for browser-safe key handling.
-- It is not the canonical project orchestration endpoint for end-to-end judged flow.
-
-## Client Domains (User + Merchant)
-
-Implemented client modules:
-
-- `client/src/modules/user/` - user intent + offer orchestration, validation, and local brain helpers
-- `client/src/modules/merchant/` - merchant rules/dashboard API client
-- `client/src/shared/` - shared HTTP utility layer
-- `client/brain/` + `client/llm/` - compatibility entry points kept for existing scripts/tests
-
-Run end-to-end brain example:
-
-```bash
-node client/brain/example-usage.js
-```
-
-Run merchant dashboard example:
-
-```bash
-node client/src/modules/merchant/example-usage.js
-```
-
-Recommended local run order for canonical challenge flow:
-
-1. Start backend: `node server/src/index.js`
-2. Run brain example against backend: `node client/brain/example-usage.js`
-3. Optionally run smoke flow: `npm --prefix server run smoke:e2e`
-
-Brain example environment:
-
-- `BRAIN_PROXY_BASE_URL=http://localhost:8080` (canonical backend API)
-- `BRAIN_PROXY_AUTH_TOKEN` optional (used only if your gateway enforces bearer auth)
-
-Run tests:
-
-```bash
-node --test client/brain/__tests__/*.test.js
-```
-
-Production architecture expectation:
-
-- Client performs privacy-sensitive inference and policy locally.
-- Client sends only abstract `intent_packet` + locality limiter to backend/edge proxy.
-- Proxy performs Nemotron generation + schema/policy validation before returning offers.
+- Master roadmap: `Roadmap.md`
+- On-device setup and verification: `setup.md`
+- API-specific details: `apps/api/README.md`
+- Web app notes: `apps/web/README.md`
