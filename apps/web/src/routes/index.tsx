@@ -452,6 +452,7 @@ export function MobileApp() {
 
   const Screen = SCREENS[idx].C;
   const animClass = prefersReducedMotion ? "" : dir === "up" ? "page-enter-up" : "page-enter";
+  const showSwitchRole = idx === S.feed || idx === S.settings || idx === S.mDash || idx === S.mScan;
 
   return (
     <MobileModeContext.Provider value={true}>
@@ -483,12 +484,13 @@ export function MobileApp() {
             <Screen />
           </div>
 
-          {/* Floating: switch role (back to picker) — hidden on the picker itself */}
-          {idx !== S.role && (
-            <div className="fixed top-3 right-3 z-50">
+          {/* Floating role switch is only shown on top-level hubs to avoid blocking flow */}
+          {showSwitchRole && (
+            <div className="fixed right-3 bottom-20 z-40">
               <button
                 onClick={(e) => { e.stopPropagation(); go(S.role); }}
-                className="px-3 py-1.5 rounded-full bg-[var(--ink)]/80 backdrop-blur text-white text-[11px] font-semibold shadow-lg active:scale-95 transition-transform"
+                aria-label="Switch role"
+                className="px-3 py-1.5 rounded-full bg-[var(--ink)]/70 backdrop-blur text-white text-[11px] font-semibold shadow-md active:scale-95 transition-transform"
               >
                 Switch role
               </button>

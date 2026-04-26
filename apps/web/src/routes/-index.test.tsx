@@ -204,7 +204,7 @@ describe("MobileApp user journeys", () => {
     expectScreen("role");
     click("Consumer");
     expectScreen("splash");
-    expect(screen.getByRole("button", { name: "Switch role" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Switch role" })).not.toBeInTheDocument();
 
     act(() => {
       vi.advanceTimersByTime(2500);
