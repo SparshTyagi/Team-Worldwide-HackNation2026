@@ -803,16 +803,6 @@ export function S05Feed() {
           11°C · light rain · Tuesday lunch
         </div>
       </div>
-      <div className="px-5 mt-2.5">
-        <SectionFrame
-          track="Consumer Flow"
-          status="Implemented"
-          title="Live offer feed with context cues"
-          whatUserSees="Nearby cards with distance, urgency, and dynamic savings from active offers."
-          whyItMatters="Proves the core 3-second offer experience is visible and understandable in one glance."
-        />
-      </div>
-
       {/* Cards — 3 visually distinct */}
       <div className="flex-1 overflow-hidden mt-3 px-5 space-y-3 pb-3">
         {isOffersLoading && (
@@ -1287,16 +1277,6 @@ export function S10Settings() {
         <div className="flex-1 text-center font-display text-[16px] text-[var(--forest)]">Privacy</div>
         <div className="w-9" />
       </div>
-      <div className="mx-5 mt-2">
-        <SectionFrame
-          track="Privacy Story"
-          status="Implemented"
-          title="On-device-first controls"
-          whatUserSees="A clear split between device and cloud signals with direct user toggles."
-          whyItMatters="Builds trust with transparent controls and privacy-by-default defaults."
-        />
-      </div>
-
       {/* Hero card */}
       <div className="mx-5 mt-3 rounded-3xl p-5 bg-[var(--forest)] text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-30" style={{
@@ -1377,16 +1357,6 @@ export function S11MerchantOnboarding() {
           <br /> We'll do the typing.
         </h2>
       </div>
-      <div className="mx-5 mt-2">
-        <SectionFrame
-          track="Merchant Setup"
-          status="Implemented"
-          title="Fast onboarding from Maps profile"
-          whatUserSees="Auto-filled business details plus confirmation before moving to campaign setup."
-          whyItMatters="Shows merchants can start quickly without manual data entry."
-        />
-      </div>
-
       {/* URL field */}
       <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-2 flex items-center gap-2">
         <div className="w-9 h-9 rounded-xl bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]/60">
@@ -1553,15 +1523,6 @@ export function S13Goal() {
       <div className="px-6 mt-3">
         <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">Tell Spot what<br /> you're trying to fix.</h2>
       </div>
-      <div className="mx-5 mt-2">
-        <SectionFrame
-          track="Rules + Explainability"
-          status="In Progress"
-          title="Natural language goals converted into guardrails"
-          whatUserSees="Merchant intent parsed into editable rules and an example customer card preview."
-          whyItMatters="Bridges campaign strategy to offer generation in a way the team can explain live."
-        />
-      </div>
       <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-4">
         <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--terracotta)]"><Sparkles size={11} /> YOUR WORDS</div>
         <div className="font-display text-[17px] text-[var(--forest)] leading-snug mt-2">"Fill my Thursday afternoon dip — it's dead between lunch and dinner."</div>
@@ -1602,7 +1563,7 @@ export function S13Goal() {
 
       <div className="mt-auto p-5">
         <button data-action="merchant-configure-voice" className="w-full mb-2 py-3 rounded-full border border-[var(--forest)]/20 text-[var(--forest)] font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all duration-300">
-          Configure voice identity <Mic size={14} />
+          Describe assistant style <Mic size={14} />
         </button>
         <button data-action="merchant-submit-approval" className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-all duration-300">
           Submit for approval <Sparkles size={16} />
@@ -1646,11 +1607,10 @@ export function S13bVoiceIdentity() {
 
       <div className="px-6 mt-3">
         <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">
-          Give your shop
-          <br /> a voice personality.
+          Tell us about your shop.
         </h2>
         <p className="text-[12px] text-[var(--forest)]/65 mt-2">
-          This will be used as the sales script context for your ElevenLabs voice agent.
+          Describe your vibe and offers. Spot handles the assistant setup for you.
         </p>
       </div>
 
@@ -1689,47 +1649,15 @@ export function S13bVoiceIdentity() {
           />
         </label>
 
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block">
-            <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">VOICE NAME</div>
-            <input
-              value={merchantVoiceIdentity.voiceName}
-              onChange={(e) => updateField("voiceName", e.target.value)}
-              placeholder="Warm Guide"
-              className="mt-1 w-full rounded-xl border border-[var(--border)] px-3 py-2 text-[12px] text-[var(--forest)] focus:outline-none focus:ring-2 focus:ring-[var(--terracotta)]/40"
-            />
-          </label>
-          <label className="block">
-            <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">VOICE ID</div>
-            <input
-              value={merchantVoiceIdentity.voiceId}
-              onChange={(e) => updateField("voiceId", e.target.value)}
-              placeholder="elevenlabs_voice_id"
-              className="mt-1 w-full rounded-xl border border-[var(--border)] px-3 py-2 text-[12px] text-[var(--forest)] focus:outline-none focus:ring-2 focus:ring-[var(--terracotta)]/40"
-            />
-          </label>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block">
-            <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">TONE</div>
-            <input
-              value={merchantVoiceIdentity.tone}
-              onChange={(e) => updateField("tone", e.target.value)}
-              placeholder="friendly"
-              className="mt-1 w-full rounded-xl border border-[var(--border)] px-3 py-2 text-[12px] text-[var(--forest)] focus:outline-none focus:ring-2 focus:ring-[var(--terracotta)]/40"
-            />
-          </label>
-          <label className="block">
-            <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">LANGUAGE</div>
-            <input
-              value={merchantVoiceIdentity.language}
-              onChange={(e) => updateField("language", e.target.value)}
-              placeholder="en"
-              className="mt-1 w-full rounded-xl border border-[var(--border)] px-3 py-2 text-[12px] text-[var(--forest)] focus:outline-none focus:ring-2 focus:ring-[var(--terracotta)]/40"
-            />
-          </label>
-        </div>
+        <label className="block">
+          <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">ASSISTANT STYLE</div>
+          <input
+            value={merchantVoiceIdentity.tone}
+            onChange={(e) => updateField("tone", e.target.value)}
+            placeholder="friendly and concise"
+            className="mt-1 w-full rounded-xl border border-[var(--border)] px-3 py-2 text-[12px] text-[var(--forest)] focus:outline-none focus:ring-2 focus:ring-[var(--terracotta)]/40"
+          />
+        </label>
       </div>
 
       {voiceIdentityStatus && (
@@ -1743,7 +1671,7 @@ export function S13bVoiceIdentity() {
           data-action="save-voice-identity"
           className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-all duration-300"
         >
-          Save voice identity <Mic size={16} />
+          Save assistant profile <Mic size={16} />
         </button>
       </div>
     </Phone>
@@ -1824,16 +1752,6 @@ export function S14Dashboard() {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--sand)]" />
         </button>
       </div>
-      <div className="px-5 mt-2">
-        <SectionFrame
-          track="Merchant Dashboard"
-          status="In Progress"
-          title="KPI + context performance command center"
-          whatUserSees="Revenue and walk-in KPIs with campaign performance cards and live offer monitoring."
-          whyItMatters="Makes merchant value visible in real time with practical decision signals."
-        />
-      </div>
-
       <div className="px-5 mt-3 grid grid-cols-2 gap-2.5">
         <Tile icon={<Euro size={15} />} label="Revenue lift" value="+€186" delta="+12%" />
         <Tile icon={<Users size={15} />} label="Walk-ins from Spot" value="14" delta="+5" />
@@ -1972,8 +1890,8 @@ export function S15Scanner() {
         <button data-action="merchant-scan-next" className="w-full h-12 rounded-full bg-[var(--terracotta)] text-white font-semibold active:scale-95 transition-all duration-300">
           Scan next customer
         </button>
-        <button data-action="open-coverage" className="w-full mt-2 h-10 rounded-full bg-white/10 border border-white/20 text-white text-[12px] font-medium active:scale-95 transition-all duration-300">
-          Roadmap coverage
+        <button data-action="noop" className="w-full mt-2 h-10 rounded-full bg-white/10 border border-white/20 text-white text-[12px] font-medium active:scale-95 transition-all duration-300">
+          Scanner ready
         </button>
       </div>
     </Phone>
@@ -2114,9 +2032,6 @@ export function S16PrivacyPolicy() {
             revision date in-app.
           </p>
         </section>
-        <button data-nav="coverage" className="w-full py-3 rounded-full bg-[var(--forest)] text-white text-[13px] font-semibold active:scale-95 transition-all duration-300">
-          View roadmap coverage
-        </button>
       </div>
     </Phone>
   );

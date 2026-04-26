@@ -327,10 +327,6 @@ export function MobileApp() {
         go(S.policy);
         return;
       }
-      if (navAction === "coverage") {
-        go(S.coverage);
-        return;
-      }
 
       const buttonAction = btn.getAttribute("data-action");
       if (buttonAction === "finish-setup") {
@@ -431,10 +427,6 @@ export function MobileApp() {
       }
       if (buttonAction === "merchant-manage-voice") {
         go(S.mVoice);
-        return;
-      }
-      if (buttonAction === "open-coverage") {
-        go(S.coverage, "up");
         return;
       }
     }
