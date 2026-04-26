@@ -191,14 +191,225 @@
 }
 .qr-mat { animation: qr-materialize 700ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 
+.qr-redeem-bg {
+  background:
+    radial-gradient(ellipse 300px 250px at 50% 58%, oklch(0.66 0.16 38 / 0.22) 0%, oklch(0.66 0.16 38 / 0.09) 42%, transparent 76%),
+    radial-gradient(ellipse at center, #2a2421 0%, #0c0a09 70%);
+}
+.qr-redeem-card {
+  background: var(--cream);
+  box-shadow: 0 22px 70px -24px oklch(0.66 0.16 38 / 0.65), 0 12px 34px -18px #000;
+}
+.qr-expiry-pill {
+  background: linear-gradient(180deg, oklch(0.66 0.16 38 / 0.22), oklch(0.66 0.16 38 / 0.12));
+  box-shadow: inset 0 0 0 1px oklch(0.66 0.16 38 / 0.18);
+  backdrop-filter: blur(16px);
+}
+.qr-redeem-note { color: rgba(254, 243, 226, 0.42); }
+.qr-redeem-secondary {
+  color: rgba(254, 243, 226, 0.82);
+  border: 1px dashed rgba(254, 243, 226, 0.28);
+  background: rgba(255,255,255,0.02);
+}
+.qr-redeem-cancel {
+  background: var(--terracotta);
+  box-shadow: 0 14px 34px -16px oklch(0.66 0.16 38 / 0.85), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+
+@keyframes qr-amount-reveal {
+  0% { opacity: 0; transform: translateY(12px) scale(0.94); filter: blur(8px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+.qr-amount-reveal { animation: qr-amount-reveal 620ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms backwards; }
+
 @keyframes confetti-fall {
-  0% { transform: translateY(-20px) rotate(0); opacity: 0; }
-  10% { opacity: 1; }
-  100% { transform: translateY(420px) rotate(720deg); opacity: 0; }
+  0% { transform: translate3d(0, -40px, 0) rotate(0deg); opacity: 0; }
+  8% { opacity: 1; }
+  100% { transform: translate3d(var(--cx, 0px), 920px, 0) rotate(540deg); opacity: 0; }
 }
 .confetti-piece {
-  position: absolute; width: 8px; height: 14px; border-radius: 2px;
-  animation: confetti-fall 1800ms ease-in forwards;
+  position: absolute; top: -20px;
+  width: 7px; height: 11px; border-radius: 2px;
+  animation: confetti-fall 2600ms cubic-bezier(0.25, 0.6, 0.4, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Smooth check pop */
+@keyframes check-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.check-pop { animation: check-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+
+@keyframes check-glow {
+  0% { box-shadow: 0 0 0 0 rgba(46, 160, 109, 0.55), 0 0 0 0 rgba(46, 160, 109, 0.35); }
+  100% { box-shadow: 0 0 0 24px rgba(46, 160, 109, 0), 0 0 0 48px rgba(46, 160, 109, 0); }
+}
+.check-glow { animation: check-glow 1400ms ease-out 200ms backwards; }
+
+/* Animated dashed path — keeps the visual dashes (e.g. "0.7 2.4") and reveals
+   the line by animating a clipping mask via stroke-dasharray on the same axis.
+   Trick: we use SVG path-length normalized to 1 and animate `pathLength` reveal
+   with a wide solid mask. We use a wrapper class instead. */
+@keyframes draw-path {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+.draw-path, .draw-path-2, .draw-path-3 {
+  /* Use a single 1-unit dash + 1-unit gap → offset slides the dash along path */
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+.draw-path  { animation: draw-path 1800ms cubic-bezier(0.65, 0, 0.35, 1)  400ms forwards; }
+.draw-path-2 { animation: draw-path 1800ms cubic-bezier(0.65, 0, 0.35, 1) 2200ms forwards; }
+.draw-path-3 { animation: draw-path 2000ms cubic-bezier(0.65, 0, 0.35, 1) 4000ms forwards; }
+
+/* SVG check stroke draw-in */
+@keyframes check-stroke {
+  from { stroke-dashoffset: 60; }
+  to   { stroke-dashoffset: 0; }
+}
+.check-stroke path { stroke-dasharray: 60; stroke-dashoffset: 60; animation: check-stroke 500ms 380ms cubic-bezier(0.65,0,0.35,1) forwards; }
+
+
+/* Dashed visual line that gets revealed by an overlaid mask */
+.dash-line {
+  stroke-dasharray: 0.012 0.022;
+  stroke-linecap: round;
+}
+
+/* Cleaner, calmer map — livelier with parks, water + street grid */
+.spot-map-clean {
+  background:
+    /* big park top-right corner */
+    radial-gradient(ellipse 140px 120px at 95% 6%, oklch(0.84 0.11 145 / 0.9) 0%, oklch(0.84 0.1 145 / 0.6) 55%, transparent 78%),
+    /* park bottom-left */
+    radial-gradient(ellipse 110px 90px at 6% 94%, oklch(0.84 0.1 142 / 0.75) 0%, transparent 72%),
+    /* small park mid-left */
+    radial-gradient(ellipse 70px 60px at 14% 38%, oklch(0.86 0.09 145 / 0.65) 0%, transparent 72%),
+    /* small park mid-right */
+    radial-gradient(ellipse 60px 50px at 86% 62%, oklch(0.85 0.09 145 / 0.6) 0%, transparent 72%),
+    /* (no river) */
+    /* warm paper base */
+    linear-gradient(160deg, oklch(0.97 0.022 82) 0%, oklch(0.94 0.028 80) 100%);
+}
+.spot-map-clean::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    /* major street diagonals */
+    linear-gradient(22deg, transparent 49.0%, oklch(0.78 0.02 75 / 0.85) 49.0% 51.0%, transparent 51.0%),
+    linear-gradient(112deg, transparent 49.2%, oklch(0.78 0.02 75 / 0.8) 49.2% 50.8%, transparent 50.8%),
+    /* secondary streets */
+    linear-gradient(67deg, transparent 49.6%, oklch(0.82 0.02 75 / 0.6) 49.6% 50.4%, transparent 50.4%),
+    linear-gradient(-25deg, transparent 49.7%, oklch(0.82 0.02 75 / 0.55) 49.7% 50.3%, transparent 50.3%),
+    /* fine grid */
+    linear-gradient(0deg, transparent 49.8%, oklch(0.86 0.018 75 / 0.4) 49.8% 50.2%, transparent 50.2%),
+    linear-gradient(90deg, transparent 49.8%, oklch(0.86 0.018 75 / 0.4) 49.8% 50.2%, transparent 50.2%);
+  background-size: 240px 240px, 280px 280px, 180px 180px, 200px 200px, 60px 60px, 60px 60px;
+  opacity: 0.85;
+  pointer-events: none;
+}
+/* Abstract building blocks — small rectangles like Google Maps, in warm tones */
+.spot-map-clean::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(0deg, oklch(0.9 0.025 70 / 0.65), oklch(0.9 0.025 70 / 0.65)),
+    linear-gradient(0deg, oklch(0.9 0.025 70 / 0.6), oklch(0.9 0.025 70 / 0.6)),
+    linear-gradient(0deg, oklch(0.88 0.03 65 / 0.65), oklch(0.88 0.03 65 / 0.65)),
+    linear-gradient(0deg, oklch(0.9 0.025 70 / 0.6), oklch(0.9 0.025 70 / 0.6)),
+    linear-gradient(0deg, oklch(0.88 0.028 70 / 0.65), oklch(0.88 0.028 70 / 0.65)),
+    linear-gradient(0deg, oklch(0.9 0.025 70 / 0.6), oklch(0.9 0.025 70 / 0.6)),
+    linear-gradient(0deg, oklch(0.89 0.026 68 / 0.6), oklch(0.89 0.026 68 / 0.6)),
+    linear-gradient(0deg, oklch(0.9 0.025 70 / 0.6), oklch(0.9 0.025 70 / 0.6)),
+    radial-gradient(circle at 50% 50%, transparent 65%, oklch(0.9 0.025 75 / 0.4) 100%);
+  background-repeat: no-repeat;
+  background-size:
+    18px 14px, 22px 12px, 14px 18px, 16px 16px,
+    20px 14px, 14px 14px, 18px 12px, 16px 18px,
+    100% 100%;
+  background-position:
+    32% 28%, 44% 32%, 56% 26%, 30% 56%,
+    62% 58%, 48% 70%, 38% 78%, 70% 38%,
+    0 0;
+  pointer-events: none;
+}
+
+@keyframes pin-drop {
+  0% { transform: translateY(-30px) scale(0.6); opacity: 0; }
+  60% { transform: translateY(4px) scale(1.05); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.pin-drop { animation: pin-drop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+
+@keyframes walker-move {
+  0% { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.count-up { animation: count-up 600ms ease-out backwards; }
+
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+.bar-grow { transform-origin: bottom; animation: bar-grow 700ms cubic-bezier(0.34, 1.3, 0.64, 1) backwards; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 2.4s ease-in-out infinite;
+}
+
+/* Rail slider — terracotta dot on a track with side ticks (per design ref) */
+.rail-track {
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+.rail-base {
+  position: absolute;
+  left: 0; right: 0;
+  height: 4px;
+  border-radius: 999px;
+  background: oklch(0.88 0.025 75);
+}
+.rail-fill {
+  position: absolute;
+  left: 0;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--terracotta);
+  transition: width 400ms cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+.rail-thumb {
+  position: absolute;
+  width: 18px; height: 18px;
+  border-radius: 999px;
+  background: var(--terracotta);
+  border: 3px solid var(--paper);
+  box-shadow: 0 2px 8px -2px var(--terracotta), 0 0 0 1px oklch(0.88 0.025 75);
+  transform: translateX(-50%);
+  transition: left 400ms cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+.rail-tick {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 999px;
+  background: oklch(0.78 0.04 70);
+  transform: translateX(-50%);
+  top: 50%; margin-top: -2px;
 }
 
 /* Hand-drawn dashed line */
@@ -225,3 +436,48 @@
   background-size: 180px 180px, 240px 240px, 200px 200px;
   opacity: 0.7;
 }
+
+/* ---------- Mobile app fullscreen system ---------- */
+
+.mobile-screen {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mobile-tab-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 40;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+}
+
+.mobile-content-with-tabs {
+  padding-bottom: calc(68px + env(safe-area-inset-bottom));
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: slide-in-right 300ms ease-out; }
+.page-enter-up { animation: slide-in-up 300ms ease-out; }

@@ -28,10 +28,14 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" },
       { title: "Spot — Generative City Wallet" },
       { name: "description", content: "Hyper-personalized local offers for your neighborhood. On-device AI." },
       { name: "author", content: "Spot" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "theme-color", content: "#FEF3E2" },
       { property: "og:title", content: "Spot — Generative City Wallet" },
       { property: "og:description", content: "Little reasons to step outside, made for your block." },
       { property: "og:type", content: "website" },

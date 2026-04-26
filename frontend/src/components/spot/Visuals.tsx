@@ -93,78 +93,93 @@ export function HandPin({
   );
 }
 
-export function QrCode({ size = 220 }: { size?: number }) {
-  // Stylized fake QR
-  const cells = 21;
-  const rng = (i: number) => ((i * 9301 + 49297) % 233280) / 233280;
+export function QrCode({ size = 220, withLogo = false }: { size?: number; withLogo?: boolean }) {
+  // Stylized but dense QR-like matrix
+  const cells = 29;
+  const rng = (i: number) => {
+    const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
+    return x - Math.floor(x);
+  };
   const cellSize = size / cells;
   const dots: React.ReactNode[] = [];
   for (let r = 0; r < cells; r++) {
     for (let c = 0; c < cells; c++) {
       // Skip finder regions
       const inFinder =
-        (r < 7 && c < 7) ||
-        (r < 7 && c > cells - 8) ||
-        (r > cells - 8 && c < 7);
+        (r < 8 && c < 8) ||
+        (r < 8 && c > cells - 9) ||
+        (r > cells - 9 && c < 8);
       if (inFinder) continue;
-      if (rng(r * cells + c + 3) > 0.5) {
+      const timing = (r === 6 || c === 6) && r > 7 && c > 7 && (r + c) % 2 === 0;
+      const structured = ((r * 3 + c * 5) % 11 === 0) || ((r + c * 2) % 13 === 0);
+      const denseNoise = rng(r * cells + c + 17) > 0.43;
+      if (timing || structured || denseNoise) {
         dots.push(
           <rect
             key={`${r}-${c}`}
             x={c * cellSize}
             y={r * cellSize}
-            width={cellSize * 0.9}
-            height={cellSize * 0.9}
-            rx={cellSize * 0.18}
-            fill="#264653"
+            width={cellSize * 0.96}
+            height={cellSize * 0.96}
+            rx={cellSize * 0.06}
+            fill="var(--forest)"
           />
         );
       }
     }
   }
+  // Finder pattern matching screenshot: terracotta outer ring, cream gap, dark inner block
   const finder = (x: number, y: number) => (
     <g transform={`translate(${x},${y})`}>
-      <rect width={cellSize * 7} height={cellSize * 7} rx={cellSize * 1.4} fill="#264653" />
+      <rect width={cellSize * 7} height={cellSize * 7} rx={cellSize * 0.14} fill="var(--terracotta)" />
       <rect
         x={cellSize}
         y={cellSize}
         width={cellSize * 5}
         height={cellSize * 5}
-        rx={cellSize * 1}
-        fill="#FEF3E2"
+        rx={cellSize * 0.08}
+        fill="var(--cream)"
       />
       <rect
         x={cellSize * 2}
         y={cellSize * 2}
         width={cellSize * 3}
         height={cellSize * 3}
-        rx={cellSize * 0.6}
-        fill="#E76F51"
+        rx={cellSize * 0.06}
+        fill="var(--forest)"
       />
     </g>
   );
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <rect width={size} height={size} rx="20" fill="#FEF3E2" />
+      <rect width={size} height={size} rx="14" fill="var(--cream)" />
       {dots}
       {finder(0, 0)}
       {finder(size - cellSize * 7, 0)}
       {finder(0, size - cellSize * 7)}
-      {/* Center logo */}
-      <circle cx={size / 2} cy={size / 2} r={cellSize * 2.6} fill="#FEF3E2" />
-      <circle cx={size / 2} cy={size / 2} r={cellSize * 2} fill="#E76F51" />
-      <text
-        x={size / 2}
-        y={size / 2 + cellSize * 0.6}
-        textAnchor="middle"
-        fontFamily="serif"
-        fontWeight="700"
-        fontSize={cellSize * 2.4}
-        fill="#FEF3E2"
-      >
-        S
-      </text>
+      <g transform={`translate(${cellSize * 20},${cellSize * 20})`}>
+        <rect width={cellSize * 5} height={cellSize * 5} rx={cellSize * 0.08} fill="var(--forest)" />
+        <rect x={cellSize} y={cellSize} width={cellSize * 3} height={cellSize * 3} rx={cellSize * 0.06} fill="var(--cream)" />
+        <rect x={cellSize * 2} y={cellSize * 2} width={cellSize} height={cellSize} rx={cellSize * 0.04} fill="var(--forest)" />
+      </g>
+      {withLogo && (
+        <>
+          <circle cx={size / 2} cy={size / 2} r={cellSize * 2.6} fill="#FEF3E2" />
+          <circle cx={size / 2} cy={size / 2} r={cellSize * 2} fill="#E76F51" />
+          <text
+            x={size / 2}
+            y={size / 2 + cellSize * 0.6}
+            textAnchor="middle"
+            fontFamily="serif"
+            fontWeight="700"
+            fontSize={cellSize * 2.4}
+            fill="#FEF3E2"
+          >
+            S
+          </text>
+        </>
+      )}
     </svg>
   );
 }

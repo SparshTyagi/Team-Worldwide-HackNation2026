@@ -32,6 +32,19 @@ import {
   ChevronLeft,
   Sun,
   Moon,
+  Wheat,
+  Leaf,
+  Flame,
+  Accessibility,
+  Eye,
+  Mic,
+  Trash2,
+  Bell as BellIcon,
+  Users,
+  Euro,
+  Activity,
+  ArrowUpRight,
+  Plus,
 } from "lucide-react";
 
 /* ---------- 01 SPLASH ---------- */
@@ -67,25 +80,69 @@ export function S02Pins() {
       <StatusBar />
       <div className="px-7 pb-3">
         <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">STEP 1 OF 3</div>
-        <h2 className="font-display text-[28px] leading-[1.1] text-[var(--forest)] mt-1">
+        <h2 className="font-display text-[26px] leading-[1.1] text-[var(--forest)] mt-1">
           Where do you spend
           <br /> your days?
         </h2>
-        <p className="text-sm text-[var(--forest)]/60 mt-2">
-          Drop two pins. We'll only suggest things on your natural path.
+        <p className="text-[12px] text-[var(--forest)]/60 mt-1.5">
+          Drop two pins. We'll trace your natural path between them.
         </p>
       </div>
       <div className="relative flex-1 mx-4 rounded-3xl overflow-hidden border border-[var(--border)]">
-        <MapStylized>
-          <div className="absolute left-12 top-20"><HandPin label="Home" color="#264653" /></div>
-          <div className="absolute right-10 bottom-28"><HandPin label="Work" color="#E76F51" /></div>
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 393 600" preserveAspectRatio="none">
-            <path d="M70 130 Q 200 250 320 470" stroke="#E76F51" strokeWidth="2.5" strokeDasharray="2 8" strokeLinecap="round" fill="none" />
+        <div className="relative w-full h-full spot-map-clean overflow-hidden">
+          {/* Sequential dashed routes — Home → Work, then Work → Tony's.
+              SVG viewBox uses 0..100 normalized space and stretches with the container so
+              that path coords match the pin percentages exactly. */}
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {/* Home (20,18) -> Work (80,78) */}
+            <path
+              d="M20 18 C 38 38, 58 56, 80 78"
+              stroke="var(--terracotta)"
+              strokeWidth="0.8"
+              fill="none"
+              strokeLinecap="round"
+              strokeDasharray="0.8 2.4"
+              vectorEffect="non-scaling-stroke"
+              pathLength={1}
+              className="draw-path"
+              style={{ strokeWidth: 3 } as any}
+            />
+            {/* Work (80,78) -> Tony's (22,70) */}
+            <path
+              d="M80 78 C 60 78, 40 76, 22 70"
+              stroke="var(--forest)"
+              strokeWidth="0.8"
+              fill="none"
+              strokeLinecap="round"
+              strokeDasharray="0.8 2.4"
+              vectorEffect="non-scaling-stroke"
+              pathLength={1}
+              className="draw-path-2"
+              style={{ strokeWidth: 3 } as any}
+            />
           </svg>
-        </MapStylized>
+
+          {/* Pins — outer wrapper handles positioning (transform places pin TIP on coord),
+              inner wrapper handles drop-in animation so they don't fight over transform. */}
+          <div className="absolute" style={{ left: "20%", top: "18%", transform: "translate(-50%, -42px)" }}>
+            <div className="pin-drop" style={{ animationDelay: "200ms" }}>
+              <HandPin label="Home" color="var(--forest)" />
+            </div>
+          </div>
+          <div className="absolute" style={{ left: "80%", top: "78%", transform: "translate(-50%, -42px)" }}>
+            <div className="pin-drop" style={{ animationDelay: "1900ms" }}>
+              <HandPin label="Work" color="var(--terracotta)" />
+            </div>
+          </div>
+          <div className="absolute" style={{ left: "22%", top: "70%", transform: "translate(-50%, -42px)" }}>
+            <div className="pin-drop" style={{ animationDelay: "3700ms" }}>
+              <HandPin label="Tony's ☕" color="var(--sand)" pulsing />
+            </div>
+          </div>
+        </div>
       </div>
       <div className="p-5">
-        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
+        <button className="w-full h-13 py-3.5 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
           Continue <ChevronRight size={18} />
         </button>
       </div>
@@ -93,60 +150,81 @@ export function S02Pins() {
   );
 }
 
-/* ---------- 03 ONBOARDING — meal sliders + chips ---------- */
+/* ---------- 03 ONBOARDING — meal-time rail sliders + chips ---------- */
 export function S03Meals() {
-  const Slider = ({ label, time, pos }: { label: string; time: string; pos: number }) => (
-    <div className="bg-white rounded-2xl p-4 border border-[var(--border)]">
-      <div className="flex items-center justify-between">
-        <div className="font-display text-[var(--forest)]">{label}</div>
-        <div className="text-sm font-semibold text-[var(--terracotta)]">{time}</div>
+  // value 0..1, with side ticks at 0, .25, .5, .75, 1
+  const Rail = ({
+    icon, label, time, value,
+  }: { icon: React.ReactNode; label: string; time: string; value: number }) => (
+    <div className="bg-white rounded-2xl px-4 py-3 border border-[var(--border)]">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]">{icon}</div>
+        <div className="flex-1">
+          <div className="font-display text-[14px] text-[var(--forest)] leading-tight">{label}</div>
+        </div>
+        <div className="font-display text-[16px] text-[var(--terracotta)]">{time}</div>
       </div>
-      <div className="mt-3 relative h-2 rounded-full bg-[var(--cream)]">
-        <div className="absolute inset-y-0 left-0 rounded-full bg-[var(--terracotta)]" style={{ width: `${pos}%` }} />
-        <div className="absolute -top-1.5 w-5 h-5 rounded-full bg-white border-2 border-[var(--terracotta)] shadow"
-             style={{ left: `calc(${pos}% - 10px)` }} />
+      <div className="rail-track mt-2.5">
+        <div className="rail-base" />
+        <div className="rail-fill" style={{ width: `${value * 100}%` }} />
+        {[0, 0.25, 0.5, 0.75, 1].map((t) => (
+          <span key={t} className="rail-tick" style={{ left: `${t * 100}%` }} />
+        ))}
+        <span className="rail-thumb" style={{ left: `${value * 100}%` }} />
+      </div>
+      <div className="flex justify-between mt-1 text-[10px] text-[var(--forest)]/45 font-medium">
+        <span>earlier</span>
+        <span>later</span>
       </div>
     </div>
   );
   const chips = [
-    { l: "Coffee", i: <Coffee size={14} />, on: true },
-    { l: "Bakery", i: <Pizza size={14} />, on: true },
-    { l: "Ramen", i: <UtensilsCrossed size={14} />, on: true },
-    { l: "Salads", i: <Salad size={14} />, on: false },
-    { l: "Wine bars", i: <Wine size={14} />, on: false },
-    { l: "Gelato", i: <IceCream size={14} />, on: true },
+    { l: "Coffee", on: true },
+    { l: "Bakery", on: true },
+    { l: "Italian", on: true },
+    { l: "Asian", on: false },
+    { l: "Healthy", on: true },
+    { l: "Wine bars", on: false },
+    { l: "Bistro", on: true },
+    { l: "Vegan", on: false },
+    { l: "Sweet", on: true },
   ];
   return (
-    <Phone title="Your rhythm" number={3}>
+    <Phone title="Onboarding · Taste" number={3}>
       <StatusBar />
-      <div className="px-7 pb-2">
-        <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">STEP 2 OF 3</div>
-        <h2 className="font-display text-[28px] leading-[1.1] text-[var(--forest)] mt-1">
+      <div className="px-6 pb-1">
+        <div className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)]">STEP 2 OF 3</div>
+        <div className="mt-1 flex gap-1.5">
+          <span className="h-1 flex-1 rounded-full bg-[var(--forest)]" />
+          <span className="h-1 flex-1 rounded-full bg-[var(--forest)]" />
+          <span className="h-1 flex-1 rounded-full bg-[var(--border)]" />
+        </div>
+        <h2 className="font-display text-[22px] leading-[1.1] text-[var(--forest)] mt-2.5">
           When do you usually
           <br /> get hungry?
         </h2>
       </div>
-      <div className="px-5 mt-3 space-y-3">
-        <Slider label="☕  Coffee" time="08:30" pos={28} />
-        <Slider label="🥪  Lunch" time="12:45" pos={55} />
-        <Slider label="🍷  Dinner" time="19:30" pos={82} />
+      <div className="px-4 mt-3 space-y-2">
+        <Rail icon={<Coffee size={15} />} label="Coffee" time="08:30" value={0.42} />
+        <Rail icon={<UtensilsCrossed size={15} />} label="Lunch" time="12:45" value={0.55} />
+        <Rail icon={<Wine size={15} />} label="Dinner" time="19:15" value={0.72} />
       </div>
-      <div className="px-7 mt-5">
-        <div className="text-xs font-semibold tracking-wider text-[var(--forest)]/60 mb-2">I'M INTO</div>
-        <div className="flex flex-wrap gap-2">
+      <div className="px-6 mt-3">
+        <div className="text-[10px] font-semibold tracking-widest text-[var(--forest)]/55 mb-1.5">TASTES YOU TRUST</div>
+        <div className="flex flex-wrap gap-1.5">
           {chips.map((c) => (
             <span key={c.l}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border ${
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
                 c.on ? "bg-[var(--forest)] text-white border-[var(--forest)]" : "bg-white text-[var(--forest)] border-[var(--border)]"
               }`}>
-              {c.i}{c.l}
+              {c.l}
             </span>
           ))}
         </div>
       </div>
-      <div className="mt-auto p-5">
-        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
-          Continue <ChevronRight size={18} />
+      <div className="mt-auto px-5 pt-3 pb-4">
+        <button className="w-full py-3.5 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
+          Looks right
         </button>
       </div>
     </Phone>
@@ -195,6 +273,88 @@ export function S04Permissions() {
           <Lock size={16} /> Allow & continue
         </button>
         <button className="w-full mt-2 h-10 text-sm text-[var(--forest)]/60">Read the full policy</button>
+      </div>
+    </Phone>
+  );
+}
+
+/* ---------- 04b DIETARY & ACCESSIBILITY ---------- */
+export function S04bDietary() {
+  const Diet = ({ icon, label, on }: { icon: React.ReactNode; label: string; on?: boolean }) => (
+    <button className={`flex items-center gap-2 px-3 py-2 rounded-2xl border transition-all ${
+      on ? "bg-[var(--forest)] text-white border-[var(--forest)]" : "bg-white text-[var(--forest)] border-[var(--border)]"
+    }`}>
+      <span className="w-6 h-6 rounded-full flex items-center justify-center text-current">{icon}</span>
+      <span className="text-[12px] font-semibold">{label}</span>
+      {on && <Check size={12} className="ml-1" />}
+    </button>
+  );
+  const Acc = ({ icon, label, desc, on }: { icon: React.ReactNode; label: string; desc: string; on?: boolean }) => (
+    <div className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[var(--border)]">
+      <div className="w-9 h-9 rounded-xl bg-[var(--cream)] flex items-center justify-center text-[var(--terracotta)]">{icon}</div>
+      <div className="flex-1">
+        <div className="font-display text-[14px] text-[var(--forest)] leading-tight">{label}</div>
+        <div className="text-[11px] text-[var(--forest)]/60">{desc}</div>
+      </div>
+      <span className={`w-9 h-5 rounded-full p-0.5 flex transition-all ${on ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
+        <span className="w-4 h-4 rounded-full bg-white shadow" />
+      </span>
+    </div>
+  );
+  return (
+    <Phone title="Dietary & Accessibility" number={5}>
+      <StatusBar />
+      <div className="px-6 pb-1">
+        <div className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)]">STEP 3 OF 3</div>
+        <div className="mt-1 flex gap-1.5">
+          <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
+          <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
+          <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
+        </div>
+        <h2 className="font-display text-[24px] leading-[1.1] text-[var(--forest)] mt-3">
+          Anything we should
+          <br /> always check for?
+        </h2>
+        <p className="text-[12px] text-[var(--forest)]/60 mt-1.5">
+          Filters run on-device. Spot will never compose an offer that violates them.
+        </p>
+      </div>
+
+      <div className="px-5 mt-4">
+        <div className="text-[10px] font-semibold tracking-widest text-[var(--forest)]/60 mb-2 flex items-center gap-1.5">
+          <Leaf size={11} /> DIETARY
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Diet icon={<Leaf size={13} />} label="Vegetarian" on />
+          <Diet icon={<Leaf size={13} />} label="Vegan" />
+          <Diet icon={<Wheat size={13} />} label="Gluten-free" on />
+          <Diet icon={<Flame size={13} />} label="Halal" />
+          <Diet icon={<Sparkles size={13} />} label="Kosher" />
+          <Diet icon={<X size={13} />} label="Nut-free" on />
+          <Diet icon={<X size={13} />} label="Dairy-free" />
+          <Diet icon={<X size={13} />} label="Low-sugar" />
+        </div>
+      </div>
+
+      <div className="px-5 mt-4">
+        <div className="text-[10px] font-semibold tracking-widest text-[var(--forest)]/60 mb-2 flex items-center gap-1.5">
+          <Accessibility size={11} /> ACCESSIBILITY
+        </div>
+        <div className="space-y-2">
+          <Acc icon={<Accessibility size={16} />} label="Step-free entrance only" desc="Show offers Mia can roll into." on />
+          <Acc icon={<Eye size={16} />} label="High-contrast cards" desc="Larger text, AAA contrast." on />
+          <Acc icon={<Mic size={16} />} label="Read offers aloud" desc="VoiceOver-friendly summaries." />
+        </div>
+      </div>
+
+      <div className="mt-auto p-5">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[var(--cream)] mb-3 text-[11px] text-[var(--forest)]/70">
+          <Shield size={11} className="text-[var(--terracotta)]" />
+          All filters stay on this phone. <span className="ml-1 font-semibold">on-device AI</span>
+        </div>
+        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
+          Finish setup <ChevronRight size={18} />
+        </button>
       </div>
     </Phone>
   );
@@ -298,9 +458,9 @@ export function S06OfferDetail() {
         <button className="absolute top-16 right-5 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center">
           <X size={18} />
         </button>
-        <div className="absolute bottom-3 left-5 flex items-center gap-2">
-          <span className="px-2 py-1 rounded-full bg-[var(--terracotta)] text-white text-[10px] font-semibold flex items-center gap-1">
-            <Clock size={10} /> ENDS IN 13:42
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <span className="px-3 py-1.5 rounded-full bg-[var(--terracotta)] text-white text-[11px] font-bold tracking-wide flex items-center gap-1.5 shadow-lg shadow-black/20">
+            <Clock size={11} /> ENDS IN 13:42
           </span>
         </div>
       </div>
@@ -315,25 +475,44 @@ export function S06OfferDetail() {
               </h2>
             </div>
           </div>
-          <div className="mt-4 flex items-end gap-3">
+          <div className="mt-4 flex items-center gap-3">
             <span className="font-display text-4xl text-[var(--terracotta)] leading-none">−€3.40</span>
-            <span className="text-sm text-[var(--forest)]/50 line-through pb-1">€8.40</span>
-            <span className="ml-auto text-xs px-2 py-1 rounded-full bg-[var(--cream)] text-[var(--forest)] font-semibold">cortado + pastry</span>
+            <span className="text-sm text-[var(--forest)]/50 line-through">€8.40</span>
+            <span className="ml-auto inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-[var(--cream)] text-[var(--forest)] text-[11px] font-semibold whitespace-nowrap leading-none">
+              cortado + pastry
+            </span>
           </div>
         </div>
 
-        {/* Walking map */}
+        {/* Walking map — clean + animated dashed route, pin tips aligned to coords */}
         <div className="mt-3 relative rounded-3xl overflow-hidden border border-[var(--border)] h-40">
-          <MapStylized>
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 393 200" preserveAspectRatio="none">
-              <path d="M40 160 Q 150 140 220 100 T 340 50" stroke="#E76F51" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" fill="none" />
+          <div className="relative w-full h-full spot-map-clean overflow-hidden">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path
+                d="M14 80 C 38 65, 62 50, 86 22"
+                stroke="var(--terracotta)"
+                strokeLinecap="round"
+                fill="none"
+                pathLength={1}
+                vectorEffect="non-scaling-stroke"
+                className="draw-path"
+                style={{ strokeWidth: 3.5 } as any}
+              />
             </svg>
-            <div className="absolute left-4 bottom-3"><HandPin color="#264653" /></div>
-            <div className="absolute right-6 top-3"><HandPin pulsing /></div>
-            <div className="absolute right-2 bottom-2 px-2 py-1 rounded-full bg-white/90 text-[11px] font-semibold flex items-center gap-1">
+            <div className="absolute" style={{ left: "14%", top: "80%", transform: "translate(-50%, -42px)" }}>
+              <div className="pin-drop" style={{ animationDelay: "200ms" }}>
+                <HandPin color="var(--forest)" label="You" />
+              </div>
+            </div>
+            <div className="absolute" style={{ left: "86%", top: "22%", transform: "translate(-50%, -42px)" }}>
+              <div className="pin-drop" style={{ animationDelay: "2200ms" }}>
+                <HandPin pulsing label="Tony's" />
+              </div>
+            </div>
+            <div className="absolute right-2 bottom-2 px-2 py-1 rounded-full bg-white/95 text-[11px] font-semibold flex items-center gap-1 shadow-sm">
               <Footprints size={11} /> 80m · 1 min
             </div>
-          </MapStylized>
+          </div>
         </div>
 
         <div className="mt-3 text-[12px] text-[var(--forest)]/60 leading-relaxed px-1">
@@ -355,38 +534,70 @@ export function S06OfferDetail() {
 
 /* ---------- 07 WALK THE WALLET ---------- */
 export function S07Walk() {
+  // Normalized 0..100 viewBox keeps path coords aligned with pin percentages.
+  // You (15,88) → Tony's (24,65) → Marie (78,45) → Ramen (70,18)
   return (
-    <Phone title="Walk the Wallet" number={7} bg="forest">
+    <Phone title="Walk the Wallet" number={7}>
       <div className="absolute inset-0">
-        <MapStylized>
-          {/* darker overlay */}
-          <div className="absolute inset-0 bg-[var(--forest)]/30" />
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 393 852" preserveAspectRatio="none">
+        <div className="relative w-full h-full spot-map-clean overflow-hidden">
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {/* Leg 1: You → Tony's */}
             <path
-              d="M60 720 Q 120 600 200 540 T 280 320 Q 220 220 320 100"
-              stroke="#FEF3E2"
-              strokeWidth="4"
-              strokeDasharray="3 9"
-              strokeLinecap="round"
-              fill="none"
-              opacity="0.95"
+              d="M15 88 C 16 80, 20 73, 24 65"
+              stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
+              strokeLinecap="round" fill="none" pathLength={1}
+              vectorEffect="non-scaling-stroke" className="draw-path"
+              style={{ strokeWidth: 3.5 } as any}
+            />
+            {/* Leg 2: Tony's → Marie */}
+            <path
+              d="M24 65 C 40 60, 60 52, 78 45"
+              stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
+              strokeLinecap="round" fill="none" pathLength={1}
+              vectorEffect="non-scaling-stroke" className="draw-path-2"
+              style={{ strokeWidth: 3.5 } as any}
+            />
+            {/* Leg 3: Marie → Ramen */}
+            <path
+              d="M78 45 C 76 36, 73 26, 70 18"
+              stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
+              strokeLinecap="round" fill="none" pathLength={1}
+              vectorEffect="non-scaling-stroke" className="draw-path-3"
+              style={{ strokeWidth: 3.5 } as any}
             />
           </svg>
-          <div className="absolute left-10 bottom-32"><HandPin color="#264653" pulsing label="Tony's · −€3.40" /></div>
-          <div className="absolute right-12 top-[44%]"><HandPin color="#E76F51" pulsing label="Marie · −50%" /></div>
-          <div className="absolute right-14 top-24"><HandPin color="#264653" pulsing label="Ramen · −€2.10" /></div>
-          {/* You */}
-          <div className="absolute left-12 bottom-20 flex flex-col items-center">
-            <div className="w-5 h-5 rounded-full bg-white border-4 border-[var(--terracotta)] shadow" />
-            <span className="mt-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-semibold">You</span>
+
+          {/* Pins — outer wrapper places pin TIP on coord, inner wrapper animates drop */}
+          <div className="absolute" style={{ left: "24%", top: "65%", transform: "translate(-50%, -42px)" }}>
+            <div className="pin-drop" style={{ animationDelay: "1700ms" }}>
+              <HandPin color="var(--forest)" pulsing label="Tony's · −€3.40" />
+            </div>
           </div>
-        </MapStylized>
+          <div className="absolute" style={{ left: "78%", top: "45%", transform: "translate(-50%, -42px)" }}>
+            <div className="pin-drop" style={{ animationDelay: "3500ms" }}>
+              <HandPin color="var(--terracotta)" pulsing label="Marie · −50%" />
+            </div>
+          </div>
+          <div className="absolute" style={{ left: "70%", top: "18%", transform: "translate(-50%, -42px)" }}>
+            <div className="pin-drop" style={{ animationDelay: "5500ms" }}>
+              <HandPin color="var(--forest)" pulsing label="Ramen · −€2.10" />
+            </div>
+          </div>
+          {/* You — dot centred on coord */}
+          <div className="absolute flex flex-col items-center" style={{ left: "15%", top: "88%", transform: "translate(-50%, -50%)" }}>
+            <div className="relative">
+              <span className="absolute inset-0 rounded-full bg-[var(--terracotta)] animate-ping opacity-60" />
+              <div className="relative w-5 h-5 rounded-full bg-white border-4 border-[var(--terracotta)] shadow" />
+            </div>
+            <span className="mt-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-semibold shadow">You</span>
+          </div>
+        </div>
       </div>
 
-      <StatusBar dark />
+      <StatusBar />
       <div className="relative px-6 mt-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur text-white text-[12px]">
-          <Sparkles size={12} className="text-[var(--sand)]" /> A 9-minute loop · 3 spots
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur text-[var(--forest)] text-[12px] font-medium shadow-sm border border-[var(--border)]">
+          <Sparkles size={12} className="text-[var(--terracotta)]" /> A 9-minute loop · 3 spots
         </div>
       </div>
 
@@ -413,26 +624,46 @@ export function S07Walk() {
 export function S08QR() {
   return (
     <Phone title="QR redeem" number={8} bg="ink">
+      <div className="absolute inset-0 pointer-events-none qr-redeem-bg" />
       <StatusBar dark />
-      <div className="flex-1 flex flex-col items-center justify-center px-6 text-white">
-        <div className="text-[10px] font-semibold tracking-widest text-[var(--sand)]">SHOW THIS TO TONY</div>
-        <h2 className="font-display text-[26px] mt-1 text-center leading-tight">Tony's Café</h2>
-        <div className="font-display text-5xl text-[var(--terracotta)] mt-1">−€3.40</div>
-
-        <div className="mt-6 p-3 rounded-3xl bg-[var(--cream)] qr-mat">
-          <QrCode size={230} />
+      <div className="relative flex-1 flex flex-col items-center px-8">
+        <div className="mt-[114px] text-[10px] font-bold tracking-[0.24em] text-[var(--sand)]">
+          SHOW THIS TO TONY
         </div>
 
-        <div className="mt-5 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-[12px]">
-          <Clock size={12} /> Expires in <span className="font-semibold text-[var(--sand)]">02:14</span>
+        <h2 className="font-serif font-bold text-[35px] mt-2 text-center leading-none text-[var(--paper)]">
+          Tony's Café
+        </h2>
+
+        <div className="relative mt-4 font-serif font-bold text-[60px] text-[var(--terracotta)] leading-none qr-amount-reveal">
+          <span className="absolute left-[-12px] top-[0.55em] w-12 h-[3px] rounded-full bg-[var(--terracotta)]" />
+          €3.40
         </div>
 
-        <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] text-white/50">
-          <Lock size={10} /> Code generated on this device · single-use
+        <div className="mt-[34px] qr-mat">
+          <div className="qr-redeem-card rounded-[26px] p-3">
+            <QrCode size={218} />
+          </div>
         </div>
+
+        <div className="mt-7 inline-flex items-center gap-2 px-4 py-2 rounded-full qr-expiry-pill text-[13px] text-[var(--paper)]">
+          <Clock size={13} className="text-[var(--paper)]/80" />
+          <span>Expires in</span>
+          <span className="font-mono font-bold text-[var(--terracotta)] tracking-wider">02:02</span>
+        </div>
+
+        <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] qr-redeem-note">
+          <Lock size={11} /> Code generated on this device · single-use
+        </div>
+
+        <button className="mt-5 px-5 py-2 rounded-full qr-redeem-secondary text-[12px] transition">
+          Simulate scan →
+        </button>
       </div>
-      <div className="p-5">
-        <button className="w-full h-12 rounded-full bg-white/10 text-white font-medium">Cancel redeem</button>
+      <div className="relative p-5 pb-7">
+        <button className="w-full py-4 rounded-full qr-redeem-cancel text-[var(--paper)] font-semibold transition">
+          Cancel redeem
+        </button>
       </div>
     </Phone>
   );
@@ -440,72 +671,113 @@ export function S08QR() {
 
 /* ---------- 09 CONFIRMATION ---------- */
 export function S09Confirm() {
-  const colors = ["#E76F51", "#264653", "#F4A261", "#FEF3E2"];
+  const colors = ["var(--terracotta)", "var(--forest)", "var(--sand)", "#2EA06D"];
+  // Smoother confetti — full width, varied speeds, drift via CSS var
+  const pieces = Array.from({ length: 36 }).map((_, i) => {
+    const left = (i * 17) % 100;
+    const drift = ((i * 53) % 80) - 40; // -40 to +40 px sideways
+    const dur = 2200 + ((i * 137) % 1500);
+    const delay = (i % 12) * 90;
+    return { i, left, drift, dur, delay, c: colors[i % 4] };
+  });
   return (
     <Phone title="Confirmation" number={9}>
       <StatusBar />
-      {/* Confetti */}
+      {/* Confetti — starts above viewport, drifts smoothly */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {Array.from({ length: 28 }).map((_, i) => (
+        {pieces.map((p) => (
           <span
-            key={i}
+            key={p.i}
             className="confetti-piece"
             style={{
-              left: `${(i * 37) % 100}%`,
-              background: colors[i % 4],
-              animationDelay: `${(i % 8) * 60}ms`,
-              transform: `rotate(${i * 23}deg)`,
+              left: `${p.left}%`,
+              background: p.c,
+              animationDelay: `${p.delay}ms`,
+              animationDuration: `${p.dur}ms`,
+              ["--cx" as any]: `${p.drift}px`,
+              transform: `rotate(${p.i * 27}deg)`,
+              opacity: 0,
             }}
           />
         ))}
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center px-7 text-center relative">
-        <div className="relative w-24 h-24 rounded-full bg-[var(--forest)] flex items-center justify-center shadow-xl">
-          <Check size={48} className="text-[var(--cream)]" strokeWidth={3} />
-          <span className="absolute inset-0 rounded-full pulse-ring" />
-        </div>
-        <h2 className="font-display text-[30px] text-[var(--forest)] mt-6 leading-tight">
-          You saved
-          <br />
-          <span className="text-[var(--terracotta)] text-5xl">€3.40</span>
-        </h2>
 
-        <div className="mt-5 flex items-center gap-3 bg-white rounded-2xl border border-[var(--border)] p-3 pr-5">
+      <div className="flex-1 flex flex-col items-center px-7 text-center relative">
+        {/* Tony's thanks at top — bigger pill */}
+        <div className="mt-3 fade-rise flex items-center gap-3 bg-white rounded-full border border-[var(--border)] py-2.5 pl-2.5 pr-5 shadow-md">
           <img src={baristaImg} className="w-12 h-12 rounded-full object-cover" alt="" />
           <div className="text-left">
-            <div className="font-display text-[15px] text-[var(--forest)] leading-tight">"Tony says thanks 👋"</div>
-            <div className="text-[11px] text-[var(--forest)]/60">Tony's Café · 13:04</div>
+            <div className="font-display text-[16px] text-[var(--forest)] leading-tight">"Tony says thanks 👋"</div>
+            <div className="text-[11px] text-[var(--forest)]/60 mt-0.5">Tony's Café · 13:04</div>
           </div>
         </div>
 
-        <div className="mt-6 text-xs text-[var(--forest)]/60 max-w-[260px]">
-          That's €27.80 saved this month — and 14 walks taken.
+        {/* Centered check + amount — pushed lower so things sit centred on the screen */}
+        <div className="mt-16 relative">
+          <div className="absolute inset-0 -m-8 rounded-full bg-[oklch(0.78_0.12_150)] opacity-25 blur-2xl check-glow" />
+          {/* Animated halo ring */}
+          <span className="absolute inset-0 rounded-full border-2 border-[oklch(0.62_0.13_150)] opacity-40 animate-ping" />
+          <div
+            className="relative w-28 h-28 rounded-full flex items-center justify-center check-pop"
+            style={{ background: "oklch(0.62 0.13 150)" }}
+          >
+            <Check size={56} className="text-white check-stroke" strokeWidth={3.2} />
+          </div>
+        </div>
+
+        <h2 className="font-display text-[36px] text-[var(--forest)] mt-9 leading-none">
+          You saved <span className="text-[var(--terracotta)]">€3.40</span>
+        </h2>
+        <p className="mt-3 text-[13px] text-[var(--forest)]/65 max-w-[260px] leading-relaxed">
+          Your cortado &amp; pastry are on their way to the table.
+        </p>
+
+        {/* Three-stat box */}
+        <div className="mt-8 w-full bg-white rounded-2xl border border-[var(--border)] shadow-sm p-4 flex items-stretch text-left fade-rise" style={{ animationDelay: "500ms" }}>
+          <div className="flex-1 px-2">
+            <div className="font-display text-[18px] text-[var(--forest)] leading-none">€3.40</div>
+            <div className="text-[10px] text-[var(--forest)]/55 mt-1.5 font-medium">today</div>
+          </div>
+          <div className="w-px bg-[var(--border)]" />
+          <div className="flex-1 px-2">
+            <div className="font-display text-[18px] text-[var(--forest)] leading-none">€42.10</div>
+            <div className="text-[10px] text-[var(--forest)]/55 mt-1.5 font-medium">this month</div>
+          </div>
+          <div className="w-px bg-[var(--border)]" />
+          <div className="flex-1 px-2">
+            <div className="font-display text-[18px] text-[var(--forest)] leading-none">17</div>
+            <div className="text-[10px] text-[var(--forest)]/55 mt-1.5 font-medium">spots tried</div>
+          </div>
         </div>
       </div>
-      <div className="p-5 space-y-2">
-        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold shadow-lg shadow-[var(--terracotta)]/30">
-          Show next nearby spot
+
+      <div className="p-5 pb-7">
+        <button className="w-full py-4 rounded-full bg-[var(--forest)] text-white font-semibold shadow-lg shadow-[var(--forest)]/25">
+          Done
         </button>
-        <button className="w-full h-12 rounded-full text-[var(--forest)]/70 text-sm">Done</button>
+        <button className="w-full mt-2 text-[12px] text-[var(--forest)]/55">Rate Tony's in 5 seconds</button>
       </div>
     </Phone>
   );
 }
 
-/* ---------- 10 SETTINGS / PRIVACY ---------- */
+/* ---------- 10 SETTINGS / PRIVACY (redesigned per reference) ---------- */
 export function S10Settings() {
   const Toggle = ({ on = true }: { on?: boolean }) => (
-    <span className={`w-10 h-6 rounded-full p-0.5 flex ${on ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
+    <span className={`w-10 h-6 rounded-full p-0.5 flex items-center transition-all ${on ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
       <span className="w-5 h-5 rounded-full bg-white shadow" />
     </span>
   );
-  const Row = ({ icon, title, desc, on, badge }: any) => (
-    <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-[var(--border)]">
-      <div className="w-9 h-9 rounded-xl bg-[var(--cream)] flex items-center justify-center text-[var(--terracotta)]">{icon}</div>
+  const Row = ({ title, desc, on, badge }: { title: string; desc: string; on: boolean; badge: "DEVICE" | "CLOUD" }) => (
+    <div className="flex items-center gap-3 py-3.5 border-b border-[var(--border)]/60 last:border-b-0">
       <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <div className="font-display text-[15px] text-[var(--forest)]">{title}</div>
-          {badge && <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[var(--forest)]/10 text-[var(--forest)]">{badge}</span>}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="font-display text-[14px] text-[var(--forest)]">{title}</div>
+          <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded-full inline-flex items-center gap-1 ${
+            badge === "DEVICE" ? "bg-[var(--forest)]/10 text-[var(--forest)]" : "bg-[var(--sand)]/25 text-[oklch(0.5_0.1_60)]"
+          }`}>
+            {badge === "DEVICE" ? <Smartphone size={9} /> : <Cloud size={9} />} {badge}
+          </span>
         </div>
         <div className="text-[11px] text-[var(--forest)]/60 mt-0.5">{desc}</div>
       </div>
@@ -513,218 +785,310 @@ export function S10Settings() {
     </div>
   );
   return (
-    <Phone title="Privacy dashboard" number={10}>
+    <Phone title="Privacy" number={10}>
       <StatusBar />
-      <div className="px-6 pb-2">
-        <div className="text-xs text-[var(--forest)]/60">Settings</div>
-        <h2 className="font-display text-[26px] text-[var(--forest)]">Your data, your call.</h2>
+      <div className="px-6 pb-2 flex items-center gap-3">
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center">
+          <ChevronLeft size={16} />
+        </button>
+        <div className="flex-1 text-center font-display text-[16px] text-[var(--forest)]">Privacy</div>
+        <div className="w-9" />
       </div>
 
-      <div className="px-5 mt-3 space-y-2.5">
-        <div className="rounded-3xl p-4 bg-[var(--forest)] text-white">
-          <div className="flex items-center gap-2 text-[11px] font-semibold tracking-wider text-[var(--sand)]">
-            <Shield size={14} /> ON-DEVICE AI · ACTIVE
+      {/* Hero card */}
+      <div className="mx-5 mt-3 rounded-3xl p-5 bg-[var(--forest)] text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-30" style={{
+          background: "radial-gradient(circle at 80% 20%, var(--terracotta) 0%, transparent 60%)",
+        }} />
+        <span className="relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-bold tracking-wider text-[var(--sand)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--sand)] animate-pulse" /> ON-DEVICE AI
+        </span>
+        <h3 className="relative font-display text-[22px] leading-tight mt-3">
+          Most of Spot lives on this phone.
+        </h3>
+        <p className="relative text-[12px] text-white/70 mt-2 leading-relaxed">
+          The model that picks your offers is 38&nbsp;MB. It runs locally — your routines never reach our servers.
+        </p>
+        <div className="relative mt-4 grid grid-cols-2 gap-2.5">
+          <div className="rounded-2xl bg-white/10 p-3">
+            <div className="text-[9px] tracking-widest font-bold text-white/55">ON DEVICE</div>
+            <div className="font-display text-[22px] mt-1">14 signals</div>
           </div>
-          <div className="font-display text-[18px] mt-1 leading-tight">73% of Spot runs on your phone.</div>
-          <div className="mt-3 h-2 rounded-full bg-white/20 overflow-hidden">
-            <div className="h-full bg-[var(--sand)]" style={{ width: "73%" }} />
-          </div>
-          <div className="flex justify-between text-[10px] text-white/70 mt-1.5">
-            <span>On device</span><span>Cloud</span>
+          <div className="rounded-2xl bg-white/10 p-3">
+            <div className="text-[9px] tracking-widest font-bold text-white/55">IN CLOUD</div>
+            <div className="font-display text-[22px] mt-1">2 signals</div>
           </div>
         </div>
-
-        <Row icon={<MapPin size={16} />} title="Precise location" desc="Used only when app is open" on badge="DEVICE" />
-        <Row icon={<Sparkles size={16} />} title="Behavior learning" desc="Local model, retrains nightly" on badge="DEVICE" />
-        <Row icon={<Cloud size={16} />} title="Weather sync" desc="Public API · no PII" on badge="CLOUD" />
-        <Row icon={<Bell size={16} />} title="Soft notifications" desc="Max 2 per day, never marketing" on={false} badge="DEVICE" />
       </div>
 
-      <div className="mt-auto p-5 text-center">
-        <button className="text-sm text-[var(--terracotta)] font-semibold underline-offset-4 underline">
-          Export & wipe everything
-        </button>
+      <div className="mx-5 mt-3 px-4 rounded-3xl bg-white border border-[var(--border)]">
+        <Row title="Approximate location" desc="Neighbourhood-level only." on badge="DEVICE" />
+        <Row title="Time-of-day patterns" desc="When you usually leave work." on badge="DEVICE" />
+        <Row title="Weather lookups" desc="By postcode, anonymised." on badge="CLOUD" />
+        <Row title="Notifications" desc="Maximum three per day." on badge="DEVICE" />
+        <Row title="Spending insights" desc="Opt-in monthly summary." on={false} badge="CLOUD" />
+      </div>
+
+      <div className="mx-5 mt-3 flex items-center gap-3 p-3 bg-white rounded-2xl border border-[var(--border)]">
+        <div className="w-9 h-9 rounded-xl bg-[var(--terracotta)]/10 flex items-center justify-center text-[var(--terracotta)]">
+          <Trash2 size={16} />
+        </div>
+        <div className="flex-1">
+          <div className="font-display text-[14px] text-[var(--forest)] leading-tight">Wipe all on-device memory</div>
+          <div className="text-[11px] text-[var(--forest)]/60">Restart Spot like new</div>
+        </div>
+        <ChevronRight size={16} className="text-[var(--forest)]/40" />
+      </div>
+
+      <div className="mt-auto pb-4 flex items-center justify-center gap-1.5 text-[11px] text-[var(--forest)]/55">
+        <Bell size={11} /> Last sync · 2 minutes ago
       </div>
     </Phone>
   );
 }
 
-/* ---------- 11 MERCHANT ONBOARDING ---------- */
+/* ---------- 11 MERCHANT ONBOARDING (Maps link · auto-fill) ---------- */
 export function S11MerchantOnboarding() {
+  const Field = ({ label, value, dim }: { label: string; value: string; dim?: boolean }) => (
+    <div className="py-2.5 border-b border-[var(--border)]/60 last:border-b-0">
+      <div className="text-[10px] font-semibold tracking-widest text-[var(--forest)]/55">{label}</div>
+      <div className={`mt-0.5 text-[14px] ${dim ? "text-[var(--forest)]/50" : "text-[var(--forest)] font-medium"}`}>{value}</div>
+    </div>
+  );
   return (
     <Phone title="Merchant onboarding" number={11}>
       <StatusBar />
-      <div className="px-7 pb-2">
-        <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">FOR LOCAL OWNERS</div>
-        <h2 className="font-display text-[26px] leading-[1.1] text-[var(--forest)] mt-1">
-          Paste your shop link.
-          <br /> We'll do the rest.
+      <div className="px-6 pb-2 flex items-center gap-3">
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center">
+          <ChevronLeft size={16} />
+        </button>
+        <div className="flex-1 text-center font-display text-[15px] text-[var(--forest)]">Add your business</div>
+        <div className="w-9" />
+      </div>
+
+      <div className="px-6 mt-3">
+        <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">
+          Paste a Google Maps link.
+          <br /> We'll do the typing.
         </h2>
       </div>
 
-      <div className="px-5 mt-4">
-        <div className="rounded-2xl border border-[var(--border)] bg-white p-4">
-          <div className="text-[10px] font-semibold tracking-wider text-[var(--forest)]/60">GOOGLE MAPS LINK</div>
-          <div className="mt-2 flex items-center gap-2 px-3 py-3 rounded-xl bg-[var(--cream)]">
-            <Link2 size={16} className="text-[var(--forest)]/60" />
-            <span className="text-[12px] text-[var(--forest)] truncate">maps.app.goo.gl/x9b2…</span>
-          </div>
-          <div className="mt-3 flex items-center gap-2 text-[11px] text-[var(--forest)]/70">
-            <span className="w-3 h-3 rounded-full bg-[var(--terracotta)] animate-pulse" />
-            On-device AI reading the page…
-          </div>
+      {/* URL field */}
+      <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-2 flex items-center gap-2">
+        <div className="w-9 h-9 rounded-xl bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]/60">
+          <Link2 size={15} />
         </div>
+        <span className="flex-1 truncate text-[12px] text-[var(--forest)]">maps.app.goo.gl/tonysCafeStuttg…</span>
+        <button className="px-4 py-2 rounded-xl bg-[var(--forest)] text-white text-[12px] font-semibold">Fetch</button>
+      </div>
 
-        <div className="mt-4 rounded-2xl bg-white border border-[var(--border)] overflow-hidden">
-          <img src={cafeImg} className="w-full h-28 object-cover" alt="" />
-          <div className="p-4">
-            <div className="flex items-center gap-2 text-[10px] font-semibold text-[var(--forest)]/60">
-              <Sparkles size={11} className="text-[var(--terracotta)]" /> AI AUTO-FILLED · TAP TO EDIT
-            </div>
-            <div className="font-display text-[18px] text-[var(--forest)] mt-1">Tony's Café</div>
-            <div className="text-[11px] text-[var(--forest)]/60">Marienstr. 14, 70178 Stuttgart</div>
+      <div className="mx-6 mt-2.5 flex items-center gap-2 text-[11px] text-[var(--forest)]/65">
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--forest)]/8 text-[var(--forest)] font-bold tracking-wider text-[10px]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--terracotta)]" /> ON-DEVICE AI
+        </span>
+        No login. No spreadsheet.
+      </div>
 
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {["Espresso bar", "Pastries", "Vegan options", "Outdoor seats", "Cash + card"].map(t => (
-                <span key={t} className="text-[11px] px-2 py-1 rounded-full bg-[var(--cream)] text-[var(--forest)] border border-[var(--border)]">{t}</span>
-              ))}
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-              <div className="bg-[var(--cream)] rounded-lg p-2">
-                <div className="text-[var(--forest)]/60">Hours</div>
-                <div className="font-semibold text-[var(--forest)]">07:00 – 19:00</div>
-              </div>
-              <div className="bg-[var(--cream)] rounded-lg p-2">
-                <div className="text-[var(--forest)]/60">Avg ticket</div>
-                <div className="font-semibold text-[var(--forest)]">€7.20</div>
-              </div>
-            </div>
+      {/* Auto-filled card */}
+      <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-4 fade-rise">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--terracotta)]">
+          <Sparkles size={11} /> AUTO-FILLED IN 1.4S
+        </div>
+        <Field label="BUSINESS NAME" value="Tony's Café" />
+        <Field label="CUISINE" value="Italian · handmade pasta" />
+        <Field label="ADDRESS" value="📍 Hauptstätter Str. 14, 70173 Stuttgart" />
+        <Field label="HOURS TODAY" value="🕐 11:30 – 22:00" />
+        <Field label="PHONE" value="📞 +49 711 222 8841" />
+        <div className="py-2.5 flex items-end justify-between">
+          <div>
+            <div className="text-[10px] font-semibold tracking-widest text-[var(--forest)]/55">AVERAGE TICKET</div>
+            <div className="mt-0.5 text-[16px] text-[var(--forest)] font-semibold">€14.20</div>
           </div>
+          <span className="text-[10px] text-[var(--forest)]/50 italic mb-0.5">estimated</span>
         </div>
       </div>
 
+      <div className="mx-5 mt-3 px-3 py-2 rounded-xl bg-[oklch(0.94_0.07_150)]/50 border border-[oklch(0.7_0.13_150)]/30 flex items-center gap-2 text-[11px] text-[oklch(0.4_0.1_150)]">
+        <Check size={13} /> Looks right? Edit anything before continuing.
+      </div>
+
       <div className="mt-auto p-5">
-        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2">
-          Looks right — continue <ChevronRight size={18} />
+        <button className="w-full py-4 rounded-full bg-[var(--forest)] text-white font-semibold flex items-center justify-center gap-2">
+          Continue to margins
         </button>
       </div>
     </Phone>
   );
 }
 
-/* ---------- 12 MARGIN SETUP ---------- */
+/* ---------- 12 MARGIN SETUP (interactive slider · live profit-impact) ---------- */
 export function S12Margin() {
   const pos = 22;
   return (
     <Phone title="Margin setup" number={12}>
       <StatusBar />
-      <div className="px-7 pb-2">
-        <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">STEP 2 OF 4</div>
-        <h2 className="font-display text-[26px] leading-[1.1] text-[var(--forest)] mt-1">
+      <div className="px-6 pb-2 flex items-center gap-3">
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center">
+          <ChevronLeft size={16} />
+        </button>
+        <div className="flex-1 text-center font-display text-[15px] text-[var(--forest)]">Margins</div>
+        <span className="text-[11px] text-[var(--forest)]/55">Step 2 / 3</span>
+      </div>
+
+      <div className="px-6 mt-3">
+        <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">
           How much can you
           <br /> afford to give back?
         </h2>
+        <p className="text-[12px] text-[var(--forest)]/60 mt-2">
+          Spot will never compose an offer above this ceiling. Change it any time.
+        </p>
       </div>
 
-      <div className="mx-5 mt-5 rounded-3xl bg-white border border-[var(--border)] p-5">
-        <div className="flex items-end justify-between">
-          <div className="font-display text-6xl text-[var(--terracotta)] leading-none">{pos}<span className="text-2xl">%</span></div>
+      {/* Slider card */}
+      <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-4">
+        <div className="flex items-start justify-between">
+          <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">MAX DISCOUNT</div>
           <div className="text-right">
-            <div className="text-[10px] tracking-widest font-semibold text-[var(--forest)]/60">SAFE ZONE</div>
-            <div className="text-[11px] text-[var(--forest)]">recommended ≤ 25%</div>
+            <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">AVG PER TICKET</div>
           </div>
         </div>
-        <div className="mt-5 relative h-3 rounded-full bg-[var(--cream)]">
-          <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pos}%`, background: "linear-gradient(90deg, var(--sand), var(--terracotta))" }} />
-          <div className="absolute -top-1.5 w-6 h-6 rounded-full bg-white border-2 border-[var(--terracotta)] shadow" style={{ left: `calc(${pos}% - 12px)` }} />
-          {/* danger marker */}
-          <div className="absolute top-3.5 text-[9px] text-[var(--forest)]/60" style={{ left: "25%" }}>safe</div>
-          <div className="absolute top-3.5 text-[9px] text-[var(--destructive)]" style={{ left: "60%" }}>tight</div>
+        <div className="mt-1 flex items-end justify-between">
+          <div className="font-display text-[44px] text-[var(--forest)] leading-none">{pos}<span className="text-[20px]">%</span></div>
+          <div className="font-display text-[28px] text-[var(--forest)] leading-none">€3.10</div>
+        </div>
+        <div className="mt-5 relative h-2.5 rounded-full" style={{ background: "linear-gradient(90deg, var(--forest) 0%, var(--sand) 50%, var(--terracotta) 100%)" }}>
+          <div className="absolute -top-2 w-7 h-7 rounded-full bg-[var(--forest)] border-[3px] border-white shadow-lg transition-all"
+               style={{ left: `calc(${pos * 2}% - 14px)` }} />
+        </div>
+        <div className="flex justify-between mt-2 text-[10px] font-semibold text-[var(--forest)]/55">
+          <span>0%</span>
+          <span>CAUTIOUS</span>
+          <span>GENEROUS</span>
+          <span>50%</span>
         </div>
       </div>
 
-      <div className="mx-5 mt-3 rounded-3xl bg-[var(--forest)] text-white p-5">
-        <div className="text-[11px] tracking-widest font-semibold text-[var(--sand)]">LIVE PROFIT IMPACT</div>
-        <div className="mt-2 flex items-end gap-3">
+      {/* Live profit impact preview */}
+      <div className="mx-5 mt-3 rounded-2xl bg-[var(--forest)] text-white p-4 relative overflow-hidden">
+        <div className="text-[10px] font-bold tracking-widest text-[var(--sand)]">LIVE PROFIT-IMPACT PREVIEW</div>
+        <div className="mt-3 grid grid-cols-3 gap-2 text-left">
           <div>
-            <div className="text-[10px] text-white/60">Per cup</div>
-            <div className="font-display text-2xl">€1.32</div>
+            <div className="text-[10px] text-white/55">COVER</div>
+            <div className="font-display text-[22px] mt-1 leading-none">+14<span className="text-[11px] text-white/55"> /day</span></div>
           </div>
           <div>
-            <div className="text-[10px] text-white/60">Was</div>
-            <div className="text-lg line-through text-white/50">€1.69</div>
+            <div className="text-[10px] text-white/55">REVENUE</div>
+            <div className="font-display text-[22px] mt-1 leading-none">+€186 <ArrowUpRight size={14} className="inline text-[oklch(0.78_0.13_150)]" /></div>
           </div>
-          <div className="ml-auto text-right">
-            <div className="text-[10px] text-white/60">If +30 walk-ins</div>
-            <div className="font-display text-2xl text-[var(--sand)]">+€39.60</div>
+          <div>
+            <div className="text-[10px] text-white/55">NET MARGIN</div>
+            <div className="font-display text-[22px] mt-1 leading-none">−2.1pt <span className="text-[11px] text-[var(--terracotta)]">↓</span></div>
           </div>
         </div>
-        {/* mini chart */}
-        <svg viewBox="0 0 280 60" className="mt-3 w-full">
-          <path d="M0 50 L40 45 L80 40 L120 30 L160 22 L200 20 L240 12 L280 8" stroke="#F4A261" strokeWidth="2.5" fill="none" />
-          <path d="M0 50 L40 45 L80 40 L120 30 L160 22 L200 20 L240 12 L280 8 L280 60 L0 60 Z" fill="#F4A261" opacity="0.2" />
+        <svg viewBox="0 0 280 50" className="mt-3 w-full">
+          <defs>
+            <linearGradient id="margin-grad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="var(--sand)" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="var(--sand)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M0 38 L40 32 L80 30 L120 24 L160 22 L200 14 L240 10 L280 6"
+            stroke="var(--sand)" strokeWidth="2.5" fill="none"
+            style={{ strokeDasharray: 600, strokeDashoffset: 600, animation: "draw-path 1800ms ease-out 200ms forwards" }} />
+          <path d="M0 38 L40 32 L80 30 L120 24 L160 22 L200 14 L240 10 L280 6 L280 50 L0 50 Z" fill="url(#margin-grad)" />
         </svg>
+        <div className="text-[10px] text-white/55 mt-1">based on the last 30 days at this margin</div>
       </div>
 
       <div className="mt-auto p-5">
-        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2">
-          Lock margin <ChevronRight size={18} />
+        <button className="w-full py-4 rounded-full bg-[var(--sand)] text-[var(--forest)] font-semibold shadow-lg shadow-[var(--sand)]/30">
+          Lock in {pos}%
         </button>
       </div>
     </Phone>
   );
 }
 
-/* ---------- 13 GOAL STUDIO ---------- */
+/* ---------- 13 GOAL STUDIO (natural-language → parsed rules + preview) ---------- */
 export function S13Goal() {
+  const rules = [
+    { label: "Thursdays only", on: true },
+    { label: "14:00 – 17:00", on: true },
+    { label: "When < 30% capacity", on: true, sand: true },
+    { label: "Coffee + sweet pairings", on: true, sand: true },
+    { label: "Walking distance ≤ 400m", on: true },
+    { label: "Max 18% off", on: true },
+  ];
   return (
-    <Phone title="Goal Studio" number={13}>
+    <Phone title="Goal studio" number={13}>
       <StatusBar />
-      <div className="px-7 pb-2">
-        <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">GOAL STUDIO</div>
-        <h2 className="font-display text-[26px] leading-[1.1] text-[var(--forest)] mt-1">
-          Tell us what
-          <br /> you'd like to fix.
+      <div className="px-6 pb-2 flex items-center gap-3">
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center">
+          <ChevronLeft size={16} />
+        </button>
+        <div className="flex-1 text-center font-display text-[15px] text-[var(--forest)]">Goal studio</div>
+        <div className="w-9" />
+      </div>
+
+      <div className="px-6 mt-3">
+        <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">
+          Tell Spot what
+          <br /> you're trying to fix.
         </h2>
       </div>
 
-      <div className="mx-5 mt-4 rounded-3xl bg-white border border-[var(--border)] p-4">
-        <div className="text-[10px] font-semibold tracking-wider text-[var(--forest)]/60">YOU SAID</div>
-        <div className="font-display text-[20px] text-[var(--forest)] leading-tight mt-1">
-          "Fill my Thursday afternoon dip."
+      {/* Voice input card */}
+      <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-4">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--terracotta)]">
+          <Sparkles size={11} /> YOUR WORDS
         </div>
-        <div className="mt-3 flex items-center gap-2 text-[11px] text-[var(--forest)]/60">
-          <Sparkles size={12} className="text-[var(--terracotta)]" /> Parsed into 4 rules · tap to edit
+        <div className="font-display text-[17px] text-[var(--forest)] leading-snug mt-2">
+          "Fill my Thursday afternoon dip — it's dead between lunch and dinner."
+        </div>
+        <div className="mt-3 flex items-center justify-between">
+          <button className="w-9 h-9 rounded-full bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]">
+            <Mic size={14} />
+          </button>
+          <span className="text-[11px] text-[var(--forest)]/55">tap to re-record · 8s</span>
         </div>
       </div>
 
-      <div className="mx-5 mt-3 space-y-2">
-        {[
-          { k: "WHEN", v: "Thursdays · 14:00 – 17:00" },
-          { k: "WHO", v: "Locals within 600m, low recent visits" },
-          { k: "WHAT", v: "Coffee + small pastry combos" },
-          { k: "HOW MUCH", v: "Up to −25% off · cap 40 redemptions" },
-        ].map((r) => (
-          <div key={r.k} className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--cream)] border border-[var(--border)]">
-            <span className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)] w-20">{r.k}</span>
-            <span className="text-[13px] text-[var(--forest)] flex-1">{r.v}</span>
-            <ChevronRight size={14} className="text-[var(--forest)]/40" />
-          </div>
+      <div className="px-6 mt-4 flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--forest)]/65">
+        <Sparkles size={11} className="text-[var(--terracotta)]" /> PARSED INTO {rules.length} RULES
+      </div>
+      <div className="px-5 mt-2 flex flex-wrap gap-1.5">
+        {rules.map((r) => (
+          <span key={r.label}
+            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold ${
+              r.sand
+                ? "bg-[var(--sand)]/35 text-[var(--forest)]"
+                : "bg-[var(--forest)] text-white"
+            }`}>
+            {r.label} <X size={10} className="opacity-70" />
+          </span>
         ))}
+        <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold bg-white border border-dashed border-[var(--border)] text-[var(--forest)]/65">
+          <Plus size={11} /> add rule
+        </span>
       </div>
 
-      <div className="mx-5 mt-3 rounded-2xl bg-[var(--forest)] text-white p-4">
-        <div className="flex items-center gap-2 text-[10px] tracking-widest font-semibold text-[var(--sand)]">
-          <TrendingUp size={12} /> FORECAST
-        </div>
-        <div className="font-display text-[16px] mt-1 leading-tight">
-          Likely to bring 18–24 extra visits each Thursday.
+      {/* Preview */}
+      <div className="mx-5 mt-4 rounded-2xl border border-[var(--border)] bg-white p-4">
+        <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/55">PREVIEW · WHAT MIA WOULD SEE</div>
+        <div className="mt-2 rounded-2xl bg-[var(--forest)] text-white p-4">
+          <div className="text-[10px] font-bold tracking-widest text-[var(--sand)]">THURSDAY SLOW HOUR</div>
+          <div className="font-display text-[16px] mt-1 leading-snug">
+            "Tony's espresso &amp; cantucci · €4.50 instead of €6."
+          </div>
+          <div className="mt-2 text-[11px] text-white/65 flex items-center gap-3">
+            <span>• 230 m</span><span>• until 17:00</span><span>• 6 left</span>
+          </div>
         </div>
       </div>
 
       <div className="mt-auto p-5">
-        <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2">
+        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
           Launch goal <Sparkles size={16} />
         </button>
       </div>
@@ -732,66 +1096,90 @@ export function S13Goal() {
   );
 }
 
-/* ---------- 14 MERCHANT DASHBOARD ---------- */
+/* ---------- 14 LIVE DASHBOARD ---------- */
 export function S14Dashboard() {
+  const Tile = ({ icon, label, value, delta, deltaPositive = true }: any) => (
+    <div className="bg-white rounded-2xl border border-[var(--border)] p-3.5 fade-rise">
+      <div className="flex items-center justify-between">
+        <div className="w-8 h-8 rounded-xl bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]">{icon}</div>
+        <span className={`text-[10px] font-bold ${deltaPositive ? "text-[oklch(0.55_0.15_150)]" : "text-[var(--terracotta)]"}`}>
+          {delta}
+        </span>
+      </div>
+      <div className="font-display text-[26px] text-[var(--forest)] mt-2 leading-none">{value}</div>
+      <div className="text-[11px] text-[var(--forest)]/60 mt-1">{label}</div>
+    </div>
+  );
+  const bars = [22, 30, 28, 38, 34, 44, 56, 50, 72, 60, 48, 40];
   return (
     <Phone title="Live dashboard" number={14}>
       <StatusBar />
-      <div className="px-6 pb-2 flex items-end justify-between">
+      <div className="px-6 pb-2 flex items-start justify-between">
         <div>
-          <div className="text-xs text-[var(--forest)]/60">Tuesday · 13:04</div>
-          <h2 className="font-display text-[24px] text-[var(--forest)]">Tony's Café</h2>
+          <div className="text-[11px] text-[var(--forest)]/55">Tony's Café · Stuttgart</div>
+          <h2 className="font-display text-[26px] text-[var(--forest)] leading-tight">Today, so far</h2>
         </div>
-        <span className="px-2 py-1 rounded-full bg-[var(--forest)] text-white text-[10px] font-semibold flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--sand)] animate-pulse" /> LIVE
-        </span>
+        <button className="relative w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center text-[var(--forest)]">
+          <Bell size={15} />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--sand)]" />
+        </button>
       </div>
 
-      <div className="px-5 mt-3 grid grid-cols-3 gap-2">
+      <div className="px-5 mt-3 grid grid-cols-2 gap-2.5">
+        <Tile icon={<Euro size={15} />} label="Revenue lift" value="+€186" delta="+12%" />
+        <Tile icon={<Users size={15} />} label="Walk-ins from Spot" value="14" delta="+5" />
+        <Tile icon={<Activity size={15} />} label="Accept rate" value="38%" delta="+4pt" />
+        <Tile icon={<Footprints size={15} />} label="Avg distance" value="120m" delta="−20m" />
+      </div>
+
+      {/* Bar chart card */}
+      <div className="mx-5 mt-3 rounded-2xl bg-[var(--forest)] text-white p-4">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] font-bold tracking-widest text-[var(--sand)]">REDEMPTIONS TODAY</div>
+          <span className="text-[10px] text-white/55 lowercase tracking-wider flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--sand)] animate-pulse" /> live
+          </span>
+        </div>
+        <div className="mt-3 h-24 flex items-end gap-1.5">
+          {bars.map((h, i) => (
+            <div key={i} className="flex-1 rounded-t-md bar-grow"
+              style={{
+                height: `${h}%`,
+                background: i === 8 ? "var(--sand)" : "rgba(255,255,255,0.18)",
+                animationDelay: `${i * 60}ms`,
+              }} />
+          ))}
+        </div>
+        <div className="flex justify-between text-[9px] text-white/45 mt-1.5">
+          <span>09</span><span>11</span><span>13</span><span>15</span><span>17</span><span>19</span>
+        </div>
+      </div>
+
+      {/* Live offers */}
+      <div className="px-5 mt-3 flex items-center justify-between">
+        <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/65">LIVE OFFERS · 3</div>
+        <button className="text-[11px] text-[var(--terracotta)] font-semibold">manage</button>
+      </div>
+      <div className="px-5 mt-2 space-y-1.5">
         {[
-          { k: "Offers sent", v: "47", s: "+12 vs avg" },
-          { k: "Accept rate", v: "61%", s: "+8 pts" },
-          { k: "Walk-ins", v: "29", s: "today" },
-        ].map((m) => (
-          <div key={m.k} className="bg-white rounded-2xl border border-[var(--border)] p-3">
-            <div className="text-[10px] text-[var(--forest)]/60">{m.k}</div>
-            <div className="font-display text-2xl text-[var(--forest)] leading-none mt-1">{m.v}</div>
-            <div className="text-[10px] text-[var(--terracotta)] font-semibold mt-1">{m.s}</div>
+          { dot: "var(--terracotta)", icon: "🔥", t: "Rainy-day pasta", s: "−€3.40 · ends 13:30", v: "42%", a: "ACCEPT" },
+          { dot: "var(--forest)", icon: "·", t: "Slow-hour espresso & ca…", s: "−25% · 14:00–17:00", v: "31%", a: "ACCEPT" },
+          { dot: "var(--forest)", icon: "·", t: "Late-night tiramisu", s: "−€2 · 21:00–22:30", v: "18%", a: "ACCEPT" },
+        ].map((o, i) => (
+          <div key={o.t} className="flex items-center gap-3 p-2.5 bg-white rounded-2xl border border-[var(--border)]">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-[14px]"
+              style={{ background: i === 0 ? "var(--sand)" : "var(--cream)" }}>{o.icon}</div>
+            <div className="flex-1 min-w-0">
+              <div className="font-display text-[13px] text-[var(--forest)] leading-tight truncate">{o.t}</div>
+              <div className="text-[10px] text-[var(--forest)]/60">{o.s}</div>
+            </div>
+            <div className="text-right">
+              <div className="font-display text-[14px] text-[var(--forest)] leading-none">{o.v}</div>
+              <div className="text-[9px] tracking-widest text-[var(--forest)]/55">{o.a}</div>
+            </div>
+            <ChevronRight size={14} className="text-[var(--forest)]/30" />
           </div>
         ))}
-      </div>
-
-      <div className="mx-5 mt-3 rounded-3xl bg-[var(--forest)] text-white p-5">
-        <div className="text-[11px] tracking-widest font-semibold text-[var(--sand)]">REVENUE LIFT TODAY</div>
-        <div className="font-display text-4xl mt-1">+€186.40</div>
-        <svg viewBox="0 0 280 70" className="mt-2 w-full">
-          {[14, 22, 18, 30, 26, 38, 44, 36, 52, 48, 60, 54].map((v, i) => (
-            <rect key={i} x={i * 23 + 4} y={70 - v} width="14" height={v} rx="3" fill={i === 11 ? "#E76F51" : "#F4A261"} opacity={i === 11 ? 1 : 0.85} />
-          ))}
-        </svg>
-        <div className="flex justify-between text-[9px] text-white/50 mt-1">
-          <span>9</span><span>11</span><span>13</span><span>15</span><span>17</span>
-        </div>
-      </div>
-
-      <div className="px-5 mt-3">
-        <div className="text-[11px] font-semibold tracking-wider text-[var(--forest)]/60 mb-2">TODAY'S OFFERS</div>
-        <div className="space-y-2">
-          {[
-            { t: "Cortado + pastry", s: "−€3.40 · 12 redeemed", live: true },
-            { t: "Quiet-hour latte", s: "−25% · 7 redeemed", live: false },
-            { t: "Two croissants", s: "−€2 · 10 redeemed", live: false },
-          ].map((o) => (
-            <div key={o.t} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-[var(--border)]">
-              <div className="w-2 h-2 rounded-full" style={{ background: o.live ? "#E76F51" : "#264653", opacity: o.live ? 1 : 0.3 }} />
-              <div className="flex-1">
-                <div className="font-display text-[14px] text-[var(--forest)]">{o.t}</div>
-                <div className="text-[11px] text-[var(--forest)]/60">{o.s}</div>
-              </div>
-              <ChevronRight size={14} className="text-[var(--forest)]/40" />
-            </div>
-          ))}
-        </div>
       </div>
 
       <div className="mt-auto" />
@@ -841,69 +1229,6 @@ export function S15Scanner() {
       <div className="relative p-5">
         <button className="w-full h-12 rounded-full bg-[var(--terracotta)] text-white font-semibold">
           Scan next customer
-        </button>
-      </div>
-    </Phone>
-  );
-}
-
-/* ---------- 16 DEMO TOGGLE PANEL ---------- */
-export function S16Demo() {
-  const Toggle = ({ on, label, icon }: any) => (
-    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--cream)]">
-      <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-[var(--terracotta)]">{icon}</div>
-      <span className="text-[12px] font-semibold text-[var(--forest)] flex-1">{label}</span>
-      <span className={`w-9 h-5 rounded-full p-0.5 flex ${on ? "bg-[var(--terracotta)] justify-end" : "bg-[var(--border)] justify-start"}`}>
-        <span className="w-4 h-4 rounded-full bg-white shadow" />
-      </span>
-    </div>
-  );
-  return (
-    <Phone title="Demo overlay" number={16}>
-      <StatusBar />
-      {/* faded home behind */}
-      <div className="absolute inset-0 opacity-40 pointer-events-none">
-        <div className="px-6 pt-16">
-          <div className="font-display text-[22px] text-[var(--forest)]">3 little reasons to step out.</div>
-          <div className="mt-4 h-32 rounded-2xl bg-white border border-[var(--border)]" />
-          <div className="mt-3 h-16 rounded-full bg-[var(--forest)]" />
-          <div className="mt-3 h-24 rounded-2xl bg-[var(--cream)] border-2 border-dashed border-[var(--terracotta)]/40" />
-        </div>
-      </div>
-
-      <div className="relative mt-auto m-4 rounded-3xl bg-[var(--ink)] text-white p-4 shadow-2xl border border-white/10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[var(--terracotta)] animate-pulse" />
-            <span className="text-[10px] tracking-widest font-semibold text-[var(--sand)]">DEMO STATE · DEV</span>
-          </div>
-          <X size={14} className="text-white/60" />
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Toggle on label="Light rain" icon={<CloudRain size={14} />} />
-          <Toggle on={false} label="Sunny" icon={<Sun size={14} />} />
-          <Toggle on={false} label="Evening" icon={<Moon size={14} />} />
-          <Toggle on label="Lunch slot" icon={<UtensilsCrossed size={14} />} />
-        </div>
-
-        <div className="mt-3 p-3 rounded-2xl bg-white/5">
-          <div className="text-[10px] tracking-widest font-semibold text-white/50">CITY</div>
-          <div className="flex items-center gap-2 mt-1">
-            <Globe size={14} className="text-[var(--sand)]" />
-            <span className="text-[13px] font-semibold">Stuttgart, DE</span>
-            <span className="ml-auto text-[10px] text-white/50">11°C</span>
-          </div>
-        </div>
-
-        <div className="mt-3 grid grid-cols-3 gap-1.5 text-[10px]">
-          {["Mia 28", "Tourist", "Senior"].map((p, i) => (
-            <button key={p} className={`py-2 rounded-lg ${i === 0 ? "bg-[var(--terracotta)] text-white" : "bg-white/5 text-white/70"}`}>{p}</button>
-          ))}
-        </div>
-
-        <button className="mt-3 w-full h-10 rounded-full bg-[var(--terracotta)] text-white text-[12px] font-semibold flex items-center justify-center gap-1.5">
-          <Sparkles size={12} /> Recompose feed
         </button>
       </div>
     </Phone>
