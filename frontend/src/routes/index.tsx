@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({ component: MobileApp });
 
 // Screen index constants
 const S = {
-  splash:0, pins:1, meals:2, perms:3, dietary:4, feed:5,
+  splash:0, pins:1, meals:2, dietary:3, perms:4, feed:5,
   offer:6, walk:7, qr:8, confirm:9, settings:10,
   mOnboard:11, mMargin:12, mGoal:13, mDash:14, mScan:15,
 } as const;
@@ -20,8 +20,8 @@ const SCREENS = [
   { id: "splash", C: S01Splash },
   { id: "pins", C: S02Pins },
   { id: "meals", C: S03Meals },
-  { id: "perms", C: S04Permissions },
   { id: "dietary", C: S04bDietary },
+  { id: "perms", C: S04Permissions },
   { id: "feed", C: S05Feed },
   { id: "offer", C: S06OfferDetail },
   { id: "walk", C: S07Walk },
@@ -77,9 +77,8 @@ function MobileApp() {
       const text = (btn.textContent || "").trim();
 
       // --- Onboarding flow ---
-      if (text.includes("Continue") && idx <= S.dietary) { go(idx + 1); return; }
-      if (text === "Looks right") { go(S.perms); return; }
-      if (text.includes("Allow") && text.includes("continue")) { go(S.dietary); return; }
+      if (text === "Continue") { go(idx + 1); return; }
+      if (text === "Looks right") { go(idx + 1); return; }
       if (text.includes("Finish setup")) { go(S.feed, "up"); return; }
 
       // --- Customer app ---

@@ -80,7 +80,7 @@ export function S02Pins() {
     <Phone title="Pin Home & Work" number={2}>
       <StatusBar />
       <div className="px-7 pb-3">
-        <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">STEP 1 OF 3</div>
+        <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">STEP 1 OF 4</div>
         <h2 className="font-display text-[26px] leading-[1.1] text-[var(--forest)] mt-1">
           Where do you spend
           <br /> your days?
@@ -171,8 +171,8 @@ export function S03Meals() {
     <Phone title="Onboarding · Taste" number={3}>
       <StatusBar />
       <div className="px-6 pb-1">
-        <div className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)]">STEP 2 OF 3</div>
-        <div className="mt-1 flex gap-1.5"><span className="h-1 flex-1 rounded-full bg-[var(--forest)]" /><span className="h-1 flex-1 rounded-full bg-[var(--forest)]" /><span className="h-1 flex-1 rounded-full bg-[var(--border)]" /></div>
+        <div className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)]">STEP 2 OF 4</div>
+        <div className="mt-1 flex gap-1.5"><span className="h-1 flex-1 rounded-full bg-[var(--forest)]" /><span className="h-1 flex-1 rounded-full bg-[var(--forest)]" /><span className="h-1 flex-1 rounded-full bg-[var(--border)]" /><span className="h-1 flex-1 rounded-full bg-[var(--border)]" /></div>
         <h2 className="font-display text-[22px] leading-[1.1] text-[var(--forest)] mt-2.5">When do you usually<br /> get hungry?</h2>
       </div>
       <div className="px-4 mt-3 space-y-2">
@@ -232,7 +232,13 @@ export function S04Permissions() {
     <Phone title="Privacy first" number={4}>
       <StatusBar />
       <div className="px-7 pb-2">
-        <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">STEP 3 OF 3</div>
+        <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">STEP 4 OF 4</div>
+        <div className="mt-1 flex gap-1.5 mb-2">
+          <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
+          <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
+          <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
+          <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
+        </div>
         <h2 className="font-display text-[28px] leading-[1.1] text-[var(--forest)] mt-1">
           What stays on
           <br /> your phone.
@@ -249,7 +255,7 @@ export function S04Permissions() {
       </div>
       <div className="mt-auto p-5">
         <button className="w-full h-14 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
-          <Lock size={16} /> Allow & continue
+          Finish setup <ChevronRight size={18} />
         </button>
         <button className="w-full mt-2 h-10 text-sm text-[var(--forest)]/60">Read the full policy</button>
       </div>
@@ -286,11 +292,12 @@ export function S04bDietary() {
     <Phone title="Dietary & Accessibility" number={5}>
       <StatusBar />
       <div className="px-6 pb-1">
-        <div className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)]">STEP 3 OF 3</div>
+        <div className="text-[10px] font-semibold tracking-widest text-[var(--terracotta)]">STEP 3 OF 4</div>
         <div className="mt-1 flex gap-1.5">
           <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
           <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
           <span className="h-1.5 flex-1 rounded-full bg-[var(--forest)]" />
+          <span className="h-1.5 flex-1 rounded-full bg-[var(--border)]" />
         </div>
         <h2 className="font-display text-[24px] leading-[1.1] text-[var(--forest)] mt-3">
           Anything we should
@@ -334,7 +341,7 @@ export function S04bDietary() {
           All filters stay on this phone.
         </div>
         <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30">
-          Finish setup <ChevronRight size={18} />
+          Continue <ChevronRight size={18} />
         </button>
       </div>
     </Phone>
