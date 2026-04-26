@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@openrouter/sdk": "^0.12.21"
+    "@openrouter/sdk": "^0.12.21",
+    "@supabase/supabase-js": "^2.104.1",
+    "@tavily/core": "^0.7.2",
+    "qrcode": "^1.5.4"
   },
   "scripts": {
     "start": "node src/index.js",
