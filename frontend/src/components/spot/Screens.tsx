@@ -81,7 +81,8 @@ export function S02Pins() {
       <StatusBar />
       <div className="px-7 pb-3">
         <div className="text-xs font-semibold tracking-wider text-[var(--terracotta)]">STEP 1 OF 4</div>
-        <h2 className="font-display text-[26px] leading-[1.1] text-[var(--forest)] mt-1">
+        <div className="mt-1 flex gap-1.5"><span className="h-1 flex-1 rounded-full bg-[var(--forest)]" /><span className="h-1 flex-1 rounded-full bg-[var(--border)]" /><span className="h-1 flex-1 rounded-full bg-[var(--border)]" /><span className="h-1 flex-1 rounded-full bg-[var(--border)]" /></div>
+        <h2 className="font-display text-[26px] leading-[1.1] text-[var(--forest)] mt-2.5">
           Where do you spend
           <br /> your days?
         </h2>
