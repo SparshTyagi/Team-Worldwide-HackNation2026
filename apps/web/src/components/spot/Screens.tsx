@@ -164,6 +164,59 @@ function euro(value: number) {
   return `€${value.toFixed(2)}`;
 }
 
+type LiveLocationState = {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+} | null;
+
+function buildOsmEmbedUrl(latitude: number, longitude: number, span = 0.01) {
+  const minLon = longitude - span;
+  const maxLon = longitude + span;
+  const minLat = latitude - span;
+  const maxLat = latitude + span;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${minLon}%2C${minLat}%2C${maxLon}%2C${maxLat}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+}
+
+function useLiveLocation() {
+  const [location, setLocation] = useState<LiveLocationState>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("geolocation" in navigator)) {
+      setLocationError("Geolocation is unavailable on this device.");
+      return;
+    }
+
+    const watcher = navigator.geolocation.watchPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+        setLocationError(null);
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError("Enable location to see the live map.");
+          return;
+        }
+        setLocationError("Could not load live location.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 15000,
+      }
+    );
+
+    return () => navigator.geolocation.clearWatch(watcher);
+  }, []);
+
+  return { location, locationError };
+}
+
 type CoverageStatus = "Implemented" | "In Progress" | "Planned";
 
 const statusClassByType: Record<CoverageStatus, string> = {
@@ -859,6 +912,7 @@ export function S05Feed() {
 /* ---------- 06 OFFER DETAIL ---------- */
 export function S06OfferDetail() {
   const { selectedOffer } = useSpotApp();
+  const { location, locationError } = useLiveLocation();
   const offer = selectedOffer || {
     offer_id: "fallback-detail",
     headline: "Tony just brewed a fresh batch — and it's quiet today.",
@@ -911,35 +965,58 @@ export function S06OfferDetail() {
           </div>
         </div>
 
-        {/* Walking map — clean + animated dashed route, pin tips aligned to coords */}
+        {/* Walking map — live map when location is available */}
         <div className="mt-3 relative rounded-3xl overflow-hidden border border-[var(--border)] h-40">
-          <div className="relative w-full h-full spot-map-clean overflow-hidden">
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <path
-                d="M14 80 C 38 65, 62 50, 86 22"
-                stroke="var(--terracotta)"
-                strokeLinecap="round"
-                fill="none"
-                pathLength={1}
-                vectorEffect="non-scaling-stroke"
-                className="draw-path"
-                style={{ strokeWidth: 3.5 } as any}
-              />
-            </svg>
-            <div className="absolute" style={{ left: "14%", top: "80%", transform: "translate(-50%, -42px)" }}>
-              <div className="pin-drop" style={{ animationDelay: "200ms" }}>
-                <HandPin color="var(--forest)" label="You" />
+          {location ? (
+            <iframe
+              title="Live map preview"
+              className="w-full h-full"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={buildOsmEmbedUrl(location.latitude, location.longitude, 0.008)}
+            />
+          ) : (
+            <div className="relative w-full h-full spot-map-clean overflow-hidden">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path
+                  d="M14 80 C 38 65, 62 50, 86 22"
+                  stroke="var(--terracotta)"
+                  strokeLinecap="round"
+                  fill="none"
+                  pathLength={1}
+                  vectorEffect="non-scaling-stroke"
+                  className="draw-path"
+                  style={{ strokeWidth: 3.5 } as any}
+                />
+              </svg>
+              <div className="absolute" style={{ left: "14%", top: "80%", transform: "translate(-50%, -42px)" }}>
+                <div className="pin-drop" style={{ animationDelay: "200ms" }}>
+                  <HandPin color="var(--forest)" label="You" />
+                </div>
+              </div>
+              <div className="absolute" style={{ left: "86%", top: "22%", transform: "translate(-50%, -42px)" }}>
+                <div className="pin-drop" style={{ animationDelay: "2200ms" }}>
+                  <HandPin pulsing label="Tony's" />
+                </div>
               </div>
             </div>
-            <div className="absolute" style={{ left: "86%", top: "22%", transform: "translate(-50%, -42px)" }}>
-              <div className="pin-drop" style={{ animationDelay: "2200ms" }}>
-                <HandPin pulsing label="Tony's" />
-              </div>
-            </div>
-            <div className="absolute right-2 bottom-2 px-2 py-1 rounded-full bg-white/95 text-[11px] font-semibold flex items-center gap-1 shadow-sm">
-              <Footprints size={11} /> 80m · 1 min
-            </div>
+          )}
+          <div className="absolute right-2 bottom-2 px-2 py-1 rounded-full bg-white/95 text-[11px] font-semibold flex items-center gap-1 shadow-sm">
+            {location ? (
+              <>
+                <MapPin size={11} /> Live · ±{Math.round(location.accuracy)}m
+              </>
+            ) : (
+              <>
+                <Footprints size={11} /> 80m · 1 min
+              </>
+            )}
           </div>
+          {locationError && (
+            <div className="absolute left-2 right-2 top-2 rounded-lg bg-white/92 px-2 py-1 text-[10px] text-[var(--forest)]/75">
+              {locationError}
+            </div>
+          )}
         </div>
 
         <div className="mt-3 text-[12px] text-[var(--forest)]/60 leading-relaxed px-1">
@@ -962,6 +1039,7 @@ export function S06OfferDetail() {
 /* ---------- 07 WALK THE WALLET ---------- */
 export function S07Walk() {
   const { selectedOffer } = useSpotApp();
+  const { location, locationError } = useLiveLocation();
   const discountLabel = selectedOffer
     ? selectedOffer.discount_type === "percent"
       ? `-${selectedOffer.discount_value}%`
@@ -972,59 +1050,76 @@ export function S07Walk() {
   return (
     <Phone title="Walk the Wallet" number={7}>
       <div className="absolute inset-0">
-        <div className="relative w-full h-full spot-map-clean overflow-hidden">
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {/* Leg 1: You → Tony's */}
-            <path
-              d="M15 88 C 16 80, 20 73, 24 65"
-              stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
-              strokeLinecap="round" fill="none" pathLength={1}
-              vectorEffect="non-scaling-stroke" className="draw-path"
-              style={{ strokeWidth: 3.5 } as any}
+        {location ? (
+          <div className="relative w-full h-full">
+            <iframe
+              title="Live walk map"
+              className="w-full h-full"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={buildOsmEmbedUrl(location.latitude, location.longitude, 0.015)}
             />
-            {/* Leg 2: Tony's → Marie */}
-            <path
-              d="M24 65 C 40 60, 60 52, 78 45"
-              stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
-              strokeLinecap="round" fill="none" pathLength={1}
-              vectorEffect="non-scaling-stroke" className="draw-path-2"
-              style={{ strokeWidth: 3.5 } as any}
-            />
-            {/* Leg 3: Marie → Ramen */}
-            <path
-              d="M78 45 C 76 36, 73 26, 70 18"
-              stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
-              strokeLinecap="round" fill="none" pathLength={1}
-              vectorEffect="non-scaling-stroke" className="draw-path-3"
-              style={{ strokeWidth: 3.5 } as any}
-            />
-          </svg>
+            {locationError && (
+              <div className="absolute left-3 right-3 top-3 rounded-lg bg-white/92 px-2.5 py-1.5 text-[10px] text-[var(--forest)]/75">
+                {locationError}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="relative w-full h-full spot-map-clean overflow-hidden">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {/* Leg 1: You → Tony's */}
+              <path
+                d="M15 88 C 16 80, 20 73, 24 65"
+                stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
+                strokeLinecap="round" fill="none" pathLength={1}
+                vectorEffect="non-scaling-stroke" className="draw-path"
+                style={{ strokeWidth: 3.5 } as any}
+              />
+              {/* Leg 2: Tony's → Marie */}
+              <path
+                d="M24 65 C 40 60, 60 52, 78 45"
+                stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
+                strokeLinecap="round" fill="none" pathLength={1}
+                vectorEffect="non-scaling-stroke" className="draw-path-2"
+                style={{ strokeWidth: 3.5 } as any}
+              />
+              {/* Leg 3: Marie → Ramen */}
+              <path
+                d="M78 45 C 76 36, 73 26, 70 18"
+                stroke="var(--terracotta)" strokeDasharray="0.7 2.4"
+                strokeLinecap="round" fill="none" pathLength={1}
+                vectorEffect="non-scaling-stroke" className="draw-path-3"
+                style={{ strokeWidth: 3.5 } as any}
+              />
+            </svg>
 
-          {/* Pins — outer wrapper places pin TIP on coord, inner wrapper animates drop */}
-          <div className="absolute" style={{ left: "24%", top: "65%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "600ms" }}>
-              <HandPin color="var(--forest)" pulsing label="Tony's · −€3.40" />
+            {/* Pins — outer wrapper places pin TIP on coord, inner wrapper animates drop */}
+            <div className="absolute" style={{ left: "24%", top: "65%", transform: "translate(-50%, -42px)" }}>
+              <div className="pin-drop" style={{ animationDelay: "600ms" }}>
+                <HandPin color="var(--forest)" pulsing label="Tony's · −€3.40" />
+              </div>
+            </div>
+            <div className="absolute" style={{ left: "78%", top: "45%", transform: "translate(-50%, -42px)" }}>
+              <div className="pin-drop" style={{ animationDelay: "600ms" }}>
+                <HandPin color="var(--terracotta)" pulsing label="Marie · −50%" />
+              </div>
+            </div>
+            <div className="absolute" style={{ left: "70%", top: "18%", transform: "translate(-50%, -42px)" }}>
+              <div className="pin-drop" style={{ animationDelay: "600ms" }}>
+                <HandPin color="var(--forest)" pulsing label="Ramen · −€2.10" />
+              </div>
+            </div>
+            {/* You — dot centred on coord */}
+            <div className="absolute flex flex-col items-center" style={{ left: "15%", top: "88%", transform: "translate(-50%, -50%)" }}>
+              <div className="relative">
+                <span className="absolute inset-0 rounded-full bg-[var(--terracotta)] animate-ping opacity-60" />
+                <div className="relative w-5 h-5 rounded-full bg-white border-4 border-[var(--terracotta)] shadow" />
+              </div>
+              <span className="mt-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-semibold shadow">You</span>
             </div>
           </div>
-          <div className="absolute" style={{ left: "78%", top: "45%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "600ms" }}>
-              <HandPin color="var(--terracotta)" pulsing label="Marie · −50%" />
-            </div>
-          </div>
-          <div className="absolute" style={{ left: "70%", top: "18%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "600ms" }}>
-              <HandPin color="var(--forest)" pulsing label="Ramen · −€2.10" />
-            </div>
-          </div>
-          {/* You — dot centred on coord */}
-          <div className="absolute flex flex-col items-center" style={{ left: "15%", top: "88%", transform: "translate(-50%, -50%)" }}>
-            <div className="relative">
-              <span className="absolute inset-0 rounded-full bg-[var(--terracotta)] animate-ping opacity-60" />
-              <div className="relative w-5 h-5 rounded-full bg-white border-4 border-[var(--terracotta)] shadow" />
-            </div>
-            <span className="mt-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-semibold shadow">You</span>
-          </div>
-        </div>
+        )}
       </div>
 
       <StatusBar />
@@ -1037,7 +1132,15 @@ export function S07Walk() {
           <ChevronLeft size={16} />
         </button>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur text-[var(--forest)] text-[12px] font-medium shadow-sm border border-[var(--border)]">
-          <Sparkles size={12} className="text-[var(--terracotta)]" /> A 9-minute loop · 3 spots
+          {location ? (
+            <>
+              <MapPin size={12} className="text-[var(--terracotta)]" /> Live location · ±{Math.round(location.accuracy)}m
+            </>
+          ) : (
+            <>
+              <Sparkles size={12} className="text-[var(--terracotta)]" /> A 9-minute loop · 3 spots
+            </>
+          )}
         </div>
       </div>
 
