@@ -6,7 +6,7 @@ import { SchemaValidationError, validateSchema } from "./validation.js";
 import {
   ingestIntent,
   listActiveOffers,
-  generateAndPersistOfferForIntent,
+  generateOfferForIntent,
   recordDecision,
   createRedemptionToken,
   validateRedemption,
@@ -77,11 +77,10 @@ export function createAppServer() {
 
     if (req.method === "POST" && pathname === "/v1/offer/generate") {
       const body = requireValidInput("offer_generate_input", await readJsonBody(req));
-      const out = await generateAndPersistOfferForIntent({
+      const out = await generateOfferForIntent({
         intentPacket: body.intent_packet,
         channel: body.channel || "in_app",
         locality: body.locality,
-        userPseudonym: body.intent_packet?.user_pseudonym,
       });
       return sendValidatedOutput(
         res,
