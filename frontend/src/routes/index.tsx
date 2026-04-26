@@ -106,7 +106,8 @@ function MobileApp() {
       if (text.includes("Lock in")) { go(S.mGoal); return; }
       if (text.includes("Launch goal")) { go(S.mDash, "up"); return; }
       if (text.includes("Open scanner")) { go(S.mScan); return; }
-      if (text === "Scan next customer") { go(S.mDash); return; }
+      if (text === "Scan next customer") { go(S.mScan); return; }
+      if (text === "manage") { go(S.mGoal); return; }
     }
 
     // --- Feed card clicks → offer detail ---

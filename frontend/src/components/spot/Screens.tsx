@@ -832,6 +832,7 @@ export function S10Settings() {
 
 /* ---------- 11 MERCHANT ONBOARDING (Maps link · auto-fill) ---------- */
 export function S11MerchantOnboarding() {
+  const [fetched, setFetched] = useState(true);
   const Field = ({ label, value, dim }: { label: string; value: string; dim?: boolean }) => (
     <div className="py-2.5 border-b border-[var(--border)]/60 last:border-b-0">
       <div className="text-[10px] font-semibold tracking-widest text-[var(--forest)]/55">{label}</div>
@@ -862,7 +863,7 @@ export function S11MerchantOnboarding() {
           <Link2 size={15} />
         </div>
         <span className="flex-1 truncate text-[12px] text-[var(--forest)]">maps.app.goo.gl/tonysCafeStuttg…</span>
-        <button className="px-4 py-2 rounded-xl bg-[var(--forest)] text-white text-[12px] font-semibold">Fetch</button>
+        <button onClick={() => setFetched(f => !f)} className="px-4 py-2 rounded-xl bg-[var(--forest)] text-white text-[12px] font-semibold active:scale-95 transition-transform">Fetch</button>
       </div>
 
       <div className="mx-6 mt-2.5 flex items-center gap-2 text-[11px] text-[var(--forest)]/65">
@@ -873,6 +874,7 @@ export function S11MerchantOnboarding() {
       </div>
 
       {/* Auto-filled card */}
+      {fetched && (
       <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-4 fade-rise">
         <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--terracotta)]">
           <Sparkles size={11} /> AUTO-FILLED IN 1.4S
@@ -891,9 +893,10 @@ export function S11MerchantOnboarding() {
         </div>
       </div>
 
-      <div className="mx-5 mt-3 px-3 py-2 rounded-xl bg-[oklch(0.94_0.07_150)]/50 border border-[oklch(0.7_0.13_150)]/30 flex items-center gap-2 text-[11px] text-[oklch(0.4_0.1_150)]">
+      )}
+      {fetched && <div className="mx-5 mt-3 px-3 py-2 rounded-xl bg-[oklch(0.94_0.07_150)]/50 border border-[oklch(0.7_0.13_150)]/30 flex items-center gap-2 text-[11px] text-[oklch(0.4_0.1_150)]">
         <Check size={13} /> Looks right? Edit anything before continuing.
-      </div>
+      </div>}
 
       <div className="mt-auto p-5">
         <button className="w-full py-4 rounded-full bg-[var(--forest)] text-white font-semibold flex items-center justify-center gap-2">
@@ -906,88 +909,59 @@ export function S11MerchantOnboarding() {
 
 /* ---------- 12 MARGIN SETUP (interactive slider · live profit-impact) ---------- */
 export function S12Margin() {
-  const pos = 22;
+  const [pos, setPos] = useState(22);
+  const avg = (14.2 * pos / 100).toFixed(2);
+  const covers = Math.round(8 + pos * 0.4);
+  const rev = Math.round(80 + pos * 6);
+  const mpt = (pos * 0.12).toFixed(1);
+  const startDrag = (e: React.PointerEvent) => {
+    e.preventDefault();
+    const track = e.currentTarget as HTMLElement;
+    const move = (ev: PointerEvent) => { const r = track.getBoundingClientRect(); setPos(Math.round(Math.max(0, Math.min(50, ((ev.clientX - r.left) / r.width) * 50)))); };
+    move(e.nativeEvent);
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+  };
   return (
     <Phone title="Margin setup" number={12}>
       <StatusBar />
       <div className="px-6 pb-2 flex items-center gap-3">
-        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center">
-          <ChevronLeft size={16} />
-        </button>
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center"><ChevronLeft size={16} /></button>
         <div className="flex-1 text-center font-display text-[15px] text-[var(--forest)]">Margins</div>
         <span className="text-[11px] text-[var(--forest)]/55">Step 2 / 3</span>
       </div>
-
       <div className="px-6 mt-3">
-        <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">
-          How much can you
-          <br /> afford to give back?
-        </h2>
-        <p className="text-[12px] text-[var(--forest)]/60 mt-2">
-          Spot will never compose an offer above this ceiling. Change it any time.
-        </p>
+        <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">How much can you<br /> afford to give back?</h2>
+        <p className="text-[12px] text-[var(--forest)]/60 mt-2">Spot will never compose an offer above this ceiling. Change it any time.</p>
       </div>
-
-      {/* Slider card */}
       <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-4">
         <div className="flex items-start justify-between">
           <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">MAX DISCOUNT</div>
-          <div className="text-right">
-            <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">AVG PER TICKET</div>
-          </div>
+          <div className="text-[10px] font-bold tracking-widest text-[var(--forest)]/60">AVG PER TICKET</div>
         </div>
         <div className="mt-1 flex items-end justify-between">
           <div className="font-display text-[44px] text-[var(--forest)] leading-none">{pos}<span className="text-[20px]">%</span></div>
-          <div className="font-display text-[28px] text-[var(--forest)] leading-none">€3.10</div>
+          <div className="font-display text-[28px] text-[var(--forest)] leading-none">€{avg}</div>
         </div>
-        <div className="mt-5 relative h-2.5 rounded-full" style={{ background: "linear-gradient(90deg, var(--forest) 0%, var(--sand) 50%, var(--terracotta) 100%)" }}>
-          <div className="absolute -top-2 w-7 h-7 rounded-full bg-[var(--forest)] border-[3px] border-white shadow-lg transition-all"
-               style={{ left: `calc(${pos * 2}% - 14px)` }} />
+        <div className="mt-5 relative h-2.5 rounded-full" onPointerDown={startDrag} style={{ background: "linear-gradient(90deg, var(--forest) 0%, var(--sand) 50%, var(--terracotta) 100%)", touchAction: "none", cursor: "pointer" }}>
+          <div className="absolute -top-2 w-7 h-7 rounded-full bg-[var(--forest)] border-[3px] border-white shadow-lg transition-all" style={{ left: `calc(${pos * 2}% - 14px)` }} />
         </div>
-        <div className="flex justify-between mt-2 text-[10px] font-semibold text-[var(--forest)]/55">
-          <span>0%</span>
-          <span>CAUTIOUS</span>
-          <span>GENEROUS</span>
-          <span>50%</span>
-        </div>
+        <div className="flex justify-between mt-2 text-[10px] font-semibold text-[var(--forest)]/55"><span>0%</span><span>CAUTIOUS</span><span>GENEROUS</span><span>50%</span></div>
       </div>
-
-      {/* Live profit impact preview */}
       <div className="mx-5 mt-3 rounded-2xl bg-[var(--forest)] text-white p-4 relative overflow-hidden">
         <div className="text-[10px] font-bold tracking-widest text-[var(--sand)]">LIVE PROFIT-IMPACT PREVIEW</div>
         <div className="mt-3 grid grid-cols-3 gap-2 text-left">
-          <div>
-            <div className="text-[10px] text-white/55">COVER</div>
-            <div className="font-display text-[22px] mt-1 leading-none">+14<span className="text-[11px] text-white/55"> /day</span></div>
-          </div>
-          <div>
-            <div className="text-[10px] text-white/55">REVENUE</div>
-            <div className="font-display text-[22px] mt-1 leading-none">+€186 <ArrowUpRight size={14} className="inline text-[oklch(0.78_0.13_150)]" /></div>
-          </div>
-          <div>
-            <div className="text-[10px] text-white/55">NET MARGIN</div>
-            <div className="font-display text-[22px] mt-1 leading-none">−2.1pt <span className="text-[11px] text-[var(--terracotta)]">↓</span></div>
-          </div>
+          <div><div className="text-[10px] text-white/55">COVER</div><div className="font-display text-[22px] mt-1 leading-none">+{covers}<span className="text-[11px] text-white/55"> /day</span></div></div>
+          <div><div className="text-[10px] text-white/55">REVENUE</div><div className="font-display text-[22px] mt-1 leading-none">+€{rev} <ArrowUpRight size={14} className="inline text-[oklch(0.78_0.13_150)]" /></div></div>
+          <div><div className="text-[10px] text-white/55">NET MARGIN</div><div className="font-display text-[22px] mt-1 leading-none">−{mpt}pt <span className="text-[11px] text-[var(--terracotta)]">↓</span></div></div>
         </div>
-        <svg viewBox="0 0 280 50" className="mt-3 w-full">
-          <defs>
-            <linearGradient id="margin-grad" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="var(--sand)" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="var(--sand)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d="M0 38 L40 32 L80 30 L120 24 L160 22 L200 14 L240 10 L280 6"
-            stroke="var(--sand)" strokeWidth="2.5" fill="none"
-            style={{ strokeDasharray: 600, strokeDashoffset: 600, animation: "draw-path 1800ms ease-out 200ms forwards" }} />
-          <path d="M0 38 L40 32 L80 30 L120 24 L160 22 L200 14 L240 10 L280 6 L280 50 L0 50 Z" fill="url(#margin-grad)" />
-        </svg>
+        <svg viewBox="0 0 280 50" className="mt-3 w-full"><defs><linearGradient id="margin-grad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="var(--sand)" stopOpacity="0.6" /><stop offset="100%" stopColor="var(--sand)" stopOpacity="0" /></linearGradient></defs>
+          <path d="M0 38 L40 32 L80 30 L120 24 L160 22 L200 14 L240 10 L280 6" stroke="var(--sand)" strokeWidth="2.5" fill="none" style={{ strokeDasharray: 600, strokeDashoffset: 600, animation: "draw-path 1800ms ease-out 200ms forwards" }} />
+          <path d="M0 38 L40 32 L80 30 L120 24 L160 22 L200 14 L240 10 L280 6 L280 50 L0 50 Z" fill="url(#margin-grad)" /></svg>
         <div className="text-[10px] text-white/55 mt-1">based on the last 30 days at this margin</div>
       </div>
-
       <div className="mt-auto p-5">
-        <button className="w-full py-4 rounded-full bg-[var(--sand)] text-[var(--forest)] font-semibold shadow-lg shadow-[var(--sand)]/30">
-          Lock in {pos}%
-        </button>
+        <button className="w-full py-4 rounded-full bg-[var(--sand)] text-[var(--forest)] font-semibold shadow-lg shadow-[var(--sand)]/30">Lock in {pos}%</button>
       </div>
     </Phone>
   );
@@ -995,63 +969,47 @@ export function S12Margin() {
 
 /* ---------- 13 GOAL STUDIO (natural-language → parsed rules + preview) ---------- */
 export function S13Goal() {
-  const rules = [
-    { label: "Thursdays only", on: true },
-    { label: "14:00 – 17:00", on: true },
-    { label: "When < 30% capacity", on: true, sand: true },
-    { label: "Coffee + sweet pairings", on: true, sand: true },
-    { label: "Walking distance ≤ 400m", on: true },
-    { label: "Max 18% off", on: true },
-  ];
+  const [rules, setRules] = useState([
+    { label: "Thursdays only", sand: false },
+    { label: "14:00 – 17:00", sand: false },
+    { label: "When < 30% capacity", sand: true },
+    { label: "Coffee + sweet pairings", sand: true },
+    { label: "Walking distance ≤ 400m", sand: false },
+    { label: "Max 18% off", sand: false },
+  ]);
+  const extras = ["Regulars only", "Rain bonus +5%", "First-time visitors", "Weekdays"];
+  const [extraIdx, setExtraIdx] = useState(0);
   return (
     <Phone title="Goal studio" number={13}>
       <StatusBar />
       <div className="px-6 pb-2 flex items-center gap-3">
-        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center">
-          <ChevronLeft size={16} />
-        </button>
+        <button className="w-9 h-9 rounded-full bg-white border border-[var(--border)] flex items-center justify-center"><ChevronLeft size={16} /></button>
         <div className="flex-1 text-center font-display text-[15px] text-[var(--forest)]">Goal studio</div>
         <div className="w-9" />
       </div>
-
       <div className="px-6 mt-3">
-        <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">
-          Tell Spot what
-          <br /> you're trying to fix.
-        </h2>
+        <h2 className="font-display text-[24px] leading-[1.15] text-[var(--forest)]">Tell Spot what<br /> you're trying to fix.</h2>
       </div>
-
-      {/* Voice input card */}
       <div className="mx-5 mt-4 rounded-2xl bg-white border border-[var(--border)] p-4">
-        <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--terracotta)]">
-          <Sparkles size={11} /> YOUR WORDS
-        </div>
-        <div className="font-display text-[17px] text-[var(--forest)] leading-snug mt-2">
-          "Fill my Thursday afternoon dip — it's dead between lunch and dinner."
-        </div>
+        <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--terracotta)]"><Sparkles size={11} /> YOUR WORDS</div>
+        <div className="font-display text-[17px] text-[var(--forest)] leading-snug mt-2">"Fill my Thursday afternoon dip — it's dead between lunch and dinner."</div>
         <div className="mt-3 flex items-center justify-between">
-          <button className="w-9 h-9 rounded-full bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]">
-            <Mic size={14} />
-          </button>
+          <button className="w-9 h-9 rounded-full bg-[var(--cream)] flex items-center justify-center text-[var(--forest)]"><Mic size={14} /></button>
           <span className="text-[11px] text-[var(--forest)]/55">tap to re-record · 8s</span>
         </div>
       </div>
-
       <div className="px-6 mt-4 flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-[var(--forest)]/65">
         <Sparkles size={11} className="text-[var(--terracotta)]" /> PARSED INTO {rules.length} RULES
       </div>
       <div className="px-5 mt-2 flex flex-wrap gap-1.5">
-        {rules.map((r) => (
-          <span key={r.label}
-            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold ${
-              r.sand
-                ? "bg-[var(--sand)]/35 text-[var(--forest)]"
-                : "bg-[var(--forest)] text-white"
-            }`}>
-            {r.label} <X size={10} className="opacity-70" />
-          </span>
+        {rules.map((r, i) => (
+          <span key={r.label} onClick={() => setRules(p => p.filter((_, j) => j !== i))}
+            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold cursor-pointer active:scale-95 transition-transform ${
+              r.sand ? "bg-[var(--sand)]/35 text-[var(--forest)]" : "bg-[var(--forest)] text-white"
+            }`}>{r.label} <X size={10} className="opacity-70" /></span>
         ))}
-        <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold bg-white border border-dashed border-[var(--border)] text-[var(--forest)]/65">
+        <span onClick={() => { if (extraIdx < extras.length) { setRules(p => [...p, { label: extras[extraIdx], sand: false }]); setExtraIdx(i => i + 1); } }}
+          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold bg-white border border-dashed border-[var(--border)] text-[var(--forest)]/65 cursor-pointer active:scale-95 transition-transform">
           <Plus size={11} /> add rule
         </span>
       </div>
@@ -1165,7 +1123,9 @@ export function S14Dashboard() {
         ))}
       </div>
 
-      <div className="mt-auto" />
+      <div className="mt-auto p-5">
+        <button className="w-full py-4 rounded-full bg-[var(--terracotta)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-[var(--terracotta)]/30"><ScanLine size={16} /> Open scanner</button>
+      </div>
     </Phone>
   );
 }
