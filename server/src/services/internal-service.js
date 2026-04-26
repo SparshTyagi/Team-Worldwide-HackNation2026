@@ -118,46 +118,96 @@ export async function scrapeMerchantProfile(payload) {
     extracted = { error: "LLM extraction failed" };
   }
 
+  // Convert business_hours object to the opening_hours string[] format that the schema expects
+  const hoursObj = extracted.business_hours || {};
+  const opening_hours = Object.entries(hoursObj)
+    .filter(([, v]) => v && v !== "Unknown")
+    .map(([day, hours]) => `${day} ${hours}`);
+
+  if (opening_hours.length === 0) opening_hours.push("Hours not available");
+
+  // Derive simple tags from category
+  const tags = extracted.category
+    ? [extracted.category.toLowerCase().replace(/\s+/g, "_")]
+    : ["unknown_category"];
+
   return {
     merchant_id: payload.merchant_id,
-    name: extracted.name || payload.name,
     category: extracted.category || "Unknown",
-    address: extracted.address || "Unknown",
-    business_hours: extracted.business_hours || {},
+    opening_hours,
+    tags,
     confidence: extracted.error ? 0.2 : 0.85,
     status: "extracted",
   };
 }
 
 export async function upsertMerchant(payload) {
-  const { error } = await supabase.from("merchants").upsert({
-    id: payload.merchant_id,
-    name: payload.name,
-    category: payload.category,
-    business_hours: payload.business_hours || {},
-    address: payload.address,
-    google_maps_url: payload.google_maps_url,
-    created_at: nowIso(),
-  });
-  
-  if (error) throw new Error(`Supabase Error: ${error.message}`);
+  const meta = {
+    area_cell_id: payload.area_cell_id,
+    lat: payload.lat,
+    lon: payload.lon,
+    is_open_now: payload.is_open_now,
+    price_band: payload.price_band,
+    avg_ticket_size_eur: payload.avg_ticket_size_eur,
+    external_merchant_id: payload.merchant_id,
+  };
 
-  const { count } = await supabase.from("merchants").select('*', { count: 'exact', head: true });
+  // Check if a merchant with this external_merchant_id already exists
+  const { data: existing } = await supabase
+    .from("merchants")
+    .select("id")
+    .eq("business_hours->>external_merchant_id", payload.merchant_id)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from("merchants")
+      .update({ name: payload.name, category: payload.category, business_hours: meta })
+      .eq("id", existing.id);
+  } else {
+    await supabase.from("merchants").insert({
+      name: payload.name,
+      category: payload.category,
+      business_hours: meta,
+      address: payload.address ?? null,
+      google_maps_url: payload.google_maps_url ?? null,
+    });
+  }
+
+  const { count } = await supabase
+    .from("merchants")
+    .select("*", { count: "exact", head: true });
 
   return {
     merchant_id: payload.merchant_id,
     status: "upserted",
-    total_merchants: count,
+    total_merchants: count ?? 0,
   };
 }
 
 export async function listMerchants(filter) {
   let query = supabase.from("merchants").select("*");
   if (filter.merchant_id) {
-    query = query.eq("id", filter.merchant_id);
+    // filter can be either a uuid or an external_merchant_id reference
+    query = query.or(
+      `id.eq.${filter.merchant_id},business_hours->external_merchant_id.eq."${filter.merchant_id}"`
+    );
   }
   const { data: merchants, error } = await query;
   if (error) throw new Error(`Supabase Error: ${error.message}`);
-  
-  return { merchants };
+
+  // Re-map to the shape the validation schema expects (internalMerchantRecord)
+  const mapped = (merchants || []).map((m) => ({
+    merchant_id: m.business_hours?.external_merchant_id ?? m.id,
+    name: m.name,
+    category: m.category ?? "unknown",
+    area_cell_id: m.business_hours?.area_cell_id ?? "u0wtm0",
+    lat: m.business_hours?.lat ?? 0,
+    lon: m.business_hours?.lon ?? 0,
+    is_open_now: m.business_hours?.is_open_now ?? true,
+    price_band: m.business_hours?.price_band ?? "mid",
+    avg_ticket_size_eur: m.business_hours?.avg_ticket_size_eur ?? 0,
+  }));
+
+  return { merchants: mapped };
 }

@@ -8,26 +8,47 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+/**
+ * Resolves a user pseudonym to a DB UUID, creating the user row if it doesn't exist.
+ */
+async function resolveUserId(pseudonym) {
+  const { data: existing } = await supabase
+    .from("users")
+    .select("id")
+    .eq("pseudonym", pseudonym)
+    .maybeSingle();
+
+  if (existing) return existing.id;
+
+  const { data: created, error } = await supabase
+    .from("users")
+    .insert({ pseudonym })
+    .select("id")
+    .single();
+
+  if (error) throw new Error(`Failed to create user: ${error.message}`);
+  return created.id;
+}
+
 export async function ingestIntent(payload) {
-  const intentId = payload.intent_id || `intent_${Date.now()}`;
+  const userId = await resolveUserId(payload.user_pseudonym);
+
   const { error } = await supabase.from("intents").insert({
-    id: intentId, // Note: intentId should be UUID or use default
-    user_id: payload.user_id, // assuming payload has user_id
+    user_id: userId,
     intent_label: payload.intent_label,
-    intent_confidence: payload.intent_confidence,
-    receptivity_level: payload.receptivity_level,
-    time_budget_minutes: payload.time_budget_minutes,
-    tone_preference: payload.tone_preference,
-    hard_constraints: payload.hard_constraints || [],
-    locality: payload.locality || {},
-    created_at: nowIso(),
+    intent_confidence: payload.intent_confidence ?? null,
+    receptivity_level: payload.receptivity_level ?? null,
+    time_budget_minutes: payload.time_budget_minutes ?? null,
+    tone_preference: payload.tone_preference ?? null,
+    hard_constraints: payload.hard_constraints ?? [],
+    locality: payload.locality ?? {},
   });
 
   if (error) throw new Error(`Supabase Error: ${error.message}`);
 
   return {
     status: "accepted",
-    intent_id: intentId,
+    intent_id: `intent_${Date.now()}`,
     processed_at_utc: nowIso(),
     next_poll_after_seconds: 30,
   };
@@ -35,17 +56,34 @@ export async function ingestIntent(payload) {
 
 export async function listActiveOffers(query) {
   const user = query.user_pseudonym || "unknown_user";
-  
-  // Try to find the user id from pseudonym (mocking if not exists, but we should rely on proper user_ids)
-  // For simplicity, we just use user_id if passed, or fetch it
-  const { data: userData } = await supabase.from("users").select("id").eq("pseudonym", user).single();
-  const userId = userData?.id;
+  const userId = await resolveUserId(user);
 
-  if (!userId) {
-    throw new Error("User not found in DB");
+  // Check for existing non-expired active offers first
+  const nowMs = Date.now();
+  const { data: existingOffers } = await supabase
+    .from("offers")
+    .select("*")
+    .eq("user_id", userId)
+    .in("status", ["shown", "accepted"])
+    .gt("expires_at", new Date(nowMs).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (existingOffers && existingOffers.length > 0) {
+    return {
+      offers: existingOffers.map(toActiveOfferCard),
+      generated_at_utc: nowIso(),
+    };
   }
 
-  const { data: intents } = await supabase.from("intents").select("*").eq("user_id", userId).order('created_at', { ascending: false }).limit(1);
+  // No active offers — generate a fresh one
+  const { data: intents } = await supabase
+    .from("intents")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
   const latestIntent = intents?.[0];
 
   const generated = await generateOfferForIntent({
@@ -61,28 +99,47 @@ export async function listActiveOffers(query) {
   });
 
   return {
-    offers: [
-      {
-        offer_id: offerRecord.id,
-        headline: offerRecord.headline,
-        body_line: offerRecord.body_line,
-        cta_text: offerRecord.cta_text,
-        discount_type: offerRecord.discount_type,
-        discount_value: offerRecord.discount_value,
-        valid_for_minutes: offerRecord.valid_for_minutes,
-        tone_style: offerRecord.tone_style,
-        ui_layout_variant: offerRecord.ui_layout_variant,
-        expires_at_utc: offerRecord.expires_at,
-      },
-    ],
+    offers: [toActiveOfferCard(offerRecord)],
     generated_at_utc: nowIso(),
   };
 }
 
+function toActiveOfferCard(offerRecord) {
+  return {
+    offer_id: offerRecord.id,
+    headline: offerRecord.headline,
+    body_line: offerRecord.body_line,
+    cta_text: offerRecord.cta_text,
+    discount_type: offerRecord.discount_type,
+    discount_value: offerRecord.discount_value,
+    valid_for_minutes: offerRecord.valid_for_minutes,
+    tone_style: offerRecord.tone_style,
+    ui_layout_variant: offerRecord.ui_layout_variant,
+    expires_at_utc: offerRecord.expires_at,
+  };
+}
+
 async function buildGenerationInput({ selectedMerchant, merchantRule, intentPacket, channel }) {
-  const { data: weather } = await supabase.from("context_snapshots").select("*").eq("snapshot_type", "weather").order('created_at', { ascending: false }).limit(1);
-  const { data: payone } = await supabase.from("context_snapshots").select("*").eq("snapshot_type", "payone").order('created_at', { ascending: false }).limit(1);
-  const { data: events } = await supabase.from("context_snapshots").select("*").eq("snapshot_type", "events").order('created_at', { ascending: false }).limit(1);
+  const { data: weather } = await supabase
+    .from("context_snapshots")
+    .select("payload")
+    .eq("snapshot_type", "weather")
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  const { data: payone } = await supabase
+    .from("context_snapshots")
+    .select("payload")
+    .eq("snapshot_type", "payone")
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  const { data: events } = await supabase
+    .from("context_snapshots")
+    .select("payload")
+    .eq("snapshot_type", "events")
+    .order("created_at", { ascending: false })
+    .limit(1);
 
   return {
     request_id: `req_${Date.now()}`,
@@ -91,26 +148,26 @@ async function buildGenerationInput({ selectedMerchant, merchantRule, intentPack
       merchant_id: selectedMerchant.id,
       category: selectedMerchant.category,
       is_open_now: true,
-      price_band: "mid",
+      price_band: selectedMerchant.price_band ?? "mid",
     },
     constraints: {
-      max_discount_pct: merchantRule?.max_discount_pct || 20,
-      campaign_goal: merchantRule?.campaign_goal || "fill_quiet_hours",
-      excluded_skus: merchantRule?.excluded_skus || [],
-      max_validity_minutes: merchantRule?.max_validity_minutes || config.defaults.offerTtlMinutes,
+      max_discount_pct: merchantRule?.max_discount_pct ?? 20,
+      campaign_goal: merchantRule?.campaign_goal ?? "fill_quiet_hours",
+      excluded_skus: merchantRule?.excluded_skus ?? [],
+      max_validity_minutes: merchantRule?.max_validity_minutes ?? config.defaults.offerTtlMinutes,
     },
     intent_packet: {
-      intent_label: intentPacket?.intent_label || "browse_local_shops",
-      intent_confidence: intentPacket?.intent_confidence || 0.55,
-      receptivity_level: intentPacket?.receptivity_level || "medium",
-      time_budget_minutes: intentPacket?.time_budget_minutes || 15,
-      tone_preference: intentPacket?.tone_preference || "neutral",
-      hard_constraints: intentPacket?.hard_constraints || [],
+      intent_label: intentPacket?.intent_label ?? "browse_local_shops",
+      intent_confidence: intentPacket?.intent_confidence ?? 0.55,
+      receptivity_level: intentPacket?.receptivity_level ?? "medium",
+      time_budget_minutes: intentPacket?.time_budget_minutes ?? 15,
+      tone_preference: intentPacket?.tone_preference ?? "neutral",
+      hard_constraints: intentPacket?.hard_constraints ?? [],
     },
     context_snapshot: {
-      weather_summary: weather?.[0]?.payload?.weather_summary || "unknown",
-      demand_gap_pct: payone?.[0]?.payload?.quiet_hour_gap_pct || 0,
-      event_intensity: events?.[0]?.payload?.event_intensity || "low",
+      weather_summary: weather?.[0]?.payload?.weather_summary ?? "unknown",
+      demand_gap_pct: payone?.[0]?.payload?.quiet_hour_gap_pct ?? 0,
+      event_intensity: events?.[0]?.payload?.event_intensity ?? "low",
       local_time_bucket: "lunch",
     },
     channel_context: {
@@ -122,8 +179,10 @@ async function buildGenerationInput({ selectedMerchant, merchantRule, intentPack
 }
 
 async function persistGeneratedOffer({ userId, merchantId, generated }) {
-  const expiresAt = new Date(Date.now() + generated.output.valid_for_minutes * 60000).toISOString();
-  
+  const expiresAt = new Date(
+    Date.now() + (generated.output.valid_for_minutes ?? config.defaults.offerTtlMinutes) * 60000
+  ).toISOString();
+
   const offerRow = {
     merchant_id: merchantId,
     user_id: userId,
@@ -140,13 +199,18 @@ async function persistGeneratedOffer({ userId, merchantId, generated }) {
     expires_at: expiresAt,
   };
 
-  const { data: offerData, error } = await supabase.from("offers").insert(offerRow).select().single();
+  const { data: offerData, error } = await supabase
+    .from("offers")
+    .insert(offerRow)
+    .select()
+    .single();
+
   if (error) throw new Error(`Supabase Error: ${error.message}`);
 
   await supabase.from("offer_events").insert({
     offer_id: offerData.id,
     user_id: userId,
-    event_type: "shown"
+    event_type: "shown",
   });
 
   return offerData;
@@ -159,11 +223,15 @@ export async function generateOfferForIntent({ intentPacket, channel = "in_app",
     locality || intentPacket?.locality,
     config.defaults.radiusKm
   );
-  
-  const selectedMerchant = candidates[0] || allMerchants?.[0];
-  if (!selectedMerchant) throw new Error("No merchants found in database");
 
-  const { data: merchantRule } = await supabase.from("merchant_rules").select("*").eq("merchant_id", selectedMerchant.id).single();
+  const selectedMerchant = candidates[0] || allMerchants?.[0];
+  if (!selectedMerchant) throw new Error("No merchants found in database. Please seed via POST /internal/merchants.");
+
+  const { data: merchantRule } = await supabase
+    .from("merchant_rules")
+    .select("*")
+    .eq("merchant_id", selectedMerchant.id)
+    .maybeSingle();
 
   const generationInput = await buildGenerationInput({
     selectedMerchant,
@@ -171,7 +239,7 @@ export async function generateOfferForIntent({ intentPacket, channel = "in_app",
     intentPacket,
     channel,
   });
-  
+
   const generated = await generateOffer(generationInput);
   return {
     merchant_id: selectedMerchant.id,
@@ -184,13 +252,18 @@ export async function generateOfferForIntent({ intentPacket, channel = "in_app",
 }
 
 export async function recordDecision(payload) {
-  const { data: offer, error: fetchErr } = await supabase.from("offers").select("*").eq("id", payload.offer_id).single();
+  const { data: offer, error: fetchErr } = await supabase
+    .from("offers")
+    .select("*")
+    .eq("id", payload.offer_id)
+    .maybeSingle();
+
   if (fetchErr || !offer) return { error: "offer_not_found" };
 
   const decisionStatus = payload.decision === "accept" ? "accepted" : "dismissed";
-  
+
   await supabase.from("offers").update({ status: decisionStatus }).eq("id", payload.offer_id);
-  
+
   await supabase.from("offer_events").insert({
     offer_id: payload.offer_id,
     user_id: offer.user_id,
@@ -207,89 +280,97 @@ export async function recordDecision(payload) {
 }
 
 export async function createRedemptionToken(payload) {
-  const token = `tok_${Math.random().toString(36).slice(2, 10)}`;
+  const { data: offer, error: offerErr } = await supabase
+    .from("offers")
+    .select("*")
+    .eq("id", payload.offer_id)
+    .maybeSingle();
+
+  if (offerErr || !offer) throw new Error("Offer not found");
+
+  const { data: redemption, error } = await supabase
+    .from("redemptions")
+    .insert({
+      offer_id: payload.offer_id,
+      merchant_id: offer.merchant_id,
+      user_id: offer.user_id,
+      status: "pending",
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Supabase Error: ${error.message}`);
+
   const expiresAt = new Date(Date.now() + 3 * 60 * 1000).toISOString();
-
-  // Find offer to get user_id and merchant_id
-  const { data: offer } = await supabase.from("offers").select("*").eq("id", payload.offer_id).single();
-  if (!offer) throw new Error("Offer not found");
-
-  // Insert token atomically
-  const { error } = await supabase.from("redemptions").insert({
-    offer_id: payload.offer_id,
-    merchant_id: offer.merchant_id,
-    user_id: offer.user_id,
-    status: "pending",
-    expires_at_utc: expiresAt, 
-  });
-  // Note: Schema says `token` defaults to uuid_generate_v4().
-  // Let's rely on DB generated token instead.
-  
-  const { data: redemption, error: rErr } = await supabase.from("redemptions").insert({
-    offer_id: payload.offer_id,
-    merchant_id: offer.merchant_id,
-    user_id: offer.user_id,
-    status: "pending"
-  }).select().single();
-  
-  if (rErr) throw new Error(`Supabase Error: ${rErr.message}`);
-
-  // Generate QR code data URI
-  const qrDataUrl = await QRCode.toDataURL(redemption.token, { width: 300 });
+  const qrDataUrl = await QRCode.toDataURL(String(redemption.token), { width: 300 });
 
   return {
     offer_id: payload.offer_id,
-    token: redemption.token,
+    token: String(redemption.token),
     qr_payload: qrDataUrl,
-    expires_at_utc: redemption.created_at, // + 3 mins in UI
+    expires_at_utc: expiresAt,
     ttl_seconds: 180,
   };
 }
 
 export async function validateRedemption(payload) {
-  // Find token
-  const { data: row, error: fetchErr } = await supabase.from("redemptions").select("*").eq("token", payload.token).single();
+  const { data: row, error: fetchErr } = await supabase
+    .from("redemptions")
+    .select("*")
+    .eq("token", payload.token)
+    .maybeSingle();
+
   if (fetchErr || !row) return { error: "token_not_found" };
 
   if (row.status !== "pending") {
-    return { token: payload.token, is_valid: false, reason: "Token already used or expired" };
+    return { error: `token_not_redeemable: status is ${row.status}` };
   }
 
-  // Double-spend lock: update where status = pending
-  const { data: updated, error: updateErr } = await supabase.from("redemptions")
-    .update({ status: "redeemed", redeemed_at: nowIso(), cashback_eur: 0.75 })
+  // Atomic double-spend lock: only updates if status is still 'pending'
+  const redeemTime = nowIso();
+  const { data: updated, error: updateErr } = await supabase
+    .from("redemptions")
+    .update({ status: "redeemed", redeemed_at: redeemTime, cashback_eur: 0.75 })
     .eq("token", payload.token)
     .eq("status", "pending")
     .select()
     .single();
 
   if (updateErr || !updated) {
-    return { token: payload.token, is_valid: false, reason: "Failed to redeem, possibly a double spend" };
+    return { error: "redemption_failed: possible double-spend attempt" };
   }
 
-  // Update offer status
   await supabase.from("offers").update({ status: "redeemed" }).eq("id", row.offer_id);
 
   return {
-    token: payload.token,
+    token: String(payload.token),
     is_valid: true,
-    redemption_id: updated.id,
+    redemption_id: String(updated.id),
     cashback_credited_eur: 0.75,
-    validated_at_utc: nowIso(),
+    validated_at_utc: redeemTime,
   };
 }
 
 export async function getCashback(userPseudonym) {
-  const { data: user } = await supabase.from("users").select("id").eq("pseudonym", userPseudonym).single();
-  if (!user) return { cashback_balance_eur: 0 };
+  const { data: user } = await supabase
+    .from("users")
+    .select("id")
+    .eq("pseudonym", userPseudonym)
+    .maybeSingle();
 
-  const { data: redemptions, error } = await supabase.from("redemptions").select("cashback_eur").eq("user_id", user.id).eq("status", "redeemed");
-  
+  if (!user) return { user_pseudonym: userPseudonym, cashback_balance_eur: 0, updated_at_utc: nowIso() };
+
+  const { data: redemptions } = await supabase
+    .from("redemptions")
+    .select("cashback_eur")
+    .eq("user_id", user.id)
+    .eq("status", "redeemed");
+
   const total = (redemptions || []).reduce((sum, r) => sum + Number(r.cashback_eur), 0);
 
   return {
     user_pseudonym: userPseudonym,
-    cashback_balance_eur: total,
+    cashback_balance_eur: Number(total.toFixed(2)),
     updated_at_utc: nowIso(),
   };
 }
