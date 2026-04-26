@@ -1,7 +1,8 @@
-import { db } from "../data.js";
+import { supabase } from "../db/supabase.js";
 import { config } from "../config.js";
 import { filterMerchantsByLocality } from "../utils/geo.js";
 import { generateOffer } from "../llm/client.js";
+import QRCode from "qrcode";
 
 function nowIso() {
   return new Date().toISOString();
@@ -9,7 +10,21 @@ function nowIso() {
 
 export async function ingestIntent(payload) {
   const intentId = payload.intent_id || `intent_${Date.now()}`;
-  db.intents.set(intentId, { ...payload, intent_id: intentId, created_at_utc: nowIso() });
+  const { error } = await supabase.from("intents").insert({
+    id: intentId, // Note: intentId should be UUID or use default
+    user_id: payload.user_id, // assuming payload has user_id
+    intent_label: payload.intent_label,
+    intent_confidence: payload.intent_confidence,
+    receptivity_level: payload.receptivity_level,
+    time_budget_minutes: payload.time_budget_minutes,
+    tone_preference: payload.tone_preference,
+    hard_constraints: payload.hard_constraints || [],
+    locality: payload.locality || {},
+    created_at: nowIso(),
+  });
+
+  if (error) throw new Error(`Supabase Error: ${error.message}`);
+
   return {
     status: "accepted",
     intent_id: intentId,
@@ -20,15 +35,27 @@ export async function ingestIntent(payload) {
 
 export async function listActiveOffers(query) {
   const user = query.user_pseudonym || "unknown_user";
-  const intents = Array.from(db.intents.values()).filter((i) => i.user_pseudonym === user);
-  const latestIntent = intents[intents.length - 1];
+  
+  // Try to find the user id from pseudonym (mocking if not exists, but we should rely on proper user_ids)
+  // For simplicity, we just use user_id if passed, or fetch it
+  const { data: userData } = await supabase.from("users").select("id").eq("pseudonym", user).single();
+  const userId = userData?.id;
+
+  if (!userId) {
+    throw new Error("User not found in DB");
+  }
+
+  const { data: intents } = await supabase.from("intents").select("*").eq("user_id", userId).order('created_at', { ascending: false }).limit(1);
+  const latestIntent = intents?.[0];
+
   const generated = await generateOfferForIntent({
     intentPacket: latestIntent,
     channel: query.channel || "in_app",
     locality: query.locality || latestIntent?.locality,
   });
-  const offerRecord = persistGeneratedOffer({
-    user,
+
+  const offerRecord = await persistGeneratedOffer({
+    userId,
     merchantId: generated.merchant_id,
     generated: generated.generated,
   });
@@ -36,7 +63,7 @@ export async function listActiveOffers(query) {
   return {
     offers: [
       {
-        offer_id: offerRecord.offer_id,
+        offer_id: offerRecord.id,
         headline: offerRecord.headline,
         body_line: offerRecord.body_line,
         cta_text: offerRecord.cta_text,
@@ -45,28 +72,32 @@ export async function listActiveOffers(query) {
         valid_for_minutes: offerRecord.valid_for_minutes,
         tone_style: offerRecord.tone_style,
         ui_layout_variant: offerRecord.ui_layout_variant,
-        expires_at_utc: offerRecord.expires_at_utc,
+        expires_at_utc: offerRecord.expires_at,
       },
     ],
     generated_at_utc: nowIso(),
   };
 }
 
-function buildGenerationInput({ selectedMerchant, merchantRule, intentPacket, channel }) {
+async function buildGenerationInput({ selectedMerchant, merchantRule, intentPacket, channel }) {
+  const { data: weather } = await supabase.from("context_snapshots").select("*").eq("snapshot_type", "weather").order('created_at', { ascending: false }).limit(1);
+  const { data: payone } = await supabase.from("context_snapshots").select("*").eq("snapshot_type", "payone").order('created_at', { ascending: false }).limit(1);
+  const { data: events } = await supabase.from("context_snapshots").select("*").eq("snapshot_type", "events").order('created_at', { ascending: false }).limit(1);
+
   return {
     request_id: `req_${Date.now()}`,
     generation_mode: "offer_card_v1",
     merchant_profile: {
-      merchant_id: selectedMerchant.merchant_id,
+      merchant_id: selectedMerchant.id,
       category: selectedMerchant.category,
-      is_open_now: selectedMerchant.is_open_now,
-      price_band: selectedMerchant.price_band,
+      is_open_now: true,
+      price_band: "mid",
     },
     constraints: {
-      max_discount_pct: merchantRule.constraints?.max_discount_pct || 20,
-      campaign_goal: merchantRule.campaign_goal,
-      excluded_skus: merchantRule.constraints?.excluded_skus || [],
-      max_validity_minutes: merchantRule.constraints?.max_offer_validity_minutes || config.defaults.offerTtlMinutes,
+      max_discount_pct: merchantRule?.max_discount_pct || 20,
+      campaign_goal: merchantRule?.campaign_goal || "fill_quiet_hours",
+      excluded_skus: merchantRule?.excluded_skus || [],
+      max_validity_minutes: merchantRule?.max_validity_minutes || config.defaults.offerTtlMinutes,
     },
     intent_packet: {
       intent_label: intentPacket?.intent_label || "browse_local_shops",
@@ -77,9 +108,9 @@ function buildGenerationInput({ selectedMerchant, merchantRule, intentPacket, ch
       hard_constraints: intentPacket?.hard_constraints || [],
     },
     context_snapshot: {
-      weather_summary: db.context.weather.at(-1)?.weather_summary || "unknown",
-      demand_gap_pct: db.context.payone.at(-1)?.quiet_hour_gap_pct || 0,
-      event_intensity: db.context.events.at(-1)?.event_intensity || "low",
+      weather_summary: weather?.[0]?.payload?.weather_summary || "unknown",
+      demand_gap_pct: payone?.[0]?.payload?.quiet_hour_gap_pct || 0,
+      event_intensity: events?.[0]?.payload?.event_intensity || "low",
       local_time_bucket: "lunch",
     },
     channel_context: {
@@ -90,44 +121,60 @@ function buildGenerationInput({ selectedMerchant, merchantRule, intentPacket, ch
   };
 }
 
-function persistGeneratedOffer({ user, merchantId, generated }) {
-  const offerId = generated.output.offer_idempotency_key;
+async function persistGeneratedOffer({ userId, merchantId, generated }) {
   const expiresAt = new Date(Date.now() + generated.output.valid_for_minutes * 60000).toISOString();
-  const offerRecord = {
-    offer_id: offerId,
+  
+  const offerRow = {
     merchant_id: merchantId,
-    user_pseudonym: user,
+    user_id: userId,
+    headline: generated.output.headline,
+    body_line: generated.output.body_line,
+    cta_text: generated.output.cta_text,
+    discount_type: generated.output.discount_type,
+    discount_value: generated.output.discount_value,
+    valid_for_minutes: generated.output.valid_for_minutes,
+    tone_style: generated.output.tone_style,
+    ui_layout_variant: generated.output.ui_layout_variant,
     status: "shown",
-    created_at_utc: nowIso(),
-    expires_at_utc: expiresAt,
     generation_meta: generated.meta,
-    ...generated.output,
+    expires_at: expiresAt,
   };
-  db.offers.set(offerId, offerRecord);
-  db.offerEvents.push({ offer_id: offerId, user_pseudonym: user, event: "shown", at_utc: nowIso() });
-  return offerRecord;
+
+  const { data: offerData, error } = await supabase.from("offers").insert(offerRow).select().single();
+  if (error) throw new Error(`Supabase Error: ${error.message}`);
+
+  await supabase.from("offer_events").insert({
+    offer_id: offerData.id,
+    user_id: userId,
+    event_type: "shown"
+  });
+
+  return offerData;
 }
 
 export async function generateOfferForIntent({ intentPacket, channel = "in_app", locality }) {
+  const { data: allMerchants } = await supabase.from("merchants").select("*");
   const candidates = filterMerchantsByLocality(
-    db.merchants,
+    allMerchants || [],
     locality || intentPacket?.locality,
     config.defaults.radiusKm
   );
-  const selectedMerchant = candidates[0] || db.merchants[0];
-  const merchantRule = db.merchantRules.get(selectedMerchant.merchant_id) || {
-    campaign_goal: "fill_quiet_hours",
-    constraints: { max_discount_pct: 20, max_validity_minutes: config.defaults.offerTtlMinutes },
-  };
-  const generationInput = buildGenerationInput({
+  
+  const selectedMerchant = candidates[0] || allMerchants?.[0];
+  if (!selectedMerchant) throw new Error("No merchants found in database");
+
+  const { data: merchantRule } = await supabase.from("merchant_rules").select("*").eq("merchant_id", selectedMerchant.id).single();
+
+  const generationInput = await buildGenerationInput({
     selectedMerchant,
     merchantRule,
     intentPacket,
     channel,
   });
+  
   const generated = await generateOffer(generationInput);
   return {
-    merchant_id: selectedMerchant.merchant_id,
+    merchant_id: selectedMerchant.id,
     model_version: generated.meta?.model || config.llmModel,
     prompt_version: "offer_prompt_v1",
     offer: generated.output,
@@ -136,18 +183,19 @@ export async function generateOfferForIntent({ intentPacket, channel = "in_app",
   };
 }
 
-export function recordDecision(payload) {
-  const offer = db.offers.get(payload.offer_id);
-  if (!offer) {
-    return { error: "offer_not_found" };
-  }
+export async function recordDecision(payload) {
+  const { data: offer, error: fetchErr } = await supabase.from("offers").select("*").eq("id", payload.offer_id).single();
+  if (fetchErr || !offer) return { error: "offer_not_found" };
 
-  offer.status = payload.decision === "accept" ? "accepted" : "dismissed";
-  db.offerEvents.push({
+  const decisionStatus = payload.decision === "accept" ? "accepted" : "dismissed";
+  
+  await supabase.from("offers").update({ status: decisionStatus }).eq("id", payload.offer_id);
+  
+  await supabase.from("offer_events").insert({
     offer_id: payload.offer_id,
-    user_pseudonym: payload.user_pseudonym,
-    event: payload.decision,
-    at_utc: payload.decision_timestamp_utc || nowIso(),
+    user_id: offer.user_id,
+    event_type: decisionStatus,
+    created_at: payload.decision_timestamp_utc || nowIso(),
   });
 
   return {
@@ -158,58 +206,90 @@ export function recordDecision(payload) {
   };
 }
 
-export function createRedemptionToken(payload) {
+export async function createRedemptionToken(payload) {
   const token = `tok_${Math.random().toString(36).slice(2, 10)}`;
   const expiresAt = new Date(Date.now() + 3 * 60 * 1000).toISOString();
 
-  db.redemptions.set(token, {
-    token,
+  // Find offer to get user_id and merchant_id
+  const { data: offer } = await supabase.from("offers").select("*").eq("id", payload.offer_id).single();
+  if (!offer) throw new Error("Offer not found");
+
+  // Insert token atomically
+  const { error } = await supabase.from("redemptions").insert({
     offer_id: payload.offer_id,
-    merchant_id: payload.merchant_id,
-    user_pseudonym: payload.user_pseudonym,
-    status: "issued",
-    expires_at_utc: expiresAt,
+    merchant_id: offer.merchant_id,
+    user_id: offer.user_id,
+    status: "pending",
+    expires_at_utc: expiresAt, 
   });
+  // Note: Schema says `token` defaults to uuid_generate_v4().
+  // Let's rely on DB generated token instead.
+  
+  const { data: redemption, error: rErr } = await supabase.from("redemptions").insert({
+    offer_id: payload.offer_id,
+    merchant_id: offer.merchant_id,
+    user_id: offer.user_id,
+    status: "pending"
+  }).select().single();
+  
+  if (rErr) throw new Error(`Supabase Error: ${rErr.message}`);
+
+  // Generate QR code data URI
+  const qrDataUrl = await QRCode.toDataURL(redemption.token, { width: 300 });
 
   return {
     offer_id: payload.offer_id,
-    token,
-    qr_payload: token,
-    expires_at_utc: expiresAt,
+    token: redemption.token,
+    qr_payload: qrDataUrl,
+    expires_at_utc: redemption.created_at, // + 3 mins in UI
     ttl_seconds: 180,
   };
 }
 
-export function validateRedemption(payload) {
-  const row = db.redemptions.get(payload.token);
-  if (!row) return { error: "token_not_found" };
+export async function validateRedemption(payload) {
+  // Find token
+  const { data: row, error: fetchErr } = await supabase.from("redemptions").select("*").eq("token", payload.token).single();
+  if (fetchErr || !row) return { error: "token_not_found" };
 
-  if (new Date(row.expires_at_utc).getTime() < Date.now()) {
-    row.status = "expired";
-    return { token: payload.token, is_valid: false, reason: "expired" };
+  if (row.status !== "pending") {
+    return { token: payload.token, is_valid: false, reason: "Token already used or expired" };
   }
 
-  row.status = "redeemed";
-  const cashback = 0.75;
-  const current = db.cashbackByUser.get(row.user_pseudonym) || 0;
-  db.cashbackByUser.set(row.user_pseudonym, Number((current + cashback).toFixed(2)));
+  // Double-spend lock: update where status = pending
+  const { data: updated, error: updateErr } = await supabase.from("redemptions")
+    .update({ status: "redeemed", redeemed_at: nowIso(), cashback_eur: 0.75 })
+    .eq("token", payload.token)
+    .eq("status", "pending")
+    .select()
+    .single();
 
-  const offer = db.offers.get(row.offer_id);
-  if (offer) offer.status = "redeemed";
+  if (updateErr || !updated) {
+    return { token: payload.token, is_valid: false, reason: "Failed to redeem, possibly a double spend" };
+  }
+
+  // Update offer status
+  await supabase.from("offers").update({ status: "redeemed" }).eq("id", row.offer_id);
 
   return {
     token: payload.token,
     is_valid: true,
-    redemption_id: `rdm_${Date.now()}`,
-    cashback_credited_eur: cashback,
+    redemption_id: updated.id,
+    cashback_credited_eur: 0.75,
     validated_at_utc: nowIso(),
   };
 }
 
-export function getCashback(userPseudonym) {
+export async function getCashback(userPseudonym) {
+  const { data: user } = await supabase.from("users").select("id").eq("pseudonym", userPseudonym).single();
+  if (!user) return { cashback_balance_eur: 0 };
+
+  const { data: redemptions, error } = await supabase.from("redemptions").select("cashback_eur").eq("user_id", user.id).eq("status", "redeemed");
+  
+  const total = (redemptions || []).reduce((sum, r) => sum + Number(r.cashback_eur), 0);
+
   return {
     user_pseudonym: userPseudonym,
-    cashback_balance_eur: db.cashbackByUser.get(userPseudonym) || 0,
+    cashback_balance_eur: total,
     updated_at_utc: nowIso(),
   };
 }
