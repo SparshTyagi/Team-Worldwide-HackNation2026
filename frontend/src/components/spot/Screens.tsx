@@ -104,7 +104,7 @@ export function S02Pins() {
             vectorEffect="non-scaling-stroke"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 0.95 }}
-            transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.7, delay: 0.65, ease: [0.22, 1, 0.36, 1] }}
             style={{ strokeWidth: 3 } as any}
           />
           {/* Path 2: Work (80,78) → Tony's (22,70) */}
@@ -117,7 +117,7 @@ export function S02Pins() {
             vectorEffect="non-scaling-stroke"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 0.95 }}
-            transition={{ duration: 0.8, delay: 1.9, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.7, delay: 1.7, ease: [0.22, 1, 0.36, 1] }}
             style={{ strokeWidth: 3 } as any}
           />
           {/* Anchor dots at each pin tip — guarantees lines visually connect to pin tip */}
@@ -126,10 +126,10 @@ export function S02Pins() {
             transition={{ delay: 0.4, duration: 0.25 }} style={{ transformOrigin: "20px 18px" }} />
           <motion.circle cx="80" cy="78" r="1.4" fill="var(--terracotta)" vectorEffect="non-scaling-stroke"
             initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 1.6, duration: 0.25 }} style={{ transformOrigin: "80px 78px" }} />
+            transition={{ delay: 1.45, duration: 0.25 }} style={{ transformOrigin: "80px 78px" }} />
           <motion.circle cx="22" cy="70" r="1.4" fill="var(--sand)" vectorEffect="non-scaling-stroke"
             initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 2.9, duration: 0.25 }} style={{ transformOrigin: "22px 70px" }} />
+            transition={{ delay: 2.6, duration: 0.25 }} style={{ transformOrigin: "22px 70px" }} />
         </svg>
 
         {/* Pins — zero-size anchor at exact coord; SVG tip lands on anchor via -18/-42 offset */}
@@ -138,7 +138,7 @@ export function S02Pins() {
             initial={{ y: -32, opacity: 0, scale: 0.65 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             transition={{ delay: 0.1, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ position: "absolute", left: -18, top: -42 }}
+            style={{ position: "absolute", left: -22, top: -42 }}
           >
             <HandPin label="Home" color="var(--forest)" />
           </motion.div>
@@ -147,8 +147,8 @@ export function S02Pins() {
           <motion.div
             initial={{ y: -32, opacity: 0, scale: 0.65 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ delay: 1.3, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ position: "absolute", left: -18, top: -42 }}
+            transition={{ delay: 1.2, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ position: "absolute", left: -21.5, top: -42 }}
           >
             <HandPin label="Work" color="var(--terracotta)" />
           </motion.div>
@@ -157,8 +157,8 @@ export function S02Pins() {
           <motion.div
             initial={{ y: -32, opacity: 0, scale: 0.65 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ delay: 2.6, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ position: "absolute", left: -18, top: -42 }}
+            transition={{ delay: 2.3, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ position: "absolute", left: -29, top: -28 }}
           >
             <HandPin label="Tony's ☕" color="var(--sand)" pulsing />
           </motion.div>
