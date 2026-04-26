@@ -29,15 +29,23 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Generative City Wallet — Spot Demo" },
-      { name: "description", content: "Single-flow demo for consumer, merchant, privacy, and roadmap coverage." },
+      { title: "Generative City Wallet — Spot" },
+      {
+        name: "description",
+        content:
+          "Live consumer and merchant flows for local discovery, redemption, and privacy-first controls.",
+      },
       { name: "author", content: "Generative City Wallet" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "theme-color", content: "#FEF3E2" },
-      { property: "og:title", content: "Generative City Wallet — Spot Demo" },
-      { property: "og:description", content: "Consistent frontend walkthrough of implemented, in-progress, and planned demo flows." },
+      { property: "og:title", content: "Generative City Wallet — Spot" },
+      {
+        property: "og:description",
+        content:
+          "Live consumer and merchant flows for local discovery, redemption, and privacy-first controls.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

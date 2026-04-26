@@ -1,29 +1,68 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { MobileModeContext } from "@/components/spot/Phone";
 import {
-  S00RolePicker, S01Splash, S02Pins, S03Meals, S04Permissions, S04bDietary, S05Feed,
-  S06OfferDetail, S07Walk, S08QR, S09Confirm, S10Settings,
-  S11MerchantOnboarding, S12Margin, S13Goal, S13bVoiceIdentity, S14MerchantApproval, S14Dashboard, S15Scanner,
-  S16RoadmapCoverage, S16PrivacyPolicy,
+  S00RolePicker,
+  S01Splash,
+  S02Pins,
+  S03Meals,
+  S04Permissions,
+  S04bDietary,
+  S05Feed,
+  S06OfferDetail,
+  S07Walk,
+  S08QR,
+  S09Confirm,
+  S10Settings,
+  S11MerchantOnboarding,
+  S12Margin,
+  S13Goal,
+  S13bVoiceIdentity,
+  S14MerchantApproval,
+  S14Dashboard,
+  S15Scanner,
+  S16RoadmapCoverage,
+  S16PrivacyPolicy,
   SpotAppProvider,
 } from "@/components/spot/Screens";
-import { login, register } from "@/lib/auth-api";
+import { login, register, type AuthRole } from "@/lib/auth-api";
 import { fetchActiveOffers, fetchSavingsSummary } from "@/lib/offers-api";
 import {
   createMerchantVoiceIdentity,
   createMerchantVoiceSession,
   fetchMerchantVoiceIdentity,
 } from "@/lib/voice-agent-api";
+import {
+  FALLBACK_FEED_OFFERS,
+  getOfferSavingsDelta,
+  resolveRedeemOffer,
+} from "@/lib/spot-offer-math";
 
 export const Route = createFileRoute("/")({ component: MobileApp });
 
 // Screen index constants
 const S = {
-  role:0, splash:1, pins:2, meals:3, dietary:4, perms:5, feed:6,
-  offer:7, walk:8, qr:9, confirm:10, settings:11,
-  mOnboard:12, mMargin:13, mVoice:14, mGoal:15, mApproval:16, mDash:17, mScan:18,
-  coverage:19, policy:20,
+  role: 0,
+  splash: 1,
+  pins: 2,
+  meals: 3,
+  dietary: 4,
+  perms: 5,
+  feed: 6,
+  offer: 7,
+  walk: 8,
+  qr: 9,
+  confirm: 10,
+  settings: 11,
+  mOnboard: 12,
+  mMargin: 13,
+  mVoice: 14,
+  mGoal: 15,
+  mApproval: 16,
+  mDash: 17,
+  mScan: 18,
+  coverage: 19,
+  policy: 20,
 } as const;
 
 const SCREENS = [
@@ -52,12 +91,13 @@ const SCREENS = [
 
 export function MobileApp() {
   const [idx, setIdx] = useState(0);
-  const [dir, setDir] = useState<"right"|"up">("right");
+  const [dir, setDir] = useState<"right" | "up">("right");
   const [history, setHistory] = useState<number[]>([]);
-  const [userName, setUserName] = useState("Mia");
+  const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userPassword, setUserPassword] = useState("");
-  const [userPseudonym, setUserPseudonym] = useState("demo_user");
+  const [userPseudonym, setUserPseudonym] = useState("");
+  const [userRole, setUserRole] = useState<AuthRole | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -66,10 +106,10 @@ export function MobileApp() {
   const [isOffersLoading, setIsOffersLoading] = useState(false);
   const [offersSyncStatus, setOffersSyncStatus] = useState<string | null>(null);
   const [savings, setSavings] = useState({
-    latestSavedEur: 3.4,
-    todaySavedEur: 3.4,
-    monthSavedEur: 42.1,
-    spotsTried: 17,
+    latestSavedEur: 0,
+    todaySavedEur: 0,
+    monthSavedEur: 0,
+    spotsTried: 0,
   });
   const [merchantVoiceIdentity, setMerchantVoiceIdentity] = useState({
     brandStory: "",
@@ -88,14 +128,19 @@ export function MobileApp() {
   } | null>(null);
   const [isVoiceWidgetLoading, setIsVoiceWidgetLoading] = useState(false);
   const [voiceWidgetError, setVoiceWidgetError] = useState<string | null>(null);
+  const [isVoiceConversationLive, setIsVoiceConversationLive] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const activeVoiceConversationRef = useRef<{ endSession?: () => Promise<void> } | null>(null);
 
-  const go = useCallback((to: number, anim: "right"|"up" = "right", recordHistory = true) => {
-    if (recordHistory) setHistory((prev) => [...prev, idx]);
-    setDir(anim);
-    setIdx(to);
-    window.scrollTo(0, 0);
-  }, [idx]);
+  const go = useCallback(
+    (to: number, anim: "right" | "up" = "right", recordHistory = true) => {
+      if (recordHistory) setHistory((prev) => [...prev, idx]);
+      setDir(anim);
+      setIdx(to);
+      window.scrollTo(0, 0);
+    },
+    [idx],
+  );
 
   const goBack = useCallback(() => {
     setHistory((prev) => {
@@ -112,12 +157,16 @@ export function MobileApp() {
     });
   }, [idx]);
 
-  const hydrateAuthState = useCallback((auth: any) => {
-    setAuthToken(auth?.session?.access_token || null);
-    setUserPseudonym(auth?.pseudonym || "demo_user");
-    const displayName = (auth?.display_name || userName).trim();
-    if (displayName) setUserName(displayName);
-  }, [userName]);
+  const hydrateAuthState = useCallback(
+    (auth: any) => {
+      setAuthToken(auth?.session?.access_token || null);
+      setUserPseudonym(auth?.pseudonym || "");
+      setUserRole(auth?.role === "merchant" || auth?.role === "consumer" ? auth.role : null);
+      const displayName = (auth?.display_name || userName).trim();
+      if (displayName) setUserName(displayName);
+    },
+    [userName],
+  );
 
   const loadLiveData = useCallback(async (pseudonym: string, token: string | null) => {
     if (!pseudonym) return;
@@ -129,12 +178,25 @@ export function MobileApp() {
         fetchSavingsSummary(pseudonym, token),
       ]);
       setOffers(liveOffers.offers || []);
-      setSelectedOffer((current) => current || liveOffers.offers?.[0] || null);
-      setSavings({
-        latestSavedEur: summary.latest_saved_eur,
-        todaySavedEur: summary.today_saved_eur,
-        monthSavedEur: summary.month_saved_eur,
-        spotsTried: summary.spots_tried,
+      setSelectedOffer((current) => {
+        if (current) {
+          return current;
+        }
+        return resolveRedeemOffer(null, liveOffers.offers || [], FALLBACK_FEED_OFFERS);
+      });
+      setSavings((prev) => {
+        const a = {
+          latest: Number(summary.latest_saved_eur) || 0,
+          today: Number(summary.today_saved_eur) || 0,
+          month: Number(summary.month_saved_eur) || 0,
+          spots: Number(summary.spots_tried) || 0,
+        };
+        return {
+          latestSavedEur: Math.max(a.latest, prev.latestSavedEur),
+          todaySavedEur: Math.max(a.today, prev.todaySavedEur),
+          monthSavedEur: Math.max(a.month, prev.monthSavedEur),
+          spotsTried: Math.max(a.spots, prev.spotsTried),
+        };
       });
     } catch (error) {
       setOffersSyncStatus(
@@ -154,33 +216,47 @@ export function MobileApp() {
       .filter(Boolean);
   }, []);
 
-  const hydrateVoiceIdentity = useCallback((identity?: {
-    brand_story: string;
-    menu_highlights: string[];
-    promotions: string[];
-    voice_name: string;
-    voice_id: string;
-    tone: string;
-    language: string;
-  }) => {
-    if (!identity) return;
-    setMerchantVoiceIdentity({
-      brandStory: identity.brand_story || "",
-      menuHighlights: (identity.menu_highlights || []).join(", "),
-      promotions: (identity.promotions || []).join(", "),
-      voiceName: identity.voice_name || "Warm Guide",
-      voiceId: identity.voice_id || "",
-      tone: identity.tone || "friendly",
-      language: identity.language || "en",
-    });
-  }, []);
+  const hydrateVoiceIdentity = useCallback(
+    (identity?: {
+      brand_story: string;
+      menu_highlights: string[];
+      promotions: string[];
+      voice_name: string;
+      voice_id: string;
+      tone: string;
+      language: string;
+    }) => {
+      if (!identity) return;
+      setMerchantVoiceIdentity({
+        brandStory: identity.brand_story || "",
+        menuHighlights: (identity.menu_highlights || []).join(", "),
+        promotions: (identity.promotions || []).join(", "),
+        voiceName: identity.voice_name || "Warm Guide",
+        voiceId: identity.voice_id || "",
+        tone: identity.tone || "friendly",
+        language: identity.language || "en",
+      });
+    },
+    [],
+  );
 
   const saveVoiceIdentity = useCallback(async () => {
     setVoiceIdentityStatus(null);
+    const brandStory = merchantVoiceIdentity.brandStory.trim();
+    const menuHighlights = parseCsvList(merchantVoiceIdentity.menuHighlights);
+    const promotions = parseCsvList(merchantVoiceIdentity.promotions);
+    if (brandStory.length < 20) {
+      setVoiceIdentityStatus("Add a short brand story (at least 20 characters).");
+      return;
+    }
+    if (!menuHighlights.length && !promotions.length) {
+      setVoiceIdentityStatus("Add at least one menu highlight or one promotion to guide the sales agent.");
+      return;
+    }
     const payload = {
-      brand_story: merchantVoiceIdentity.brandStory.trim(),
-      menu_highlights: parseCsvList(merchantVoiceIdentity.menuHighlights),
-      promotions: parseCsvList(merchantVoiceIdentity.promotions),
+      brand_story: brandStory,
+      menu_highlights: menuHighlights,
+      promotions,
       voice_name: merchantVoiceIdentity.voiceName.trim(),
       voice_id: merchantVoiceIdentity.voiceId.trim(),
       tone: merchantVoiceIdentity.tone.trim(),
@@ -188,7 +264,9 @@ export function MobileApp() {
     };
 
     if (!authToken) {
-      setVoiceIdentityStatus("Saved locally in demo mode. Sign in as merchant to persist to backend.");
+      setVoiceIdentityStatus(
+        "Saved locally in demo mode. Sign in as merchant to persist to backend.",
+      );
       go(S.mGoal, "up");
       return;
     }
@@ -209,27 +287,109 @@ export function MobileApp() {
     setVoiceWidgetError(null);
     setIsVoiceWidgetLoading(true);
     if (!authToken) {
-      setVoiceWidgetSession({ sessionToken: "demo-session-preview-token" });
+      setVoiceWidgetSession(null);
+      setVoiceWidgetError("Sign in to start a live voice session.");
       setIsVoiceWidgetLoading(false);
-      return;
+      return null;
+    }
+    if (userRole !== "merchant") {
+      setVoiceWidgetSession({ sessionToken: "consumer-live-preview-session" });
+      setVoiceWidgetError(null);
+      setIsVoiceWidgetLoading(false);
+      return { sessionToken: "consumer-live-preview-session" };
     }
     try {
       const session = await createMerchantVoiceSession(authToken);
-      setVoiceWidgetSession({
+      const nextSession = {
         sessionToken: session.session_token,
         signedUrl: session.signed_url,
-      });
+      };
+      setVoiceWidgetSession(nextSession);
+      return nextSession;
     } catch (error) {
       setVoiceWidgetSession(null);
-      setVoiceWidgetError(
-        error instanceof Error
-          ? error.message
-          : "Could not start voice session. Please try again.",
-      );
+      const message =
+        error instanceof Error ? error.message : "Could not start voice session. Please try again.";
+      if (
+        message.toLowerCase().includes("requires role: merchant") ||
+        message.toLowerCase().includes("forbidden")
+      ) {
+        setVoiceWidgetError("Voice chat is currently available for merchant accounts only.");
+      } else {
+        setVoiceWidgetError(message);
+      }
+      return null;
     } finally {
       setIsVoiceWidgetLoading(false);
     }
-  }, [authToken]);
+  }, [authToken, userRole]);
+
+  const stopVoiceConversation = useCallback(async () => {
+    const activeConversation = activeVoiceConversationRef.current;
+    activeVoiceConversationRef.current = null;
+    setIsVoiceConversationLive(false);
+    if (activeConversation?.endSession) {
+      try {
+        await activeConversation.endSession();
+      } catch {
+        // no-op: closing a dead conversation can throw
+      }
+    }
+  }, []);
+
+  const startVoiceConversation = useCallback(async () => {
+    if (isVoiceConversationLive) return;
+
+    const session = await bootstrapVoiceSession();
+    if (!session) return;
+
+    if (!session.signedUrl && !session.sessionToken) {
+      setVoiceWidgetError("Live voice handshake failed. Please try again.");
+      return;
+    }
+
+    if (!session.signedUrl && userRole !== "merchant") {
+      setVoiceWidgetError("Switch to a merchant account to launch the live sales voice agent.");
+      return;
+    }
+
+    try {
+      setIsVoiceWidgetLoading(true);
+      await stopVoiceConversation();
+
+      const { Conversation } = await import("@elevenlabs/client");
+      const conversation = await Conversation.startSession({
+        ...(session.signedUrl
+          ? { signedUrl: session.signedUrl, connectionType: "websocket" as const }
+          : { conversationToken: session.sessionToken, connectionType: "webrtc" as const }),
+        onConnect: () => {
+          setVoiceWidgetError(null);
+          setIsVoiceConversationLive(true);
+        },
+        onDisconnect: () => {
+          activeVoiceConversationRef.current = null;
+          setIsVoiceConversationLive(false);
+        },
+        onError: (errorMessage: unknown) => {
+          setVoiceWidgetError(
+            typeof errorMessage === "string"
+              ? errorMessage
+              : "Voice session could not connect. Please check microphone permissions and retry.",
+          );
+        },
+      });
+      activeVoiceConversationRef.current = conversation as { endSession?: () => Promise<void> };
+    } catch (error) {
+      setVoiceWidgetError(
+        error instanceof Error
+          ? error.message
+          : "Unable to launch live sales voice agent right now. Please retry.",
+      );
+      setIsVoiceConversationLive(false);
+    } finally {
+      setIsVoiceWidgetLoading(false);
+    }
+  }, [bootstrapVoiceSession, isVoiceConversationLive, stopVoiceConversation, userRole]);
 
   const finishSetup = useCallback(async () => {
     if (!userName.trim()) {
@@ -260,7 +420,7 @@ export function MobileApp() {
       }
       hydrateAuthState(auth);
       go(S.feed, "up");
-      await loadLiveData(auth.pseudonym || "demo_user", auth?.session?.access_token || null);
+      await loadLiveData(auth.pseudonym || "", auth?.session?.access_token || null);
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Could not authenticate. Try again.");
     } finally {
@@ -310,146 +470,194 @@ export function MobileApp() {
     return () => media.removeEventListener("change", syncPreference);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      void stopVoiceConversation();
+    };
+  }, [stopVoiceConversation]);
+
   // Event delegation: intercept all clicks and navigate
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    const el = e.target as HTMLElement;
-    const btn = el.closest("button");
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      const el = e.target as HTMLElement;
+      const btn = el.closest("button");
 
-    // --- Role picker: route consumer → splash, merchant → mOnboard ---
-    if (idx === S.role && btn) {
-      const role = btn.getAttribute("data-role");
-      if (role === "consumer") { go(S.splash); return; }
-      if (role === "merchant") { go(S.mOnboard, "up"); return; }
-    }
-
-    if (btn) {
-      const navAction = btn.getAttribute("data-nav");
-      if (navAction === "back") {
-        if (idx === S.offer || idx === S.walk || idx === S.settings || idx === S.policy) go(S.feed, "right", false);
-        else goBack();
-        return;
-      }
-      if (navAction === "policy") {
-        go(S.policy);
-        return;
+      // --- Role picker: route consumer → splash, merchant → mOnboard ---
+      if (idx === S.role && btn) {
+        const role = btn.getAttribute("data-role");
+        if (role === "consumer") {
+          go(S.splash);
+          return;
+        }
+        if (role === "merchant") {
+          go(S.mOnboard, "up");
+          return;
+        }
       }
 
-      const buttonAction = btn.getAttribute("data-action");
-      if (buttonAction === "finish-setup") {
-        void finishSetup();
-        return;
-      }
-      if (buttonAction === "save-voice-identity") {
-        void saveVoiceIdentity();
-        return;
-      }
-      if (buttonAction === "open-voice-widget") {
-        setVoiceWidgetOpen(true);
-        return;
-      }
-      if (buttonAction === "close-voice-widget") {
-        setVoiceWidgetOpen(false);
-        return;
-      }
-      if (buttonAction === "start-voice-chat") {
-        void bootstrapVoiceSession();
-        return;
-      }
-      if (buttonAction === "continue") {
-        go(idx + 1);
-        return;
-      }
-      if (buttonAction === "looks-right") {
-        go(idx + 1);
-        return;
-      }
-      if (buttonAction === "redeem-now") {
-        go(S.qr, "up");
-        return;
-      }
-      if (buttonAction === "start-walk") {
-        go(S.offer);
-        return;
-      }
-      if (buttonAction === "simulate-scan") {
-        go(S.confirm, "up");
-        return;
-      }
-      if (buttonAction === "cancel-redeem") {
-        go(S.feed);
-        return;
-      }
-      if (buttonAction === "confirm-done") {
-        go(S.feed, "up");
-        return;
-      }
-      if (buttonAction === "confirm-rate") {
-        go(S.feed);
-        return;
-      }
-      if (buttonAction === "feed-tab-map") {
-        go(S.walk);
-        return;
-      }
-      if (buttonAction === "feed-tab-history") {
-        go(S.confirm);
-        return;
-      }
-      if (buttonAction === "feed-tab-privacy") {
-        go(S.settings);
-        return;
-      }
-      if (buttonAction === "noop") {
-        return;
-      }
-      if (buttonAction === "merchant-continue-challenge-fit") {
-        go(S.mMargin);
-        return;
-      }
-      if (buttonAction === "merchant-lock-margin") {
-        go(S.mVoice);
-        return;
-      }
-      if (buttonAction === "merchant-configure-voice") {
-        go(S.mVoice);
-        return;
-      }
-      if (buttonAction === "merchant-submit-approval") {
-        go(S.mApproval, "up");
-        return;
-      }
-      if (buttonAction === "merchant-simulate-approval") {
-        go(S.mDash, "up");
-        return;
-      }
-      if (buttonAction === "merchant-open-scanner") {
-        go(S.mScan);
-        return;
-      }
-      if (buttonAction === "merchant-scan-next") {
-        go(S.mScan);
-        return;
-      }
-      if (buttonAction === "merchant-manage-voice") {
-        go(S.mVoice);
-        return;
-      }
-    }
+      if (btn) {
+        const navAction = btn.getAttribute("data-nav");
+        if (navAction === "back") {
+          if (idx === S.offer || idx === S.walk || idx === S.settings || idx === S.policy)
+            go(S.feed, "right", false);
+          else goBack();
+          return;
+        }
+        if (navAction === "policy") {
+          go(S.policy);
+          return;
+        }
 
-    if (idx === S.feed) {
-      const card = el.closest("[data-offer-index]");
-      if (card) {
-        const offerIndex = Number(card.getAttribute("data-offer-index"));
-        if (Number.isFinite(offerIndex) && offers[offerIndex]) setSelectedOffer(offers[offerIndex]);
-        go(S.offer);
-        return;
+        const buttonAction = btn.getAttribute("data-action");
+        if (buttonAction === "finish-setup") {
+          void finishSetup();
+          return;
+        }
+        if (buttonAction === "save-voice-identity") {
+          void saveVoiceIdentity();
+          return;
+        }
+        if (buttonAction === "open-voice-widget") {
+          setVoiceWidgetOpen(true);
+          return;
+        }
+        if (buttonAction === "close-voice-widget") {
+          void stopVoiceConversation();
+          setVoiceWidgetOpen(false);
+          return;
+        }
+        if (buttonAction === "start-voice-chat") {
+          void startVoiceConversation();
+          return;
+        }
+        if (buttonAction === "continue") {
+          go(idx + 1);
+          return;
+        }
+        if (buttonAction === "looks-right") {
+          go(idx + 1);
+          return;
+        }
+        if (buttonAction === "redeem-now") {
+          setSelectedOffer((prev) => resolveRedeemOffer(prev, offers, FALLBACK_FEED_OFFERS));
+          go(S.qr, "up");
+          return;
+        }
+        if (buttonAction === "start-walk") {
+          go(S.offer);
+          return;
+        }
+        if (buttonAction === "simulate-scan") {
+          const resolved = resolveRedeemOffer(selectedOffer, offers, FALLBACK_FEED_OFFERS);
+          setSelectedOffer(resolved);
+          const savedDelta = getOfferSavingsDelta(resolved);
+          setSavings((prev) => {
+            const nextToday = Number((prev.todaySavedEur + savedDelta).toFixed(2));
+            const nextMonth = Number((prev.monthSavedEur + savedDelta).toFixed(2));
+            return {
+              latestSavedEur: savedDelta,
+              todaySavedEur: nextToday,
+              monthSavedEur: nextMonth,
+              spotsTried: prev.spotsTried + 1,
+            };
+          });
+          go(S.confirm, "up");
+          return;
+        }
+        if (buttonAction === "cancel-redeem") {
+          go(S.feed);
+          return;
+        }
+        if (buttonAction === "confirm-done") {
+          go(S.feed, "up");
+          return;
+        }
+        if (buttonAction === "confirm-rate") {
+          go(S.feed);
+          return;
+        }
+        if (buttonAction === "feed-tab-map") {
+          go(S.walk);
+          return;
+        }
+        if (buttonAction === "feed-tab-history") {
+          go(S.confirm);
+          return;
+        }
+        if (buttonAction === "feed-tab-privacy") {
+          go(S.settings);
+          return;
+        }
+        if (buttonAction === "noop") {
+          return;
+        }
+        if (buttonAction === "merchant-continue-challenge-fit") {
+          go(S.mMargin);
+          return;
+        }
+        if (buttonAction === "merchant-lock-margin") {
+          go(S.mVoice);
+          return;
+        }
+        if (buttonAction === "merchant-configure-voice") {
+          go(S.mVoice);
+          return;
+        }
+        if (buttonAction === "merchant-submit-approval") {
+          go(S.mApproval, "up");
+          return;
+        }
+        if (buttonAction === "merchant-simulate-approval") {
+          go(S.mDash, "up");
+          return;
+        }
+        if (buttonAction === "merchant-open-scanner") {
+          go(S.mScan);
+          return;
+        }
+        if (buttonAction === "merchant-scan-next") {
+          go(S.mScan);
+          return;
+        }
+        if (buttonAction === "merchant-manage-voice") {
+          go(S.mVoice);
+          return;
+        }
       }
-    }
-  }, [idx, go, goBack, finishSetup, offers, saveVoiceIdentity, bootstrapVoiceSession]);
+
+      if (idx === S.feed) {
+        const card = el.closest("[data-offer-index]");
+        if (card) {
+          const offerIndex = Number(card.getAttribute("data-offer-index"));
+          const visibleOffers = offers.length ? offers : FALLBACK_FEED_OFFERS;
+          if (Number.isFinite(offerIndex) && visibleOffers[offerIndex])
+            setSelectedOffer(visibleOffers[offerIndex]);
+          go(S.offer);
+          return;
+        }
+      }
+    },
+    [
+      idx,
+      go,
+      goBack,
+      finishSetup,
+      offers,
+      saveVoiceIdentity,
+      startVoiceConversation,
+      stopVoiceConversation,
+      selectedOffer,
+    ],
+  );
 
   const Screen = SCREENS[idx].C;
   const animClass = prefersReducedMotion ? "" : dir === "up" ? "page-enter-up" : "page-enter";
   const showSwitchRole = idx === S.feed || idx === S.settings || idx === S.mDash || idx === S.mScan;
+  const showVoiceFab = idx === S.feed || idx === S.offer || idx === S.walk;
+  const voiceFabPositionClass =
+    idx === S.feed
+      ? "left-4 bottom-[calc(env(safe-area-inset-bottom)+5.25rem)]"
+      : "left-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)]";
 
   return (
     <MobileModeContext.Provider value={true}>
@@ -484,9 +692,12 @@ export function MobileApp() {
 
           {/* Floating role switch is only shown on top-level hubs to avoid blocking flow */}
           {showSwitchRole && (
-            <div className="fixed right-3 bottom-20 z-40">
+            <div className="fixed right-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-40">
               <button
-                onClick={(e) => { e.stopPropagation(); go(S.role); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  go(S.role);
+                }}
                 aria-label="Switch role"
                 className="px-3 py-1.5 rounded-full bg-[var(--ink)]/70 backdrop-blur text-white text-[11px] font-semibold shadow-md active:scale-95 transition-transform"
               >
@@ -495,8 +706,8 @@ export function MobileApp() {
             </div>
           )}
 
-          {(idx === S.feed || idx === S.offer || idx === S.walk) && (
-            <div className="fixed bottom-4 left-4 z-50">
+          {showVoiceFab && (
+            <div className={`fixed ${voiceFabPositionClass} z-50`}>
               <button
                 data-action="open-voice-widget"
                 className="px-4 py-2 rounded-full bg-[var(--terracotta)] text-white text-[12px] font-semibold shadow-lg shadow-[var(--terracotta)]/30 active:scale-95 transition-transform"
@@ -528,7 +739,8 @@ export function MobileApp() {
                 </div>
 
                 <p className="mt-2 text-[12px] text-[var(--forest)]/65">
-                  Start a live voice session to hear what is special about this merchant's menu and offers.
+                  Start a live voice session to hear what is special about this merchant's menu and
+                  offers.
                 </p>
 
                 {voiceWidgetSession?.sessionToken && (
@@ -546,13 +758,23 @@ export function MobileApp() {
                     {voiceWidgetError}
                   </div>
                 )}
+                {isVoiceConversationLive && (
+                  <div className="mt-2 rounded-xl bg-[oklch(0.94_0.07_150)]/50 px-3 py-2 text-[11px] text-[oklch(0.4_0.1_150)]">
+                    Live session connected. The agent now speaks as the merchant salesperson with your
+                    brand story and specialties.
+                  </div>
+                )}
 
                 <button
                   data-action="start-voice-chat"
                   disabled={isVoiceWidgetLoading}
                   className="mt-4 w-full py-3 rounded-full bg-[var(--forest)] text-white text-[13px] font-semibold disabled:opacity-60"
                 >
-                  {isVoiceWidgetLoading ? "Starting session..." : "Start voice chat"}
+                  {isVoiceWidgetLoading
+                    ? "Starting session..."
+                    : isVoiceConversationLive
+                      ? "Voice chat connected"
+                      : "Start voice chat"}
                 </button>
               </div>
             </div>

@@ -139,6 +139,52 @@ async function fetchElevenLabsToken(payload) {
   return data;
 }
 
+async function fetchElevenLabsSignedUrl(agentId) {
+  const query = new URLSearchParams({ agent_id: agentId });
+  const response = await fetch(
+    `${config.elevenLabsBaseUrl}/convai/conversation/get-signed-url?${query.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "xi-api-key": config.elevenLabsApiKey,
+      },
+    },
+  );
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.detail?.message || data?.message || "Failed to create ElevenLabs signed launch URL.",
+    );
+  }
+  return data;
+}
+
+async function fetchMerchantRecord(merchantId) {
+  const { data, error } = await supabase
+    .from("merchants")
+    .select("name, category, business_hours")
+    .eq("id", merchantId)
+    .maybeSingle();
+  if (error) throw new Error(`Supabase Error: ${error.message}`);
+  return data;
+}
+
+function buildFallbackVoiceIdentity(merchantRecord) {
+  const merchantName = merchantRecord?.name || "our shop";
+  const category = merchantRecord?.category || "local spot";
+  const cuisine = merchantRecord?.business_hours?.cuisine || category;
+  const discountEvents = Array.isArray(merchantRecord?.business_hours?.discount_events)
+    ? merchantRecord.business_hours.discount_events
+    : [];
+  return {
+    brand_story: `You are the sales voice for ${merchantName}, a ${category} known for ${cuisine}. Share what makes this merchant unique and why customers should visit today.`,
+    menu_highlights: [cuisine, "seasonal specials"],
+    promotions: discountEvents.length ? discountEvents : ["time-limited in-app offers"],
+    tone: "warm, persuasive, premium local storyteller",
+    language: "en",
+  };
+}
+
 export async function createVoiceSessionToken(merchantId) {
   if (!config.elevenLabsApiKey) {
     throw new Error("ELEVENLABS_API_KEY is missing.");
@@ -148,27 +194,39 @@ export async function createVoiceSessionToken(merchantId) {
   }
 
   const voiceIdentity = await fetchVoiceIdentityRecord(merchantId);
-  if (!voiceIdentity) {
-    throw new Error("Voice identity not configured for this merchant.");
-  }
+  const merchantRecord = await fetchMerchantRecord(merchantId);
+  const resolvedIdentity = voiceIdentity || buildFallbackVoiceIdentity(merchantRecord);
 
   const tokenResponse = await fetchElevenLabsToken({
     agent_id: config.elevenLabsAgentId,
     external_user_id: merchantId,
     dynamic_variables: {
-      brand_story: voiceIdentity.brand_story || "",
-      tone: voiceIdentity.tone || "",
-      language: voiceIdentity.language || "",
-      menu_highlights: Array.isArray(voiceIdentity.menu_highlights)
-        ? voiceIdentity.menu_highlights.join(", ")
+      brand_story: resolvedIdentity.brand_story || "",
+      tone: resolvedIdentity.tone || "",
+      language: resolvedIdentity.language || "",
+      menu_highlights: Array.isArray(resolvedIdentity.menu_highlights)
+        ? resolvedIdentity.menu_highlights.join(", ")
         : "",
-      promotions: Array.isArray(voiceIdentity.promotions) ? voiceIdentity.promotions.join(", ") : "",
+      promotions: Array.isArray(resolvedIdentity.promotions)
+        ? resolvedIdentity.promotions.join(", ")
+        : "",
     },
   });
 
   const sessionToken =
     tokenResponse?.token || tokenResponse?.session_token || tokenResponse?.conversation_token || null;
-  const signedUrl = tokenResponse?.signed_url || tokenResponse?.url || null;
+  let signedUrl = tokenResponse?.signed_url || tokenResponse?.url || null;
+  if (!signedUrl) {
+    try {
+      const signedResponse = await fetchElevenLabsSignedUrl(config.elevenLabsAgentId);
+      signedUrl = signedResponse?.signed_url || null;
+    } catch (error) {
+      console.warn(
+        "ElevenLabs signed URL generation failed:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
 
   if (!sessionToken && !signedUrl) {
     throw new Error("ElevenLabs response did not include a usable session token.");

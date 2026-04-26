@@ -274,6 +274,26 @@ export function createAppServer() {
       return sendValidatedOutput(res, "wallet_savings_output", await getSavingsSummary(input.user_pseudonym));
     }
 
+    if (req.method === "POST" && pathname === "/v1/merchant/onboarding/scrape-profile") {
+      const body = requireValidInput("merchant_onboarding_scrape_profile_input", await readJsonBody(req));
+      const generatedMerchantId = `preview_${Date.now()}`;
+      const profile = await scrapeMerchantProfile({
+        merchant_id: generatedMerchantId,
+        google_maps_url: body.google_maps_url,
+        requested_by: "onboarding_preview",
+      });
+      return sendValidatedOutput(res, "merchant_onboarding_scrape_profile_output", {
+        name: profile.name,
+        category: profile.category,
+        address: profile.address,
+        phone: profile.phone,
+        opening_hours: profile.opening_hours,
+        avg_ticket_size_eur: profile.avg_ticket_size_eur,
+        confidence: profile.confidence,
+        status: profile.status,
+      });
+    }
+
     // ── Merchant Routes (require merchant role JWT) ───────────────────────
     if (req.method === "POST" && pathname === "/v1/merchant/rules") {
       const caller = await requireAuth(req, res);

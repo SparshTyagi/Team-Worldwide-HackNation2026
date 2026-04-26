@@ -324,7 +324,7 @@ describe("MobileApp user journeys", () => {
     click("Talk to this shop");
     expect(screen.getByText("Sales agent ready")).toBeInTheDocument();
     click("Start voice chat");
-    expect(screen.getByText(/Secure voice session token generated/)).toBeInTheDocument();
+    expect(screen.getByText(/Sign in to start a live voice session/)).toBeInTheDocument();
     click("Close voice assistant");
     expect(screen.queryByText("Sales agent ready")).not.toBeInTheDocument();
     vi.useRealTimers();
