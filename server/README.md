@@ -8,7 +8,8 @@ Backend MVP for the roadmap contracts.
 - End-to-end smoke flow (server running): `npm run smoke:e2e`
 
 ## Model configuration
-The server now uses OpenRouter SDK in `src/llm/client.js`.
+The canonical AI module now lives in `src/modules/shared/ai/client.js`.
+The legacy path `src/llm/client.js` remains as a compatibility shim.
 
 - Default model: `nvidia/nemotron-3-super:free`
 - Canonical override model var: `OPENROUTER_OFFER_MODEL`

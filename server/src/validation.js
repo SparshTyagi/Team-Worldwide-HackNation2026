@@ -221,6 +221,23 @@ const internalMerchantRecord = vObject({
   merchant_id: vString({ minLength: 1 }),
   name: vString({ minLength: 1 }),
   category: vString({ minLength: 1 }),
+  cuisine: vString({ minLength: 1 }),
+  discount_events: vArray(vString({ minLength: 1 })),
+  dietary_restrictions: vArray(
+    vEnum([
+      "vegan",
+      "vegetarian",
+      "gluten_free",
+      "halal",
+      "kosher",
+      "nut_free",
+      "dairy_free",
+      "low_sugar",
+    ])
+  ),
+  hours: vArray(vString({ minLength: 1 }), { minLength: 1 }),
+  max_discount_value: vNumber({ min: 0 }),
+  budget: vNumber({ min: 0 }),
   area_cell_id: vString({ minLength: 1 }),
   lat: vNumber({ min: -90, max: 90 }),
   lon: vNumber({ min: -180, max: 180 }),
@@ -268,6 +285,80 @@ export const schemas = {
     intent_stability_score: optional(vNumber({ min: 0, max: 1 })),
     cold_start_flag: optional(vBoolean()),
     city_context_ref: optional(vString({ minLength: 1 })),
+    client_profile_signals: optional(
+      vObject({
+        home_location: optional(
+          vObject({
+            lat: latSchema,
+            lon: lonSchema,
+            label: optional(vString({ minLength: 1 })),
+          })
+        ),
+        work_location: optional(
+          vObject({
+            lat: latSchema,
+            lon: lonSchema,
+            label: optional(vString({ minLength: 1 })),
+          })
+        ),
+        usual_meal_times: optional(
+          vObject({
+            coffee: optional(vString({ minLength: 1 })),
+            lunch: optional(vString({ minLength: 1 })),
+            dinner: optional(vString({ minLength: 1 })),
+          })
+        ),
+        food_preferences: optional(
+          vObject({
+            coffee: optional(vBoolean()),
+            bakery: optional(vBoolean()),
+            ramen: optional(vBoolean()),
+            salads: optional(vBoolean()),
+            wine_bars: optional(vBoolean()),
+            gelato: optional(vBoolean()),
+          })
+        ),
+        dietary_restrictions: optional(
+          vArray(
+            vEnum([
+              "vegan",
+              "vegetarian",
+              "gluten_free",
+              "halal",
+              "kosher",
+              "nut_free",
+              "dairy_free",
+              "low_sugar",
+            ])
+          )
+        ),
+        preferred_cuisines: optional(vArray(vString({ minLength: 1 }))),
+        location_access: optional(
+          vObject({
+            precise_location: optional(vBoolean()),
+            background_location: optional(vBoolean()),
+          })
+        ),
+      })
+    ),
+    context_snapshot: optional(
+      vObject({
+        now_utc: optional(vString({ pattern: isoDate })),
+        local_hour: optional(vNumber({ min: 0, max: 23, integer: true })),
+        local_time_bucket: optional(vString({ minLength: 1 })),
+        weather_summary: optional(vString({ minLength: 1 })),
+        temperature_c: optional(vNumber()),
+        event_intensity: optional(vString({ minLength: 1 })),
+        events: optional(
+          vArray(
+            vObject({
+              title: vString({ minLength: 1 }),
+              category: vString({ minLength: 1 }),
+            })
+          )
+        ),
+      })
+    ),
   }),
   intent_signal_output: vObject({
     status: vString({ minLength: 1 }),
@@ -355,6 +446,15 @@ export const schemas = {
     is_valid: vBoolean(),
     redemption_id: vString({ minLength: 1 }),
     cashback_credited_eur: vNumber({ min: 0 }),
+    merchant_budget: optional(
+      vObject({
+        merchant_id: vString({ minLength: 1 }),
+        previous_budget: vNumber({ min: 0 }),
+        deducted_amount: vNumber({ min: 0 }),
+        remaining_budget: vNumber({ min: 0 }),
+        updated_at_utc: vString({ pattern: isoDate }),
+      })
+    ),
     validated_at_utc: vString({ pattern: isoDate }),
   }),
 
@@ -510,11 +610,30 @@ export const schemas = {
     merchant_profile: vObject({
       merchant_id: vString({ minLength: 1 }),
       category: vString({ minLength: 1 }),
+      cuisine: vString({ minLength: 1 }),
+      discount_events: vArray(vString({ minLength: 1 })),
+      dietary_restrictions: vArray(
+        vEnum([
+          "vegan",
+          "vegetarian",
+          "gluten_free",
+          "halal",
+          "kosher",
+          "nut_free",
+          "dairy_free",
+          "low_sugar",
+        ])
+      ),
+      hours: vArray(vString({ minLength: 1 }), { minLength: 1 }),
+      max_discount_value: vNumber({ min: 0 }),
+      budget: vNumber({ min: 0 }),
       is_open_now: vBoolean(),
       price_band: vString({ minLength: 1 }),
     }),
     constraints: vObject({
       max_discount_pct: vNumber({ min: 0, max: 100 }),
+      max_discount_value: optional(vNumber({ min: 0 })),
+      budget: optional(vNumber({ min: 0 })),
       campaign_goal: vString({ minLength: 1 }),
       excluded_skus: vArray(vString({ minLength: 1 })),
       max_validity_minutes: vNumber({ min: 1, integer: true }),
@@ -526,12 +645,37 @@ export const schemas = {
       time_budget_minutes: vNumber({ min: 1, max: 180, integer: true }),
       tone_preference: vString({ minLength: 1 }),
       hard_constraints: vArray(vString({ minLength: 1 })),
+      dietary_restrictions: optional(
+        vArray(
+          vEnum([
+            "vegan",
+            "vegetarian",
+            "gluten_free",
+            "halal",
+            "kosher",
+            "nut_free",
+            "dairy_free",
+            "low_sugar",
+          ])
+        )
+      ),
+      preferred_cuisines: optional(vArray(vString({ minLength: 1 }))),
     }),
     context_snapshot: vObject({
       weather_summary: vString({ minLength: 1 }),
+      temperature_c: optional(vNumber()),
       demand_gap_pct: vNumber(),
       event_intensity: vString({ minLength: 1 }),
       local_time_bucket: vString({ minLength: 1 }),
+      now_utc: optional(vString({ pattern: isoDate })),
+      events: optional(
+        vArray(
+          vObject({
+            title: vString({ minLength: 1 }),
+            category: vString({ minLength: 1 }),
+          })
+        )
+      ),
     }),
     channel_context: vObject({
       channel: vEnum(["push", "in_app", "widget"]),

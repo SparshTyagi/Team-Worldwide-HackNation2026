@@ -1,0 +1,94 @@
+{
+  "sender": "server",
+  "receiver": "merchant",
+  "messages": [
+    {
+      "endpoint": "/v1/merchant/rules",
+      "method": "POST",
+      "schema": "merchant_rules_create_output",
+      "example": {
+        "merchant_rule_id": "mr_1714090000000",
+        "merchant_id": "m_3100",
+        "status": "active",
+        "created_at_utc": "2026-04-26T03:20:10.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/merchant/rules/{merchant_rule_id}",
+      "method": "PATCH",
+      "schema": "merchant_rules_patch_output",
+      "example": {
+        "merchant_rule_id": "mr_1714090000000",
+        "merchant_id": "m_3100",
+        "status": "updated",
+        "updated_at_utc": "2026-04-26T03:21:10.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/merchant/dashboard/overview",
+      "method": "GET",
+      "schema": "merchant_dashboard_overview_output",
+      "example": {
+        "merchant_id": "m_3100",
+        "kpis": {
+          "offers_generated": 8,
+          "acceptance_rate": 0.5,
+          "redemption_rate": 0.25,
+          "estimated_net_uplift_eur": 13
+        },
+        "as_of_utc": "2026-04-26T03:24:39.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/merchant/dashboard/funnel",
+      "method": "GET",
+      "schema": "merchant_dashboard_funnel_output",
+      "example": {
+        "merchant_id": "m_3100",
+        "funnel": {
+          "delivered": 8,
+          "viewed": 8,
+          "accepted": 4,
+          "redeemed": 2
+        },
+        "as_of_utc": "2026-04-26T03:24:39.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/merchant/dashboard/context-performance",
+      "method": "GET",
+      "schema": "merchant_dashboard_context_performance_output",
+      "example": {
+        "merchant_id": "m_3100",
+        "context_performance": [
+          {
+            "daypart": "lunch",
+            "weather_bucket": "rainy",
+            "accept_rate": 0.5,
+            "redemption_rate": 0.25
+          }
+        ],
+        "as_of_utc": "2026-04-26T03:24:39.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/redemption/validate",
+      "method": "POST",
+      "schema": "redemption_validate_output (merchant budget update payload)",
+      "example": {
+        "token": "1351fc4f-1dfb-4929-bf67-628c50cfd1dc",
+        "is_valid": true,
+        "redemption_id": "22f6d533-0013-4a36-b622-d919edb064ea",
+        "cashback_credited_eur": 0.75,
+        "merchant_budget": {
+          "merchant_id": "1c738d31-d822-4e7e-b70c-242a13740bb2",
+          "previous_budget": 120,
+          "deducted_amount": 2.17,
+          "remaining_budget": 117.83,
+          "updated_at_utc": "2026-04-26T03:21:54.109Z"
+        },
+        "validated_at_utc": "2026-04-26T03:21:54.109Z"
+      }
+    }
+  ]
+}

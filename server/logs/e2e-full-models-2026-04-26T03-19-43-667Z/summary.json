@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "base_url": "http://127.0.0.1:50011",
+  "log_directory": "/Users/rajdeep/Downloads/Team-Worldwide-HackNation2026/server/logs/e2e-full-models-2026-04-26T03-19-43-667Z",
+  "scenarios": [
+    {
+      "scenario": "scenario_a_lunch_rain",
+      "user_pseudonym": "usr_full_models_001",
+      "model_generated_intent_label": "quick_lunch_now",
+      "offer_used_fallback": false,
+      "offer_model_version": "nvidia/nemotron-3-super-120b-a12b:free",
+      "redemption_token_prefix": "1351fc4f-1df",
+      "merchant_budget_update": {
+        "merchant_id": "1c738d31-d822-4e7e-b70c-242a13740bb2",
+        "previous_budget": 120,
+        "deducted_amount": 2.17,
+        "remaining_budget": 117.83,
+        "updated_at_utc": "2026-04-26T03:21:54.109Z"
+      },
+      "wallet_cashback_balance_eur": 0.75,
+      "merchants_before_count": 9,
+      "merchants_after_count": 9
+    },
+    {
+      "scenario": "scenario_b_evening_events",
+      "user_pseudonym": "usr_full_models_002",
+      "model_generated_intent_label": "spend_money",
+      "offer_used_fallback": false,
+      "offer_model_version": "nvidia/nemotron-3-super-120b-a12b:free",
+      "redemption_token_prefix": "be365d64-e7e",
+      "merchant_budget_update": {
+        "merchant_id": "40770d25-e158-43f6-8dc8-3db43760aa88",
+        "previous_budget": 90,
+        "deducted_amount": 5,
+        "remaining_budget": 85,
+        "updated_at_utc": "2026-04-26T03:24:36.584Z"
+      },
+      "wallet_cashback_balance_eur": 0.75,
+      "merchants_before_count": 9,
+      "merchants_after_count": 9
+    }
+  ],
+  "completed_at_utc": "2026-04-26T03:24:39.323Z"
+}

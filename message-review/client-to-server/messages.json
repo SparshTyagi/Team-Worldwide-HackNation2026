@@ -1,0 +1,162 @@
+{
+  "sender": "client",
+  "receiver": "server",
+  "messages": [
+    {
+      "endpoint": "/v1/intent-signal",
+      "method": "POST",
+      "schema": "intent_signal_input",
+      "example": {
+        "intent_id": "intent_eda9433b-0070-48ff-a8d5-2a67337d1ba3",
+        "timestamp_utc": "2026-04-26T03:19:55.643Z",
+        "user_pseudonym": "usr_full_models_001",
+        "intent_label": "quick_lunch_now",
+        "intent_confidence": 0.85,
+        "receptivity_level": "high",
+        "time_budget_minutes": 18,
+        "mobility_mode": "walking",
+        "sensitivity_level": "low",
+        "tone_preference": "factual",
+        "hard_constraints": [
+          "max_spend_20",
+          "dietary_halal",
+          "dietary_nut_free"
+        ],
+        "locality": {
+          "radius_km": 2,
+          "area_cell_ids": [
+            "48.78:9.18",
+            "48.79:9.18",
+            "48.78:9.19"
+          ],
+          "nearby_merchant_ids": [
+            "m_3100",
+            "m_3102"
+          ]
+        },
+        "channel_hint": "push",
+        "client_profile_signals": {
+          "home_location": {
+            "lat": 48.765,
+            "lon": 9.162,
+            "label": "home_south"
+          },
+          "work_location": {
+            "lat": 48.779,
+            "lon": 9.176,
+            "label": "design_studio"
+          },
+          "usual_meal_times": {
+            "coffee": "09:20",
+            "lunch": "12:40",
+            "dinner": "20:00"
+          },
+          "food_preferences": {
+            "coffee": false,
+            "bakery": false,
+            "ramen": true,
+            "salads": true,
+            "wine_bars": false,
+            "gelato": false
+          },
+          "dietary_restrictions": [
+            "halal",
+            "nut_free"
+          ],
+          "preferred_cuisines": [
+            "japanese",
+            "healthy"
+          ],
+          "location_access": {
+            "precise_location": true,
+            "background_location": false
+          }
+        },
+        "context_snapshot": {
+          "now_utc": "2026-04-27T02:41:00.000Z",
+          "local_hour": 12,
+          "local_time_bucket": "lunch",
+          "weather_summary": "steady rain and windy",
+          "temperature_c": 11,
+          "event_intensity": "medium",
+          "events": [
+            {
+              "title": "Startup Expo Lunch Rush",
+              "category": "conference"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/v1/offers/active",
+      "method": "GET (query params)",
+      "schema": "get_active_offers_input",
+      "example": {
+        "user_pseudonym": "usr_full_models_001",
+        "channel": "in_app"
+      }
+    },
+    {
+      "endpoint": "/v1/offer/generate",
+      "method": "POST",
+      "schema": "offer_generate_input",
+      "example": {
+        "intent_packet": {
+          "intent_label": "quick_lunch_now",
+          "intent_confidence": 0.85,
+          "receptivity_level": "high",
+          "time_budget_minutes": 18,
+          "tone_preference": "factual",
+          "hard_constraints": [
+            "max_spend_20",
+            "dietary_halal",
+            "dietary_nut_free"
+          ]
+        },
+        "channel": "in_app",
+        "prompt_version": "offer_prompt_v1"
+      }
+    },
+    {
+      "endpoint": "/v1/offers/{offer_id}/decision",
+      "method": "POST",
+      "schema": "offer_decision_input",
+      "example": {
+        "offer_id": "22f6d533-0013-4a36-b622-d919edb064ea",
+        "user_pseudonym": "usr_full_models_001",
+        "decision": "accept",
+        "decision_timestamp_utc": "2026-04-26T03:21:30.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/redemption/create-token",
+      "method": "POST",
+      "schema": "redemption_create_token_input",
+      "example": {
+        "offer_id": "22f6d533-0013-4a36-b622-d919edb064ea",
+        "user_pseudonym": "usr_full_models_001",
+        "merchant_id": "m_3100",
+        "requested_at_utc": "2026-04-26T03:21:45.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/redemption/validate",
+      "method": "POST",
+      "schema": "redemption_validate_input",
+      "example": {
+        "token": "1351fc4f-1dfb-4929-bf67-628c50cfd1dc",
+        "merchant_id": "m_3100",
+        "validated_at_utc": "2026-04-26T03:21:54.109Z"
+      }
+    },
+    {
+      "endpoint": "/v1/wallet/cashback",
+      "method": "GET (query params)",
+      "schema": "wallet_cashback_input",
+      "example": {
+        "user_pseudonym": "usr_full_models_001"
+      }
+    }
+  ]
+}

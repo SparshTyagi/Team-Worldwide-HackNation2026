@@ -13,6 +13,28 @@ Current model in use:
 
 - Offer generation: `nvidia/nemotron-3-super:free`
 
+## Unified Module Structure
+
+Client and server now follow the same domain-first structure:
+
+- `user` domain: end-user intent, offers, redemption, and wallet flow
+- `merchant` domain: rules + dashboard flow
+- `shared` domain: common infrastructure (HTTP + AI utilities)
+
+Primary entry points:
+
+- Client unified API: `client/src/index.js`
+- Server unified handlers: `server/src/modules/`
+
+Legacy paths (`client/brain`, `client/llm`, `server/src/services`, `server/src/llm`) are still kept as compatibility shims.
+
+## JSON Formats
+
+Top-level JSON format templates are now under `json-formats/`:
+
+- `json-formats/client-profile.json`
+- `json-formats/merchant-profile.json`
+
 ## Client-Side LLM Setup (OpenRouter)
 
 Starter files were added:
@@ -90,22 +112,25 @@ Optional utility path:
 - `server/openrouter-proxy.js` (`/v1/offer/openrouter`) is a direct OpenRouter relay utility for browser-safe key handling.
 - It is not the canonical project orchestration endpoint for end-to-end judged flow.
 
-## React Native Client Brain (Roadmap-Aligned Hybrid)
+## Client Domains (User + Merchant)
 
-Implemented brain modules:
+Implemented client modules:
 
-- `client/brain/contracts/` - strict runtime validators + TypeScript type definitions
-- `client/brain/context/` - context collection and locality limiter generation
-- `client/brain/policy/` - consent gating and runtime channel controls
-- `client/brain/intent/` - deterministic intent classifier with confidence/fatigue fallback
-- `client/brain/orchestration/` - proxy integration, retries, fallback offers, and end-to-end brain flow
-- `client/brain/observability/` - local metrics recorder (latency/fallback/confidence)
-- `client/brain/storage/` - secure store adapter (replaceable with RN MMKV/Keychain)
+- `client/src/modules/user/` - user intent + offer orchestration, validation, and local brain helpers
+- `client/src/modules/merchant/` - merchant rules/dashboard API client
+- `client/src/shared/` - shared HTTP utility layer
+- `client/brain/` + `client/llm/` - compatibility entry points kept for existing scripts/tests
 
 Run end-to-end brain example:
 
 ```bash
 node client/brain/example-usage.js
+```
+
+Run merchant dashboard example:
+
+```bash
+node client/src/modules/merchant/example-usage.js
 ```
 
 Recommended local run order for canonical challenge flow:

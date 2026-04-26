@@ -1,0 +1,15 @@
+{
+  "scenario": "scenario_b_evening_events",
+  "method": "POST",
+  "path": "/v1/offers/520325b3-6aa6-4c03-8ee4-0397855e2995/decision",
+  "url": "http://127.0.0.1:50011/v1/offers/520325b3-6aa6-4c03-8ee4-0397855e2995/decision",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "user_pseudonym": "usr_full_models_002",
+    "decision": "accept",
+    "decision_timestamp_utc": "2026-04-26T03:24:34.713Z"
+  },
+  "at_utc": "2026-04-26T03:24:34.713Z"
+}

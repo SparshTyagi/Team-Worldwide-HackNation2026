@@ -1,0 +1,133 @@
+{
+  "sender": "server",
+  "receiver": "internal_system",
+  "messages": [
+    {
+      "endpoint": "/internal/context/ingest/weather",
+      "method": "POST",
+      "schema": "internal_context_ingest_output",
+      "example": {
+        "status": "ingested",
+        "records_ingested": 1,
+        "source": "weather",
+        "processed_at_utc": "2026-04-26T03:20:00.000Z"
+      }
+    },
+    {
+      "endpoint": "/internal/context/ingest/events",
+      "method": "POST",
+      "schema": "internal_context_ingest_output",
+      "example": {
+        "status": "ingested",
+        "records_ingested": 1,
+        "source": "events",
+        "processed_at_utc": "2026-04-26T03:20:00.000Z"
+      }
+    },
+    {
+      "endpoint": "/internal/context/ingest/payone-sim",
+      "method": "POST",
+      "schema": "internal_context_ingest_output",
+      "example": {
+        "status": "ingested",
+        "records_ingested": 1,
+        "source": "payone",
+        "processed_at_utc": "2026-04-26T03:20:00.000Z"
+      }
+    },
+    {
+      "endpoint": "/internal/generation/run",
+      "method": "POST",
+      "schema": "internal_generation_run_output",
+      "example": {
+        "offer_idempotency_key": "offer_1c738d31-20260427-lunch",
+        "headline": "Halal Nut-Free Healthy Lunch Special",
+        "body_line": "Enjoy a Japanese-inspired bowl, 15% off, valid 15 minutes.",
+        "cta_text": "Get Offer",
+        "discount_type": "percent_off",
+        "discount_value": 15,
+        "valid_for_minutes": 15,
+        "tone_style": "factual",
+        "ui_layout_variant": "standard",
+        "image_prompt": "A colorful halal nut-free Japanese healthy lunch bowl with vegetables and grilled chicken, steam rising, on a wooden table, soft lighting",
+        "justification": {
+          "why_now_factors": [
+            "intent_match",
+            "dietary_match",
+            "locality_match"
+          ],
+          "merchant_goal_alignment": "fill_quiet_hours"
+        },
+        "risk_flags": {
+          "needs_human_review": false,
+          "safety_notes": []
+        }
+      }
+    },
+    {
+      "endpoint": "/internal/merchant/scrape-profile",
+      "method": "POST",
+      "schema": "internal_merchant_scrape_profile_output",
+      "example": {
+        "merchant_id": "m_3100",
+        "category": "restaurant",
+        "opening_hours": [
+          "Mon-Fri 11:00-21:00",
+          "Sat-Sun 12:00-22:00"
+        ],
+        "tags": [
+          "healthy",
+          "lunch"
+        ],
+        "confidence": 0.88,
+        "status": "ok"
+      }
+    },
+    {
+      "endpoint": "/internal/merchants",
+      "method": "POST",
+      "schema": "internal_merchant_upsert_output",
+      "example": {
+        "merchant_id": "m_3100",
+        "status": "upserted",
+        "total_merchants": 9
+      }
+    },
+    {
+      "endpoint": "/internal/merchants",
+      "method": "GET",
+      "schema": "internal_merchants_list_output",
+      "example": {
+        "merchants": [
+          {
+            "merchant_id": "m_3100",
+            "name": "Green Fork Bistro",
+            "category": "restaurant",
+            "cuisine": "healthy",
+            "discount_events": [
+              "weekday_lunch",
+              "conference_days"
+            ],
+            "dietary_restrictions": [
+              "vegetarian",
+              "nut_free",
+              "halal"
+            ],
+            "hours": [
+              "Mon-Fri 11:00-21:00",
+              "Sat-Sun 12:00-22:00"
+            ],
+            "max_discount_value": 20,
+            "budget": 117.83,
+            "area_cell_id": "u0wtm3",
+            "lat": 48.7765,
+            "lon": 9.1815,
+            "is_open_now": true,
+            "price_band": "mid",
+            "avg_ticket_size_eur": 14.5
+          }
+        ]
+      }
+    }
+  ]
+}

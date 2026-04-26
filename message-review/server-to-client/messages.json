@@ -1,0 +1,132 @@
+{
+  "sender": "server",
+  "receiver": "client",
+  "messages": [
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "schema": "health_output",
+      "example": {
+        "ok": true,
+        "llm_model": "nvidia/nemotron-3-super-120b-a12b:free"
+      }
+    },
+    {
+      "endpoint": "/v1/intent-signal",
+      "method": "POST",
+      "schema": "intent_signal_output",
+      "example": {
+        "status": "accepted",
+        "intent_id": "intent_eda9433b-0070-48ff-a8d5-2a67337d1ba3",
+        "processed_at_utc": "2026-04-26T03:20:01.000Z",
+        "next_poll_after_seconds": 30
+      }
+    },
+    {
+      "endpoint": "/v1/offers/active",
+      "method": "GET",
+      "schema": "get_active_offers_output",
+      "example": {
+        "offers": [
+          {
+            "offer_id": "22f6d533-0013-4a36-b622-d919edb064ea",
+            "headline": "Halal Nut-Free Healthy Lunch Special",
+            "body_line": "Enjoy a Japanese-inspired bowl, 15% off, valid 15 minutes.",
+            "cta_text": "Get Offer",
+            "discount_type": "percent_off",
+            "discount_value": 15,
+            "valid_for_minutes": 15,
+            "tone_style": "factual",
+            "ui_layout_variant": "standard",
+            "expires_at_utc": "2026-04-26T03:36:17.000Z"
+          }
+        ],
+        "generated_at_utc": "2026-04-26T03:21:18.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/offer/generate",
+      "method": "POST",
+      "schema": "offer_generate_output",
+      "example": {
+        "offer": {
+          "offer_idempotency_key": "offer_1c738d31-20260427-lunch",
+          "headline": "Halal Nut-Free Healthy Lunch Special",
+          "body_line": "Enjoy a Japanese-inspired bowl, 15% off, valid 15 minutes.",
+          "cta_text": "Get Offer",
+          "discount_type": "percent_off",
+          "discount_value": 15,
+          "valid_for_minutes": 15,
+          "tone_style": "factual",
+          "ui_layout_variant": "standard",
+          "image_prompt": "A colorful halal nut-free Japanese healthy lunch bowl with vegetables and grilled chicken, steam rising, on a wooden table, soft lighting",
+          "justification": {
+            "why_now_factors": [
+              "Matches user dietary halal and nut-free, preferred cuisine japanese, fits quick lunch intent."
+            ],
+            "merchant_goal_alignment": "fill_quiet_hours"
+          },
+          "risk_flags": {
+            "needs_human_review": false,
+            "safety_notes": []
+          }
+        },
+        "model_version": "nvidia/nemotron-3-super-120b-a12b:free",
+        "prompt_version": "offer_prompt_v1",
+        "used_fallback": false
+      }
+    },
+    {
+      "endpoint": "/v1/offers/{offer_id}/decision",
+      "method": "POST",
+      "schema": "offer_decision_output",
+      "example": {
+        "offer_id": "22f6d533-0013-4a36-b622-d919edb064ea",
+        "status": "recorded",
+        "decision": "accept",
+        "recorded_at_utc": "2026-04-26T03:21:35.000Z"
+      }
+    },
+    {
+      "endpoint": "/v1/redemption/create-token",
+      "method": "POST",
+      "schema": "redemption_create_token_output",
+      "example": {
+        "offer_id": "22f6d533-0013-4a36-b622-d919edb064ea",
+        "token": "1351fc4f-1dfb-4929-bf67-628c50cfd1dc",
+        "qr_payload": "data:image/png;base64,...",
+        "expires_at_utc": "2026-04-26T03:24:45.000Z",
+        "ttl_seconds": 180
+      }
+    },
+    {
+      "endpoint": "/v1/redemption/validate",
+      "method": "POST",
+      "schema": "redemption_validate_output",
+      "example": {
+        "token": "1351fc4f-1dfb-4929-bf67-628c50cfd1dc",
+        "is_valid": true,
+        "redemption_id": "22f6d533-0013-4a36-b622-d919edb064ea",
+        "cashback_credited_eur": 0.75,
+        "merchant_budget": {
+          "merchant_id": "1c738d31-d822-4e7e-b70c-242a13740bb2",
+          "previous_budget": 120,
+          "deducted_amount": 2.17,
+          "remaining_budget": 117.83,
+          "updated_at_utc": "2026-04-26T03:21:54.109Z"
+        },
+        "validated_at_utc": "2026-04-26T03:21:54.109Z"
+      }
+    },
+    {
+      "endpoint": "/v1/wallet/cashback",
+      "method": "GET",
+      "schema": "wallet_cashback_output",
+      "example": {
+        "user_pseudonym": "usr_full_models_001",
+        "cashback_balance_eur": 0.75,
+        "updated_at_utc": "2026-04-26T03:22:00.000Z"
+      }
+    }
+  ]
+}

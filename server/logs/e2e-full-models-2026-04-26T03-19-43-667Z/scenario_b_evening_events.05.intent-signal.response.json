@@ -1,0 +1,12 @@
+{
+  "scenario": "scenario_b_evening_events",
+  "status": 200,
+  "ok": true,
+  "body": {
+    "status": "accepted",
+    "intent_id": "intent_1777173724169",
+    "processed_at_utc": "2026-04-26T03:22:04.169Z",
+    "next_poll_after_seconds": 30
+  },
+  "at_utc": "2026-04-26T03:22:04.170Z"
+}

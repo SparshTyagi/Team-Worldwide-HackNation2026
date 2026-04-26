@@ -1,0 +1,85 @@
+{
+  "sender": "internal_system",
+  "receiver": "server",
+  "messages": [
+    {
+      "endpoint": "/internal/context/ingest/weather",
+      "method": "POST",
+      "schema": "internal_context_ingest_weather_input",
+      "example": {
+        "city": "Stuttgart",
+        "area_cell_id": "u0wtm3",
+        "observed_at_utc": "2026-04-26T03:19:45.000Z",
+        "weather_summary": "steady rain and windy",
+        "temperature_c": 11,
+        "precipitation_mm": 2.4,
+        "condition": "rainy"
+      }
+    },
+    {
+      "endpoint": "/internal/context/ingest/events",
+      "method": "POST",
+      "schema": "internal_context_ingest_events_input",
+      "example": {
+        "city": "Stuttgart",
+        "area_cell_id": "u0wtm3",
+        "observed_at_utc": "2026-04-26T03:19:45.000Z",
+        "event_intensity": "medium",
+        "events": [
+          {
+            "event_id": "evt_001",
+            "title": "Startup Expo Lunch Rush",
+            "category": "conference",
+            "start_utc": "2026-04-26T03:00:00.000Z",
+            "end_utc": "2026-04-26T07:00:00.000Z"
+          }
+        ]
+      }
+    },
+    {
+      "endpoint": "/internal/context/ingest/payone-sim",
+      "method": "POST",
+      "schema": "internal_context_ingest_payone_sim_input",
+      "example": {
+        "merchant_id": "m_3100",
+        "snapshot_at_utc": "2026-04-26T03:19:45.000Z",
+        "merchant_transaction_density_index": 0.62,
+        "baseline_hourly_tx_count": 140,
+        "current_hour_tx_count": 98,
+        "quiet_hour_gap_pct": 30,
+        "avg_ticket_size_eur": 14.5
+      }
+    },
+    {
+      "endpoint": "/internal/generation/run",
+      "method": "POST",
+      "schema": "internal_generation_run_input",
+      "example_file": "server/json-templates/internal_generation_run_request.json"
+    },
+    {
+      "endpoint": "/internal/merchant/scrape-profile",
+      "method": "POST",
+      "schema": "internal_merchant_scrape_profile_input",
+      "example": {
+        "merchant_id": "m_3100",
+        "google_maps_url": "https://maps.google.com/?q=Green+Fork+Bistro",
+        "requested_by": "ops_console",
+        "request_id": "req_scrape_001"
+      }
+    },
+    {
+      "endpoint": "/internal/merchants",
+      "method": "POST",
+      "schema": "internal_merchant_upsert_input",
+      "example_file": "json-formats/merchant-profile.json"
+    },
+    {
+      "endpoint": "/internal/merchants",
+      "method": "GET (query params)",
+      "schema": "internal_merchants_list_input",
+      "example": {
+        "merchant_id": "m_3100"
+      }
+    }
+  ]
+}

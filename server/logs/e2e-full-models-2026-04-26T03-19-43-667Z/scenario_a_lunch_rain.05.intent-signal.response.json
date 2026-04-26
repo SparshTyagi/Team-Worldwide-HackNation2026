@@ -1,0 +1,12 @@
+{
+  "scenario": "scenario_a_lunch_rain",
+  "status": 200,
+  "ok": true,
+  "body": {
+    "status": "accepted",
+    "intent_id": "intent_1777173597233",
+    "processed_at_utc": "2026-04-26T03:19:57.234Z",
+    "next_poll_after_seconds": 30
+  },
+  "at_utc": "2026-04-26T03:19:57.235Z"
+}

@@ -1,0 +1,95 @@
+{
+  "scenario": "scenario_b_evening_events",
+  "method": "POST",
+  "path": "/v1/intent-signal",
+  "url": "http://127.0.0.1:50011/v1/intent-signal",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "intent_id": "intent_3e362be8-2e22-43a8-8d3d-202cec7d3a88",
+    "timestamp_utc": "2026-04-26T03:22:02.746Z",
+    "user_pseudonym": "usr_full_models_002",
+    "intent_label": "spend_money",
+    "intent_confidence": 0.92,
+    "receptivity_level": "high",
+    "time_budget_minutes": 28,
+    "mobility_mode": "stationary",
+    "sensitivity_level": "medium",
+    "tone_preference": "playful",
+    "hard_constraints": [
+      "avoid_high_sugar",
+      "dietary_low_sugar"
+    ],
+    "locality": {
+      "radius_km": 2,
+      "area_cell_ids": [
+        "48.78:9.19",
+        "48.79:9.19",
+        "48.78:9.2"
+      ],
+      "nearby_merchant_ids": [
+        "m_3101",
+        "m_3100"
+      ]
+    },
+    "channel_hint": "push",
+    "client_profile_signals": {
+      "home_location": {
+        "lat": 48.7862,
+        "lon": 9.195,
+        "label": "north_home"
+      },
+      "work_location": {
+        "lat": 48.781,
+        "lon": 9.173,
+        "label": "cowork"
+      },
+      "usual_meal_times": {
+        "coffee": "10:00",
+        "lunch": "13:10",
+        "dinner": "19:45"
+      },
+      "food_preferences": {
+        "coffee": false,
+        "bakery": true,
+        "ramen": false,
+        "salads": false,
+        "wine_bars": true,
+        "gelato": true
+      },
+      "dietary_restrictions": [
+        "low_sugar"
+      ],
+      "preferred_cuisines": [
+        "wine_bar",
+        "dessert",
+        "cafe",
+        "bakery"
+      ],
+      "location_access": {
+        "precise_location": true,
+        "background_location": true
+      }
+    },
+    "context_snapshot": {
+      "now_utc": "2026-05-02T09:18:00.000Z",
+      "local_hour": 19,
+      "local_time_bucket": "evening",
+      "weather_summary": "clear mild evening",
+      "temperature_c": 21,
+      "event_intensity": "high",
+      "events": [
+        {
+          "title": "Riverside Live Music",
+          "category": "music"
+        },
+        {
+          "title": "Night Market",
+          "category": "market"
+        }
+      ]
+    }
+  },
+  "at_utc": "2026-04-26T03:22:03.128Z"
+}

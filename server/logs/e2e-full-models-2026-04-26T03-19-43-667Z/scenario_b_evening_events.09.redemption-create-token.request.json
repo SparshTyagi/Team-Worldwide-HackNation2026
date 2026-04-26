@@ -1,0 +1,16 @@
+{
+  "scenario": "scenario_b_evening_events",
+  "method": "POST",
+  "path": "/v1/redemption/create-token",
+  "url": "http://127.0.0.1:50011/v1/redemption/create-token",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "offer_id": "520325b3-6aa6-4c03-8ee4-0397855e2995",
+    "user_pseudonym": "usr_full_models_002",
+    "merchant_id": "m_3100",
+    "requested_at_utc": "2026-04-26T03:24:35.656Z"
+  },
+  "at_utc": "2026-04-26T03:24:35.656Z"
+}

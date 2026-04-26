@@ -4,11 +4,19 @@
   "merchant_profile": {
     "merchant_id": "m_1021",
     "category": "cafe",
+    "cuisine": "cafe",
+    "discount_events": ["happy_hour", "weekend_brunch", "local_festival"],
+    "dietary_restrictions": ["vegan", "vegetarian", "gluten_free"],
+    "hours": ["Mon-Fri 08:00-20:00", "Sat-Sun 09:00-18:00"],
+    "max_discount_value": 20,
+    "budget": 500,
     "is_open_now": true,
     "price_band": "mid"
   },
   "constraints": {
     "max_discount_pct": 20,
+    "max_discount_value": 20,
+    "budget": 500,
     "campaign_goal": "fill_quiet_hours",
     "excluded_skus": [
       "alcohol"
@@ -21,15 +29,25 @@
     "receptivity_level": "high",
     "time_budget_minutes": 12,
     "tone_preference": "emotional",
+    "dietary_restrictions": ["vegetarian"],
+    "preferred_cuisines": ["cafe", "bakery"],
     "hard_constraints": [
       "vegetarian_only"
     ]
   },
   "context_snapshot": {
+    "now_utc": "2026-04-26T02:30:00.000Z",
     "weather_summary": "11C overcast",
+    "temperature_c": 11,
     "demand_gap_pct": 38,
     "event_intensity": "low",
-    "local_time_bucket": "lunch"
+    "local_time_bucket": "lunch",
+    "events": [
+      {
+        "title": "Sunday Street Music",
+        "category": "music"
+      }
+    ]
   },
   "channel_context": {
     "channel": "push",

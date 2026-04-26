@@ -1,0 +1,15 @@
+{
+  "scenario": "scenario_a_lunch_rain",
+  "method": "POST",
+  "path": "/v1/offers/a15334f3-f633-425c-8f45-96f073526682/decision",
+  "url": "http://127.0.0.1:50011/v1/offers/a15334f3-f633-425c-8f45-96f073526682/decision",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "user_pseudonym": "usr_full_models_001",
+    "decision": "accept",
+    "decision_timestamp_utc": "2026-04-26T03:21:52.160Z"
+  },
+  "at_utc": "2026-04-26T03:21:52.160Z"
+}

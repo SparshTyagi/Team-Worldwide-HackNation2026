@@ -1,0 +1,20 @@
+{
+  "scenario": "scenario_b_evening_events",
+  "status": 200,
+  "ok": true,
+  "body": {
+    "token": "be365d64-e7e3-4ea6-8c3d-647076da862c",
+    "is_valid": true,
+    "redemption_id": "06030cfb-38f7-42e1-80f8-2701024e1406",
+    "cashback_credited_eur": 0.75,
+    "merchant_budget": {
+      "merchant_id": "40770d25-e158-43f6-8dc8-3db43760aa88",
+      "previous_budget": 90,
+      "deducted_amount": 5,
+      "remaining_budget": 85,
+      "updated_at_utc": "2026-04-26T03:24:36.584Z"
+    },
+    "validated_at_utc": "2026-04-26T03:24:36.584Z"
+  },
+  "at_utc": "2026-04-26T03:24:38.118Z"
+}

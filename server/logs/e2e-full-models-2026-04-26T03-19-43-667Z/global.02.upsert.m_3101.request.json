@@ -1,0 +1,36 @@
+{
+  "scenario": "global",
+  "method": "POST",
+  "path": "/internal/merchants",
+  "url": "http://127.0.0.1:50011/internal/merchants",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "merchant_id": "m_3101",
+    "name": "Stadtbad Sauna Snack",
+    "category": "wellness_cafe",
+    "cuisine": "cafe",
+    "discount_events": [
+      "morning_rush",
+      "post_gym"
+    ],
+    "dietary_restrictions": [
+      "vegan",
+      "dairy_free",
+      "low_sugar"
+    ],
+    "hours": [
+      "Mon-Sun 08:00-20:00"
+    ],
+    "max_discount_value": 15,
+    "budget": 90,
+    "area_cell_id": "u0wtm3",
+    "lat": 48.778,
+    "lon": 9.184,
+    "is_open_now": true,
+    "price_band": "premium",
+    "avg_ticket_size_eur": 9.9
+  },
+  "at_utc": "2026-04-26T03:19:48.125Z"
+}

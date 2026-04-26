@@ -1,0 +1,36 @@
+{
+  "user_pseudonym": "usr_12345",
+  "offer_tone": "friendly",
+  "hard_constraints": [
+    "no_alcohol"
+  ],
+  "time_budget_minutes": 15,
+  "home_location": {
+    "lat": 48.7752,
+    "lon": 9.1804,
+    "label": "home"
+  },
+  "work_location": {
+    "lat": 48.7831,
+    "lon": 9.1775,
+    "label": "office"
+  },
+  "usual_meal_times": {
+    "coffee": "09:00",
+    "lunch": "12:30",
+    "dinner": "19:00"
+  },
+  "food_preferences": {
+    "coffee": true,
+    "bakery": true,
+    "ramen": true,
+    "salads": false,
+    "wine_bars": false,
+    "gelato": true
+  },
+  "dietary_restrictions": ["vegetarian", "nut_free", "low_sugar"],
+  "location_access": {
+    "precise_location": true,
+    "background_location": false
+  }
+}

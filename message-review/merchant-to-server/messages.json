@@ -1,0 +1,61 @@
+{
+  "sender": "merchant",
+  "receiver": "server",
+  "messages": [
+    {
+      "endpoint": "/v1/merchant/rules",
+      "method": "POST",
+      "schema": "merchant_rules_create_input",
+      "example": {
+        "merchant_id": "m_3100",
+        "campaign_goal": "fill_quiet_hours",
+        "constraints": {
+          "max_discount_pct": 20,
+          "max_offer_validity_minutes": 15,
+          "excluded_skus": []
+        }
+      }
+    },
+    {
+      "endpoint": "/v1/merchant/rules/{merchant_rule_id}",
+      "method": "PATCH",
+      "schema": "merchant_rules_patch_input",
+      "example": {
+        "merchant_rule_id": "mr_1714090000000",
+        "merchant_id": "m_3100",
+        "campaign_goal": "boost_evening_walkins",
+        "constraints": {
+          "max_discount_pct": 15,
+          "max_offer_validity_minutes": 20,
+          "excluded_skus": [
+            "alcohol"
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/v1/merchant/dashboard/overview",
+      "method": "GET (query params)",
+      "schema": "merchant_dashboard_input",
+      "example": {
+        "merchant_id": "m_3100"
+      }
+    },
+    {
+      "endpoint": "/v1/merchant/dashboard/funnel",
+      "method": "GET (query params)",
+      "schema": "merchant_dashboard_input",
+      "example": {
+        "merchant_id": "m_3100"
+      }
+    },
+    {
+      "endpoint": "/v1/merchant/dashboard/context-performance",
+      "method": "GET (query params)",
+      "schema": "merchant_dashboard_input",
+      "example": {
+        "merchant_id": "m_3100"
+      }
+    }
+  ]
+}

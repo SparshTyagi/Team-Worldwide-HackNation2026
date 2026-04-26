@@ -51,6 +51,7 @@ export const config = {
   supabaseKey: process.env.SUPABASE_KEY,
   tavilyApiKey: process.env.TAVILY_API_KEY,
   llmModel:
+    process.env.OPENROUTER_SERVER_LARGE_MODEL ||
     process.env.OPENROUTER_OFFER_MODEL ||
     process.env.OPENROUTEROFFERMODEL ||
     process.env.OPENROUTER_MODEL ||

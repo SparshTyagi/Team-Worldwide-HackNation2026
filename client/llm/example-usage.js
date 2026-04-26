@@ -1,4 +1,4 @@
-const { generateOfferCard } = require("./offer-generator.js");
+const { generateOfferCard } = require("../src/modules/user/ai/offer-generator.js");
 
 const env = {
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,

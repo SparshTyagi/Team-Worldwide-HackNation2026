@@ -34,6 +34,40 @@ export interface IntentPacket {
   hard_constraints: string[];
   locality: LocalityLimiter;
   channel_hint?: "push" | "in_app_only" | "in_app" | "widget";
+  client_profile_signals?: {
+    home_location?: { lat: number; lon: number; label?: string } | null;
+    work_location?: { lat: number; lon: number; label?: string } | null;
+    usual_meal_times?: {
+      coffee?: string;
+      lunch?: string;
+      dinner?: string;
+    } | null;
+    food_preferences?: {
+      coffee?: boolean;
+      bakery?: boolean;
+      ramen?: boolean;
+      salads?: boolean;
+      wine_bars?: boolean;
+      gelato?: boolean;
+    } | null;
+    dietary_restrictions?: Array<
+      "vegan" | "vegetarian" | "gluten_free" | "halal" | "kosher" | "nut_free" | "dairy_free" | "low_sugar"
+    >;
+    preferred_cuisines?: string[];
+    location_access?: {
+      precise_location?: boolean;
+      background_location?: boolean;
+    } | null;
+  };
+  context_snapshot?: {
+    now_utc?: string;
+    local_hour?: number;
+    local_time_bucket?: string;
+    weather_summary?: string;
+    temperature_c?: number | null;
+    event_intensity?: string;
+    events?: Array<{ title: string; category: string }>;
+  };
 }
 
 export interface OfferCard {

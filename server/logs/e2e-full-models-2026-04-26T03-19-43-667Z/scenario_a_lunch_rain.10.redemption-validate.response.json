@@ -1,0 +1,20 @@
+{
+  "scenario": "scenario_a_lunch_rain",
+  "status": 200,
+  "ok": true,
+  "body": {
+    "token": "1351fc4f-1dfb-4929-bf67-628c50cfd1dc",
+    "is_valid": true,
+    "redemption_id": "22f6d533-0013-4a36-b622-d919edb064ea",
+    "cashback_credited_eur": 0.75,
+    "merchant_budget": {
+      "merchant_id": "1c738d31-d822-4e7e-b70c-242a13740bb2",
+      "previous_budget": 120,
+      "deducted_amount": 2.17,
+      "remaining_budget": 117.83,
+      "updated_at_utc": "2026-04-26T03:21:54.109Z"
+    },
+    "validated_at_utc": "2026-04-26T03:21:54.109Z"
+  },
+  "at_utc": "2026-04-26T03:21:55.647Z"
+}

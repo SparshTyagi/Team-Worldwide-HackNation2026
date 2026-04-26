@@ -1,0 +1,15 @@
+{
+  "scenario": "scenario_a_lunch_rain",
+  "method": "POST",
+  "path": "/v1/redemption/validate",
+  "url": "http://127.0.0.1:50011/v1/redemption/validate",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "token": "1351fc4f-1dfb-4929-bf67-628c50cfd1dc",
+    "merchant_id": "m_3100",
+    "validated_at_utc": "2026-04-26T03:21:53.806Z"
+  },
+  "at_utc": "2026-04-26T03:21:53.806Z"
+}

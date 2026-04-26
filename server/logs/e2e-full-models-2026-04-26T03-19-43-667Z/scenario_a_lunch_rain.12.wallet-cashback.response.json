@@ -1,0 +1,11 @@
+{
+  "scenario": "scenario_a_lunch_rain",
+  "status": 200,
+  "ok": true,
+  "body": {
+    "user_pseudonym": "usr_full_models_001",
+    "cashback_balance_eur": 0.75,
+    "updated_at_utc": "2026-04-26T03:21:56.641Z"
+  },
+  "at_utc": "2026-04-26T03:21:56.642Z"
+}

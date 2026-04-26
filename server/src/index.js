@@ -11,14 +11,14 @@ import {
   createRedemptionToken,
   validateRedemption,
   getCashback,
-} from "./services/offer-service.js";
+} from "./modules/user/service.js";
 import {
   createRules,
   patchRules,
   dashboardOverview,
   dashboardFunnel,
   dashboardContextPerformance,
-} from "./services/merchant-service.js";
+} from "./modules/merchant/service.js";
 import {
   ingestWeather,
   ingestEvents,
@@ -30,6 +30,7 @@ import {
 } from "./services/internal-service.js";
 import { register, login, logout } from "./services/auth-service.js";
 import { extractCaller, requireAuth, requireRole } from "./middleware/auth.js";
+} from "./services/internal-service.js";
 
 function notFound(res) {
   sendJson(res, 404, { error: "not_found" });

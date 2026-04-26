@@ -1,0 +1,10 @@
+{
+  "model": "nemotron-3-nano:4b",
+  "stream": false,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Reply exactly with: local intent model ready"
+    }
+  ]
+}

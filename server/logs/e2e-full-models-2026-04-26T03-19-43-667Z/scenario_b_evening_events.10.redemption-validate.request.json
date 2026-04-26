@@ -1,0 +1,15 @@
+{
+  "scenario": "scenario_b_evening_events",
+  "method": "POST",
+  "path": "/v1/redemption/validate",
+  "url": "http://127.0.0.1:50011/v1/redemption/validate",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "token": "be365d64-e7e3-4ea6-8c3d-647076da862c",
+    "merchant_id": "m_3100",
+    "validated_at_utc": "2026-04-26T03:24:36.269Z"
+  },
+  "at_utc": "2026-04-26T03:24:36.269Z"
+}

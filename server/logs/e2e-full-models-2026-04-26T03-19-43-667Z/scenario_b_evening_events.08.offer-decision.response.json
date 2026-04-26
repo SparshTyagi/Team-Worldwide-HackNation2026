@@ -1,0 +1,12 @@
+{
+  "scenario": "scenario_b_evening_events",
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offer_id": "520325b3-6aa6-4c03-8ee4-0397855e2995",
+    "status": "recorded",
+    "decision": "accept",
+    "recorded_at_utc": "2026-04-26T03:24:35.654Z"
+  },
+  "at_utc": "2026-04-26T03:24:35.655Z"
+}

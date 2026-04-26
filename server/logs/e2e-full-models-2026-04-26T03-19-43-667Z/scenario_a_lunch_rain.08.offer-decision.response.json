@@ -1,0 +1,12 @@
+{
+  "scenario": "scenario_a_lunch_rain",
+  "status": 200,
+  "ok": true,
+  "body": {
+    "offer_id": "a15334f3-f633-425c-8f45-96f073526682",
+    "status": "recorded",
+    "decision": "accept",
+    "recorded_at_utc": "2026-04-26T03:21:53.151Z"
+  },
+  "at_utc": "2026-04-26T03:21:53.153Z"
+}

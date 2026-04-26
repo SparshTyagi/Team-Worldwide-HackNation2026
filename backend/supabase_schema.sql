@@ -41,6 +41,9 @@ CREATE TABLE profiles (
     created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+COMMENT ON COLUMN merchants.business_hours IS
+  'JSONB merchant profile fields: cuisine, discount_events, dietary_restrictions, hours, max_discount_value, budget';
+
 -- Intents Table
 CREATE TABLE intents (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

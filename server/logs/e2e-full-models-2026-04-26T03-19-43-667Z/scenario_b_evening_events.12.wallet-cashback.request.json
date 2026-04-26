@@ -1,0 +1,9 @@
+{
+  "scenario": "scenario_b_evening_events",
+  "method": "GET",
+  "path": "/v1/wallet/cashback?user_pseudonym=usr_full_models_002",
+  "url": "http://127.0.0.1:50011/v1/wallet/cashback?user_pseudonym=usr_full_models_002",
+  "headers": {},
+  "body": null,
+  "at_utc": "2026-04-26T03:24:38.428Z"
+}

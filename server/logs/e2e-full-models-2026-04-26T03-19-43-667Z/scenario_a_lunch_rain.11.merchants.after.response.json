@@ -1,0 +1,203 @@
+{
+  "scenario": "scenario_a_lunch_rain",
+  "status": 200,
+  "ok": true,
+  "body": {
+    "merchants": [
+      {
+        "merchant_id": "m_e2e_01",
+        "name": "E2E Test Cafe",
+        "category": "cafe",
+        "cuisine": "unknown",
+        "discount_events": [],
+        "dietary_restrictions": [],
+        "hours": [
+          "Unknown"
+        ],
+        "max_discount_value": 0,
+        "budget": 0,
+        "area_cell_id": "u0wtm3",
+        "lat": 48.7758,
+        "lon": 9.1829,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 9.5
+      },
+      {
+        "merchant_id": "b18f0c6f-a940-4773-8dac-af6363dfedc4",
+        "name": "E2E Test Cafe",
+        "category": "uncategorized",
+        "cuisine": "unknown",
+        "discount_events": [],
+        "dietary_restrictions": [],
+        "hours": [
+          "Unknown"
+        ],
+        "max_discount_value": 0,
+        "budget": 0,
+        "area_cell_id": "u0wtm0",
+        "lat": 0,
+        "lon": 0,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 0
+      },
+      {
+        "merchant_id": "b18f0c6f-a940-4773-8dac-af6363dfedc4",
+        "name": "E2E Test Cafe",
+        "category": "cafe",
+        "cuisine": "unknown",
+        "discount_events": [],
+        "dietary_restrictions": [],
+        "hours": [
+          "Unknown"
+        ],
+        "max_discount_value": 0,
+        "budget": 0,
+        "area_cell_id": "u0wtm3",
+        "lat": 48.7758,
+        "lon": 9.1829,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 9.5
+      },
+      {
+        "merchant_id": "8bdf5686-1360-417a-bdbb-be4492004f4f",
+        "name": "E2E Test Cafe",
+        "category": "uncategorized",
+        "cuisine": "unknown",
+        "discount_events": [],
+        "dietary_restrictions": [],
+        "hours": [
+          "Unknown"
+        ],
+        "max_discount_value": 0,
+        "budget": 0,
+        "area_cell_id": "u0wtm0",
+        "lat": 0,
+        "lon": 0,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 0
+      },
+      {
+        "merchant_id": "8bdf5686-1360-417a-bdbb-be4492004f4f",
+        "name": "E2E Test Cafe",
+        "category": "cafe",
+        "cuisine": "unknown",
+        "discount_events": [],
+        "dietary_restrictions": [],
+        "hours": [
+          "Unknown"
+        ],
+        "max_discount_value": 0,
+        "budget": 0,
+        "area_cell_id": "u0wtm3",
+        "lat": 48.7758,
+        "lon": 9.1829,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 9.5
+      },
+      {
+        "merchant_id": "ebe9ccaa-04a0-482d-b561-85137c619aa3",
+        "name": "E2E Logs Merchant",
+        "category": "uncategorized",
+        "cuisine": "unknown",
+        "discount_events": [],
+        "dietary_restrictions": [],
+        "hours": [
+          "Unknown"
+        ],
+        "max_discount_value": 0,
+        "budget": 0,
+        "area_cell_id": "u0wtm0",
+        "lat": 0,
+        "lon": 0,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 0
+      },
+      {
+        "merchant_id": "m_3101",
+        "name": "Stadtbad Sauna Snack",
+        "category": "wellness_cafe",
+        "cuisine": "cafe",
+        "discount_events": [
+          "morning_rush",
+          "post_gym"
+        ],
+        "dietary_restrictions": [
+          "vegan",
+          "dairy_free",
+          "low_sugar"
+        ],
+        "hours": [
+          "Mon-Sun 08:00-20:00"
+        ],
+        "max_discount_value": 15,
+        "budget": 90,
+        "area_cell_id": "u0wtm3",
+        "lat": 48.778,
+        "lon": 9.184,
+        "is_open_now": true,
+        "price_band": "premium",
+        "avg_ticket_size_eur": 9.9
+      },
+      {
+        "merchant_id": "m_3102",
+        "name": "Markthalle Quick Bite",
+        "category": "fast_casual",
+        "cuisine": "japanese",
+        "discount_events": [
+          "market_day",
+          "late_lunch"
+        ],
+        "dietary_restrictions": [
+          "halal",
+          "vegetarian"
+        ],
+        "hours": [
+          "Mon-Fri 10:00-19:00",
+          "Sat 10:00-16:00"
+        ],
+        "max_discount_value": 10,
+        "budget": 80,
+        "area_cell_id": "u0wtm6",
+        "lat": 48.781,
+        "lon": 9.1785,
+        "is_open_now": true,
+        "price_band": "budget",
+        "avg_ticket_size_eur": 7.25
+      },
+      {
+        "merchant_id": "m_3100",
+        "name": "Green Fork Bistro",
+        "category": "restaurant",
+        "cuisine": "healthy",
+        "discount_events": [
+          "weekday_lunch",
+          "conference_days"
+        ],
+        "dietary_restrictions": [
+          "vegetarian",
+          "nut_free",
+          "halal"
+        ],
+        "hours": [
+          "Mon-Fri 11:00-21:00",
+          "Sat-Sun 12:00-22:00"
+        ],
+        "max_discount_value": 20,
+        "budget": 117.83,
+        "area_cell_id": "u0wtm3",
+        "lat": 48.7765,
+        "lon": 9.1815,
+        "is_open_now": true,
+        "price_band": "mid",
+        "avg_ticket_size_eur": 14.5
+      }
+    ]
+  },
+  "at_utc": "2026-04-26T03:21:56.022Z"
+}
