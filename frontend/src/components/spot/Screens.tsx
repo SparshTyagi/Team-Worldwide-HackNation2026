@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Phone, StatusBar } from "@/components/spot/Phone";
 import { SpotLogo, MapStylized, HandPin, QrCode } from "@/components/spot/Visuals";
@@ -91,57 +92,68 @@ export function S02Pins() {
           Drop two pins. We'll trace your natural path between them.
         </p>
       </div>
-      <div className="relative flex-1 mx-4 rounded-3xl overflow-hidden border border-[var(--border)]">
-        <div className="relative w-full h-full spot-map-clean overflow-hidden">
-          {/* Sequential dashed routes — Home → Work, then Work → Tony's.
-              SVG viewBox uses 0..100 normalized space and stretches with the container so
-              that path coords match the pin percentages exactly. */}
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {/* Home (20,18) -> Work (80,78) */}
-            <path
-              d="M20 18 C 38 38, 58 56, 80 78"
-              stroke="var(--terracotta)"
-              strokeWidth="0.8"
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray="0.8 2.4"
-              vectorEffect="non-scaling-stroke"
-              pathLength={1}
-              className="draw-path"
-              style={{ strokeWidth: 3 } as any}
-            />
-            {/* Work (80,78) -> Tony's (22,70) */}
-            <path
-              d="M80 78 C 60 78, 40 76, 22 70"
-              stroke="var(--forest)"
-              strokeWidth="0.8"
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray="0.8 2.4"
-              vectorEffect="non-scaling-stroke"
-              pathLength={1}
-              className="draw-path-2"
-              style={{ strokeWidth: 3 } as any}
-            />
-          </svg>
+      <div className="relative flex-1 min-h-[420px] mx-4 rounded-3xl overflow-hidden border border-[var(--border)] spot-map-clean">
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {/* Path 1: Home → Work */}
+          <motion.path
+            d="M 20 18 Q 50 30 80 78"
+            stroke="var(--terracotta)"
+            strokeWidth="0.8"
+            strokeLinecap="round"
+            strokeDasharray="2 2"
+            fill="none"
+            vectorEffect="non-scaling-stroke"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.95 }}
+            transition={{ duration: 1.2, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            style={{ strokeWidth: 3 } as any}
+          />
+          {/* Path 2: Work → Tony's */}
+          <motion.path
+            d="M 80 78 Q 50 80 22 70"
+            stroke="var(--forest)"
+            strokeWidth="0.8"
+            strokeLinecap="round"
+            strokeDasharray="2 2"
+            fill="none"
+            vectorEffect="non-scaling-stroke"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.95 }}
+            transition={{ duration: 1.2, delay: 2.6, ease: [0.22, 1, 0.36, 1] }}
+            style={{ strokeWidth: 3 } as any}
+          />
+        </svg>
 
-          {/* Pins — outer wrapper handles positioning (transform places pin TIP on coord),
-              inner wrapper handles drop-in animation so they don't fight over transform. */}
-          <div className="absolute" style={{ left: "20%", top: "18%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "200ms" }}>
-              <HandPin label="Home" color="var(--forest)" />
-            </div>
-          </div>
-          <div className="absolute" style={{ left: "80%", top: "78%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "1900ms" }}>
-              <HandPin label="Work" color="var(--terracotta)" />
-            </div>
-          </div>
-          <div className="absolute" style={{ left: "22%", top: "70%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "3700ms" }}>
-              <HandPin label="Tony's ☕" color="var(--sand)" pulsing />
-            </div>
-          </div>
+        {/* Pins — absolute pos via outer; drop animation on inner via Framer Motion */}
+        <div className="absolute" style={{ left: "20%", top: "18%" }}>
+          <motion.div
+            initial={{ y: -40, opacity: 0, scale: 0.6 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ transform: "translate(-50%, -42px)" }}
+          >
+            <HandPin label="Home" color="var(--forest)" />
+          </motion.div>
+        </div>
+        <div className="absolute" style={{ left: "80%", top: "78%" }}>
+          <motion.div
+            initial={{ y: -40, opacity: 0, scale: 0.6 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ delay: 1.9, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ transform: "translate(-50%, -42px)" }}
+          >
+            <HandPin label="Work" color="var(--terracotta)" />
+          </motion.div>
+        </div>
+        <div className="absolute" style={{ left: "22%", top: "70%" }}>
+          <motion.div
+            initial={{ y: -40, opacity: 0, scale: 0.6 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ delay: 3.6, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ transform: "translate(-50%, -42px)" }}
+          >
+            <HandPin label="Tony's ☕" color="var(--sand)" pulsing />
+          </motion.div>
         </div>
       </div>
       <div className="p-5">
@@ -161,11 +173,32 @@ export function S03Meals() {
   const fmtTime = (v: number) => { const h = Math.floor(6 + v * 16); const m = Math.floor(((6 + v * 16) - h) * 60); return `${String(h).padStart(2,"0")}:${String(Math.round(m / 5) * 5).padStart(2,"0")}`; };
   const startDrag = (i: number) => (e: React.PointerEvent) => {
     e.preventDefault();
-    const track = (e.currentTarget as HTMLElement);
-    const move = (ev: PointerEvent) => { const r = track.getBoundingClientRect(); setVals(p => { const n=[...p]; n[i]=Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)); return n; }); };
-    move(e.nativeEvent);
-    const up = () => { window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up); };
-    window.addEventListener("pointermove",move); window.addEventListener("pointerup",up);
+    const track = e.currentTarget as HTMLElement;
+    track.setPointerCapture?.(e.pointerId);
+    let raf = 0;
+    let pendingX = e.clientX;
+    const update = () => {
+      const r = track.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (pendingX - r.left) / r.width));
+      setVals(p => { const n = [...p]; n[i] = x; return n; });
+      raf = 0;
+    };
+    const onMove = (ev: PointerEvent) => {
+      pendingX = ev.clientX;
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    const onUp = (ev: PointerEvent) => {
+      track.releasePointerCapture?.(ev.pointerId);
+      track.removeEventListener("pointermove", onMove);
+      track.removeEventListener("pointerup", onUp);
+      track.removeEventListener("pointercancel", onUp);
+      if (raf) cancelAnimationFrame(raf);
+    };
+    track.addEventListener("pointermove", onMove);
+    track.addEventListener("pointerup", onUp);
+    track.addEventListener("pointercancel", onUp);
+    pendingX = e.clientX;
+    update();
   };
   const railIcons = [<Coffee size={15} />, <UtensilsCrossed size={15} />, <Wine size={15} />];
   const railLabels = ["Coffee", "Lunch", "Dinner"];
@@ -186,7 +219,7 @@ export function S03Meals() {
               <div className="font-display text-[16px] text-[var(--terracotta)]">{fmtTime(vals[i])}</div>
             </div>
             <div className="rail-track mt-2.5" onPointerDown={startDrag(i)} style={{ touchAction: "none", cursor: "pointer" }}>
-              <div className="rail-base" /><div className="rail-fill" style={{ width: `${vals[i]*100}%` }} />
+              <div className="rail-base" /><div className="rail-fill" style={{ left: `${Math.max(0, vals[i]-0.06)*100}%`, width: `${(Math.min(1, vals[i]+0.06) - Math.max(0, vals[i]-0.06))*100}%` }} />
               {[0,0.25,0.5,0.75,1].map(t => <span key={t} className="rail-tick" style={{ left: `${t*100}%` }} />)}
               <span className="rail-thumb" style={{ left: `${vals[i]*100}%` }} />
             </div>
@@ -196,10 +229,10 @@ export function S03Meals() {
       </div>
       <div className="px-6 mt-3">
         <div className="text-[10px] font-semibold tracking-widest text-[var(--forest)]/55 mb-1.5">TASTES YOU TRUST</div>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {chipNames.map((l, i) => (
             <span key={l} onClick={() => setChips(p => { const n=[...p]; n[i]=!n[i]; return n; })}
-              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all cursor-pointer ${
+              className={`inline-flex items-center px-4 py-2 rounded-full text-[13px] font-medium border transition-all cursor-pointer active:scale-95 ${
                 chips[i] ? "bg-[var(--forest)] text-white border-[var(--forest)]" : "bg-white text-[var(--forest)] border-[var(--border)]"
               }`}>{l}</span>
           ))}
@@ -558,17 +591,17 @@ export function S07Walk() {
 
           {/* Pins — outer wrapper places pin TIP on coord, inner wrapper animates drop */}
           <div className="absolute" style={{ left: "24%", top: "65%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "1700ms" }}>
+            <div className="pin-drop" style={{ animationDelay: "600ms" }}>
               <HandPin color="var(--forest)" pulsing label="Tony's · −€3.40" />
             </div>
           </div>
           <div className="absolute" style={{ left: "78%", top: "45%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "3500ms" }}>
+            <div className="pin-drop" style={{ animationDelay: "600ms" }}>
               <HandPin color="var(--terracotta)" pulsing label="Marie · −50%" />
             </div>
           </div>
           <div className="absolute" style={{ left: "70%", top: "18%", transform: "translate(-50%, -42px)" }}>
-            <div className="pin-drop" style={{ animationDelay: "5500ms" }}>
+            <div className="pin-drop" style={{ animationDelay: "600ms" }}>
               <HandPin color="var(--forest)" pulsing label="Ramen · −€2.10" />
             </div>
           </div>
