@@ -102,7 +102,7 @@ export function createAppServer() {
         ...(await readJsonBody(req)),
         offer_id: offerId,
       });
-      const out = recordDecision(body);
+      const out = await recordDecision(body);
       if (out.error) return badRequest(res, out.error);
       return sendValidatedOutput(res, "offer_decision_output", out);
     }
@@ -112,13 +112,13 @@ export function createAppServer() {
       return sendValidatedOutput(
         res,
         "redemption_create_token_output",
-        createRedemptionToken(body)
+        await createRedemptionToken(body)
       );
     }
 
     if (req.method === "POST" && pathname === "/v1/redemption/validate") {
       const body = requireValidInput("redemption_validate_input", await readJsonBody(req));
-      const out = validateRedemption(body);
+      const out = await validateRedemption(body);
       if (out.error) return badRequest(res, out.error);
       return sendValidatedOutput(res, "redemption_validate_output", out);
     }
@@ -127,7 +127,7 @@ export function createAppServer() {
       const input = requireValidInput("wallet_cashback_input", {
         user_pseudonym: searchParams.get("user_pseudonym"),
       });
-      return sendValidatedOutput(res, "wallet_cashback_output", getCashback(input.user_pseudonym));
+      return sendValidatedOutput(res, "wallet_cashback_output", await getCashback(input.user_pseudonym));
     }
 
     if (req.method === "POST" && pathname === "/v1/merchant/rules") {
