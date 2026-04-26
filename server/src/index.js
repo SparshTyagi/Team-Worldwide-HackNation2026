@@ -1,11 +1,12 @@
 import http from "http";
+import { fileURLToPath } from "url";
 import { config } from "./config.js";
 import { sendJson, readJsonBody } from "./utils/json.js";
 import { SchemaValidationError, validateSchema } from "./validation.js";
 import {
   ingestIntent,
   listActiveOffers,
-  generateOfferForIntent,
+  generateAndPersistOfferForIntent,
   recordDecision,
   createRedemptionToken,
   validateRedemption,
@@ -46,17 +47,18 @@ function sendValidatedOutput(res, schemaName, payload, statusCode = 200) {
   return sendJson(res, statusCode, payload);
 }
 
-const server = http.createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const { pathname, searchParams } = url;
+export function createAppServer() {
+  return http.createServer(async (req, res) => {
+    try {
+      const url = new URL(req.url, `http://${req.headers.host}`);
+      const { pathname, searchParams } = url;
 
-    if (req.method === "GET" && pathname === "/health") {
-      return sendValidatedOutput(res, "health_output", {
-        ok: true,
-        llm_model: config.llmModel ?? undefined,
-      });
-    }
+      if (req.method === "GET" && pathname === "/health") {
+        return sendValidatedOutput(res, "health_output", {
+          ok: true,
+          llm_model: config.llmModel ?? undefined,
+        });
+      }
 
     if (req.method === "POST" && pathname === "/v1/intent-signal") {
       const body = requireValidInput("intent_signal_input", await readJsonBody(req));
@@ -75,10 +77,11 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && pathname === "/v1/offer/generate") {
       const body = requireValidInput("offer_generate_input", await readJsonBody(req));
-      const out = await generateOfferForIntent({
+      const out = await generateAndPersistOfferForIntent({
         intentPacket: body.intent_packet,
         channel: body.channel || "in_app",
         locality: body.locality,
+        userPseudonym: body.intent_packet?.user_pseudonym,
       });
       return sendValidatedOutput(
         res,
@@ -223,28 +226,33 @@ const server = http.createServer(async (req, res) => {
       return sendValidatedOutput(res, "internal_merchants_list_output", listMerchants(input));
     }
 
-    return notFound(res);
-  } catch (error) {
-    if (error instanceof SchemaValidationError) {
-      const statusCode = error.direction === "input" ? 400 : 500;
-      return sendJson(res, statusCode, {
-        error:
-          error.direction === "input"
-            ? "schema_input_validation_failed"
-            : "schema_output_validation_failed",
-        schema: error.schemaName,
-        details: error.details,
-      });
+      return notFound(res);
+    } catch (error) {
+      if (error instanceof SchemaValidationError) {
+        const statusCode = error.direction === "input" ? 400 : 500;
+        return sendJson(res, statusCode, {
+          error:
+            error.direction === "input"
+              ? "schema_input_validation_failed"
+              : "schema_output_validation_failed",
+          schema: error.schemaName,
+          details: error.details,
+        });
+      }
+      return sendJson(res, 500, { error: "internal_error", message: error.message });
     }
-    return sendJson(res, 500, { error: "internal_error", message: error.message });
-  }
-});
+  });
+}
 
-server.listen(config.port, config.host, () => {
-  if (!config.openRouterApiKey) {
-    console.warn(
-      "Warning: OPENROUTER_API_KEY is missing. Offer generation will run in deterministic fallback mode."
-    );
-  }
-  console.log(`City Wallet server listening on http://${config.host}:${config.port}`);
-});
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isMain) {
+  const server = createAppServer();
+  server.listen(config.port, config.host, () => {
+    if (!config.openRouterApiKey) {
+      console.warn(
+        "Warning: OPENROUTER_API_KEY is missing. Offer generation will run in deterministic fallback mode."
+      );
+    }
+    console.log(`City Wallet server listening on http://${config.host}:${config.port}`);
+  });
+}

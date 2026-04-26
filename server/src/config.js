@@ -38,7 +38,7 @@ export const config = {
     process.env.OPENROUTER_OFFER_MODEL ||
     process.env.OPENROUTEROFFERMODEL ||
     process.env.OPENROUTER_MODEL ||
-    "nvidia/nemotron-3-super:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
   defaults: {
     radiusKm: 2,
     offerTtlMinutes: 15,

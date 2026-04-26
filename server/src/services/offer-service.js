@@ -20,34 +20,22 @@ export async function ingestIntent(payload) {
 
 export async function listActiveOffers(query) {
   const user = query.user_pseudonym || "unknown_user";
-  const intents = Array.from(db.intents.values()).filter((i) => i.user_pseudonym === user);
-  const latestIntent = intents[intents.length - 1];
-  const generated = await generateOfferForIntent({
-    intentPacket: latestIntent,
-    channel: query.channel || "in_app",
-    locality: query.locality || latestIntent?.locality,
-  });
-  const offerRecord = persistGeneratedOffer({
-    user,
-    merchantId: generated.merchant_id,
-    generated: generated.generated,
-  });
+  let activeOffers = getActiveOffersForUser(user);
+
+  if (activeOffers.length === 0) {
+    const intents = Array.from(db.intents.values()).filter((i) => i.user_pseudonym === user);
+    const latestIntent = intents[intents.length - 1];
+    const created = await generateAndPersistOfferForIntent({
+      intentPacket: latestIntent,
+      channel: query.channel || "in_app",
+      locality: query.locality || latestIntent?.locality,
+      userPseudonym: user,
+    });
+    activeOffers = [created.offerRecord];
+  }
 
   return {
-    offers: [
-      {
-        offer_id: offerRecord.offer_id,
-        headline: offerRecord.headline,
-        body_line: offerRecord.body_line,
-        cta_text: offerRecord.cta_text,
-        discount_type: offerRecord.discount_type,
-        discount_value: offerRecord.discount_value,
-        valid_for_minutes: offerRecord.valid_for_minutes,
-        tone_style: offerRecord.tone_style,
-        ui_layout_variant: offerRecord.ui_layout_variant,
-        expires_at_utc: offerRecord.expires_at_utc,
-      },
-    ],
+    offers: activeOffers.map(toActiveOfferCard),
     generated_at_utc: nowIso(),
   };
 }
@@ -108,6 +96,33 @@ function persistGeneratedOffer({ user, merchantId, generated }) {
   return offerRecord;
 }
 
+function toActiveOfferCard(offerRecord) {
+  return {
+    offer_id: offerRecord.offer_id,
+    headline: offerRecord.headline,
+    body_line: offerRecord.body_line,
+    cta_text: offerRecord.cta_text,
+    discount_type: offerRecord.discount_type,
+    discount_value: offerRecord.discount_value,
+    valid_for_minutes: offerRecord.valid_for_minutes,
+    tone_style: offerRecord.tone_style,
+    ui_layout_variant: offerRecord.ui_layout_variant,
+    expires_at_utc: offerRecord.expires_at_utc,
+  };
+}
+
+function getActiveOffersForUser(userPseudonym) {
+  const nowMs = Date.now();
+  return Array.from(db.offers.values())
+    .filter((offer) => {
+      if (offer.user_pseudonym !== userPseudonym) return false;
+      if (!["shown", "accepted"].includes(offer.status)) return false;
+      if (!offer.expires_at_utc) return false;
+      return new Date(offer.expires_at_utc).getTime() > nowMs;
+    })
+    .sort((a, b) => new Date(b.created_at_utc).getTime() - new Date(a.created_at_utc).getTime());
+}
+
 export async function generateOfferForIntent({ intentPacket, channel = "in_app", locality }) {
   const candidates = filterMerchantsByLocality(
     db.merchants,
@@ -133,6 +148,25 @@ export async function generateOfferForIntent({ intentPacket, channel = "in_app",
     offer: generated.output,
     used_fallback: Boolean(generated.meta?.used_fallback),
     generated,
+  };
+}
+
+export async function generateAndPersistOfferForIntent({
+  intentPacket,
+  channel = "in_app",
+  locality,
+  userPseudonym,
+}) {
+  const generated = await generateOfferForIntent({ intentPacket, channel, locality });
+  const user = userPseudonym || intentPacket?.user_pseudonym || "unknown_user";
+  const offerRecord = persistGeneratedOffer({
+    user,
+    merchantId: generated.merchant_id,
+    generated: generated.generated,
+  });
+  return {
+    ...generated,
+    offerRecord,
   };
 }
 
